@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "${AZURE_ENV_NAME}" },
+    "location": { "value": "${AZURE_LOCATION=spaincentral}" },
+    "principalId": { "value": "${AZURE_PRINCIPAL_ID}" },
+    "principalType": { "value": "${AZURE_PRINCIPAL_TYPE=User}" },
+    "decisionSku": { "value": "${DECISION_SKU=DataZoneStandard}" },
+    "decisionCapacity": { "value": "${DECISION_CAPACITY=17}" },
+    "comparisonModels": { "value": "${COMPARISON_MODELS=gpt-5.4-mini,gpt-6-sol}" },
+    "comparisonSku": { "value": "${COMPARISON_SKU=DataZoneStandard}" },
+    "comparisonCapacity": { "value": "${COMPARISON_CAPACITY=50}" },
+    "appServiceSku": { "value": "${APP_SERVICE_SKU=B1}" },
+    "demoAccessCode": { "value": "${DEMO_ACCESS_CODE=}" }
+  }
+}

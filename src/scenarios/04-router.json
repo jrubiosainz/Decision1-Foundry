@@ -1,0 +1,227 @@
+{
+  "id": "router",
+  "order": 4,
+  "icon": "🔀",
+  "title": "Router de modelos GenAI",
+  "sector": "IA generativa (transversal)",
+  "brand": "Asistente GenAI corporativo",
+  "headline": "No todas las preguntas necesitan el modelo más caro: decide cuál en milisegundos.",
+  "view": "router",
+  "item_label": "petición",
+  "item_label_plural": "peticiones",
+  "item_ref": "la petición",
+  "batch_key": "peticiones",
+  "state_fields": {
+    "canal": "channel",
+    "peticion": "text"
+  },
+  "review_label": "Fallback a modelo grande",
+  "primary": "ruta",
+  "severity": "complejidad",
+  "context": "Pasarela de IA generativa de una empresa de viajes, hoteles y energía. Antes de llamar a un modelo, el router decide quién debe atender cada petición de clientes y empleados.",
+  "questions": {
+    "ruta": {
+      "type": "choice",
+      "instructions": "¿Quién debe atender esta petición?",
+      "criteria": {
+        "faq": "Respuesta predefinida: saludo o pregunta frecuente con respuesta ya publicada (horarios, políticas, servicios del hotel, contacto).",
+        "modelo_pequeno": "Modelo pequeño: tarea sencilla y acotada: traducir, corregir o resumir un texto corto, o consultar un dato concreto del cliente (estado de una reserva, de un pago o de un reembolso).",
+        "modelo_grande": "Modelo grande: razonamiento complejo, análisis de varios documentos, planificación, código o redacción extensa.",
+        "humano": "Persona: emergencia, queja grave, decisión con impacto legal o económico, o petición explícita de hablar con un agente."
+      }
+    },
+    "complejidad": {
+      "type": "score",
+      "instructions": "¿Qué complejidad tiene la tarea?",
+      "criteria": [
+        "Trivial",
+        "Baja",
+        "Media",
+        "Alta"
+      ]
+    },
+    "datos_internos": {
+      "type": "noul",
+      "instructions": "¿Hace falta consultar datos internos de la empresa o del cliente (reservas, pagos, contratos, informes, CRM)? La información pública del hotel (horarios, servicios, políticas) no cuenta."
+    },
+    "datos_personales": {
+      "type": "noul",
+      "instructions": "¿Contiene datos personales sensibles (salud, documentos de identidad, datos bancarios)?"
+    }
+  },
+  "routes": {
+    "faq": {
+      "label": "Respuesta FAQ",
+      "color": "#10b981",
+      "icon": "📚",
+      "cost_usd": 0.0,
+      "latency_ms": 50
+    },
+    "modelo_pequeno": {
+      "label": "Modelo pequeño",
+      "color": "#3b82f6",
+      "icon": "🪶",
+      "cost_usd": 0.0006,
+      "latency_ms": 900
+    },
+    "modelo_grande": {
+      "label": "Modelo grande",
+      "color": "#8b5cf6",
+      "icon": "🧠",
+      "cost_usd": 0.03,
+      "latency_ms": 12000
+    },
+    "humano": {
+      "label": "Agente humano",
+      "color": "#ef4444",
+      "icon": "🧑‍💼",
+      "cost_usd": 0.03,
+      "latency_ms": 0
+    }
+  },
+  "items": [
+    {
+      "id": "P-401",
+      "channel": "Web",
+      "lang": "es",
+      "text": "¿A qué hora es el check-out?",
+      "expected": {
+        "ruta": "faq"
+      }
+    },
+    {
+      "id": "P-402",
+      "channel": "Empleado",
+      "lang": "es",
+      "text": "Traduce al inglés este mensaje para un cliente: \"Su traslado está confirmado para mañana a las 9:00 en la puerta principal\".",
+      "expected": {
+        "ruta": "modelo_pequeno"
+      }
+    },
+    {
+      "id": "P-403",
+      "channel": "Empleado",
+      "lang": "es",
+      "text": "Analiza estas tres propuestas de proveedores de lavandería y recomiéndame una teniendo en cuenta el coste total a 3 años, los SLA y los riesgos contractuales.",
+      "expected": {
+        "ruta": "modelo_grande"
+      }
+    },
+    {
+      "id": "P-404",
+      "channel": "App",
+      "lang": "es",
+      "text": "Quiero hablar con una persona. Me habéis cobrado 1.200 € de más y nadie me responde. Esto es una vergüenza.",
+      "expected": {
+        "ruta": "humano"
+      }
+    },
+    {
+      "id": "P-405",
+      "channel": "Web",
+      "lang": "es",
+      "text": "¿Cuál es la política de cancelación de la tarifa no reembolsable?",
+      "expected": {
+        "ruta": "faq"
+      }
+    },
+    {
+      "id": "P-406",
+      "channel": "Empleado",
+      "lang": "es",
+      "text": "Resume en tres viñetas este email: \"Hola, llegamos el viernes a las 23:00, necesitamos cuna y que la habitación esté lejos del ascensor. Gracias.\"",
+      "expected": {
+        "ruta": "modelo_pequeno"
+      }
+    },
+    {
+      "id": "P-407",
+      "channel": "App",
+      "lang": "es",
+      "text": "Diséñame un itinerario de 10 días por Japón para una familia con dos niños y 8.000 € de presupuesto, combinando tren bala y vuelos internos.",
+      "expected": {
+        "ruta": "modelo_grande"
+      }
+    },
+    {
+      "id": "P-408",
+      "channel": "Web",
+      "lang": "en",
+      "text": "Do you have parking at the Madrid hotel?",
+      "expected": {
+        "ruta": "faq"
+      }
+    },
+    {
+      "id": "P-409",
+      "channel": "Empleado",
+      "lang": "es",
+      "text": "Escribe un script en Python que calcule la ocupación media por hotel a partir de un CSV y detecte anomalías semana a semana.",
+      "expected": {
+        "ruta": "modelo_grande"
+      }
+    },
+    {
+      "id": "P-410",
+      "channel": "Empleado",
+      "lang": "es",
+      "text": "Corrige la ortografía: \"Les informamos que el desayuno se sirbe de 7 a 10 en el restaurante prinzipal.\"",
+      "expected": {
+        "ruta": "modelo_pequeno"
+      }
+    },
+    {
+      "id": "P-411",
+      "channel": "App",
+      "lang": "es",
+      "text": "Mi hija ha tenido una reacción alérgica grave en el restaurante del hotel y estamos en el hospital. Necesito ayuda ya.",
+      "expected": {
+        "ruta": "humano"
+      }
+    },
+    {
+      "id": "P-412",
+      "channel": "Empleado",
+      "lang": "es",
+      "text": "Compara las ventas de los últimos 4 trimestres por canal y explícame, con los informes adjuntos, por qué cae el canal B2B.",
+      "expected": {
+        "ruta": "modelo_grande"
+      }
+    },
+    {
+      "id": "P-413",
+      "channel": "Web",
+      "lang": "es",
+      "text": "Hola",
+      "expected": {
+        "ruta": "faq"
+      }
+    },
+    {
+      "id": "P-414",
+      "channel": "App",
+      "lang": "en",
+      "text": "What's the status of my refund for booking BR-48213?",
+      "expected": {
+        "ruta": "modelo_pequeno"
+      }
+    }
+  ],
+  "notes": {
+    "reto": "Mandar todo al modelo más potente es lo fácil, pero dispara coste y latencia. La mayoría de las peticiones son saludos, FAQ o tareas sencillas que no lo necesitan.",
+    "solucion": "Antes de cada llamada, Decision-1 decide la ruta (FAQ, modelo pequeño, modelo grande o persona), la complejidad y si hacen falta datos internos o hay datos sensibles, en unos 300 ms y por una fracción de céntimo.",
+    "paradigma": "El router cuesta menos que lo que ahorra en una sola petición mal enrutada. Es FinOps de IA en tiempo real: el gasto en LLM baja a la mitad o más sin tocar las aplicaciones. El mismo patrón elige la skill de un agente de IA (plantilla «Skill picker» del laboratorio).",
+    "aplica_a": [
+      "Pasarelas de IA y APIM",
+      "Copilots internos",
+      "Chatbots de cliente",
+      "Gobierno de datos sensibles",
+      "Skill picker de agentes"
+    ],
+    "savings": {
+      "volume_month": 2000000,
+      "minutes_per_item": 0,
+      "eur_hour": 0
+    }
+  }
+}

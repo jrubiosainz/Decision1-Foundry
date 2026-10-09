@@ -1,0 +1,418 @@
+{
+  "groups": {"negocio": "💼 Procesos de negocio", "agentes": "🤖 Dentro de un agente de IA"},
+  "templates": [
+    {
+      "id": "qa-llamadas",
+      "group": "negocio",
+      "title": "📞 Calidad de llamadas",
+      "description": "Audita el 100 % de las llamadas del contact center, no una muestra.",
+      "state": "Transcripción de una llamada al servicio de atención de Nexa Energía.\nAgente: Buenas tardes, le atiende Laura, de Nexa Energía. ¿En qué puedo ayudarle?\nCliente: Hola. Me ha llegado una factura de 240 euros y normalmente pago unos 80.\nAgente: Entiendo su preocupación. ¿Me facilita el DNI del titular para localizar el contrato?\nCliente: Sí, 12345678Z.\nAgente: Gracias. La lectura de este mes es estimada y por eso el importe es tan alto. He pedido una lectura real y le rectificaremos la factura en un plazo de 5 días hábiles.\nCliente: Vale, muchas gracias.\nAgente: A usted. ¿Puedo ayudarle en algo más? Que tenga muy buena tarde.",
+      "questions": {
+        "motivo": {
+          "type": "choice",
+          "instructions": "¿Cuál es el motivo principal de la llamada?",
+          "criteria": {
+            "facturacion": "Facturas, cobros o lecturas.",
+            "averia": "Averías o cortes de suministro.",
+            "contratacion": "Altas, bajas, cambios de tarifa o de titular.",
+            "otros": "Otro motivo."
+          }
+        },
+        "resuelto": {"type": "noul", "instructions": "¿Termina la llamada con una solución concreta o un plazo comprometido?"},
+        "verifica_identidad": {"type": "noul", "instructions": "¿Verifica el agente la identidad del titular antes de dar datos del contrato?"},
+        "empatia": {"type": "score", "instructions": "¿Qué nivel de empatía muestra el agente?", "criteria": ["Ninguna", "Baja", "Correcta", "Alta"]},
+        "riesgo_baja": {"type": "noul", "instructions": "¿Amenaza el cliente con darse de baja o irse a otra compañía?"}
+      }
+    },
+    {
+      "id": "pii",
+      "group": "negocio",
+      "title": "🔒 Datos personales (PII)",
+      "description": "Decide en milisegundos si un texto puede guardarse, enviarse a un LLM o publicarse.",
+      "state": "Hola, soy Juan Pérez. Mi DNI es 50123456K y os escribo porque en la reserva del hotel pusisteis mal mi tarjeta, la 4111 1111 1111 1111. Además soy celíaco, así que necesito menú sin gluten. Mi móvil es el 600 123 456.",
+      "questions": {
+        "documento_identidad": {"type": "noul", "instructions": "¿Contiene un DNI, NIE o pasaporte?"},
+        "tarjeta_o_iban": {"type": "noul", "instructions": "¿Contiene un número de tarjeta o una cuenta bancaria?"},
+        "salud": {"type": "noul", "instructions": "¿Contiene información de salud?"},
+        "contacto": {"type": "noul", "instructions": "¿Contiene un teléfono o un email?"},
+        "riesgo": {"type": "score", "instructions": "¿Qué nivel de riesgo tiene el texto para la privacidad?", "criteria": ["Ninguno", "Bajo", "Medio", "Alto"]},
+        "accion": {
+          "type": "choice",
+          "instructions": "¿Qué hacer con el texto antes de enviarlo a un sistema externo?",
+          "criteria": {"enviar": "Se puede enviar tal cual.", "anonimizar": "Hay que anonimizarlo antes.", "bloquear": "No debe salir del sistema."}
+        }
+      }
+    },
+    {
+      "id": "rag",
+      "group": "negocio",
+      "title": "📚 Relevancia para RAG",
+      "description": "Re-ranking de documentos: puntúa cada pasaje antes de enviárselo al LLM.",
+      "state": {
+        "consulta": "¿Puedo cancelar sin gastos una tarifa no reembolsable si me pongo enfermo?",
+        "documentos": {
+          "D1": "Las tarifas no reembolsables no admiten cambios ni cancelaciones; el importe se cobra en el momento de la reserva.",
+          "D2": "El seguro de cancelación cubre la anulación por enfermedad grave del asegurado o de un familiar de primer grado, con justificante médico.",
+          "D3": "El spa abre todos los días de 9:00 a 21:00. El acceso para menores de 16 años no está permitido.",
+          "D4": "Tarifa flexible: cancelación gratuita hasta 48 horas antes de la llegada.",
+          "D5": "Se admiten perros de hasta 10 kg con un suplemento de 15 € por noche."
+        }
+      },
+      "questions": {
+        "D1": {
+          "type": "score",
+          "instructions": "¿Cuánto ayuda el documento D1 a responder la consulta?",
+          "criteria": ["Irrelevante", "Tangencial", "Relevante", "Responde directamente"]
+        },
+        "D2": {
+          "type": "score",
+          "instructions": "¿Cuánto ayuda el documento D2 a responder la consulta?",
+          "criteria": ["Irrelevante", "Tangencial", "Relevante", "Responde directamente"]
+        },
+        "D3": {
+          "type": "score",
+          "instructions": "¿Cuánto ayuda el documento D3 a responder la consulta?",
+          "criteria": ["Irrelevante", "Tangencial", "Relevante", "Responde directamente"]
+        },
+        "D4": {
+          "type": "score",
+          "instructions": "¿Cuánto ayuda el documento D4 a responder la consulta?",
+          "criteria": ["Irrelevante", "Tangencial", "Relevante", "Responde directamente"]
+        },
+        "D5": {
+          "type": "score",
+          "instructions": "¿Cuánto ayuda el documento D5 a responder la consulta?",
+          "criteria": ["Irrelevante", "Tangencial", "Relevante", "Responde directamente"]
+        },
+        "respondible": {"type": "noul", "instructions": "¿Hay información suficiente en los documentos para responder la consulta?"}
+      }
+    },
+    {
+      "id": "moderacion",
+      "group": "negocio",
+      "title": "📣 Moderación de redes",
+      "description": "Clasifica menciones en redes sociales y decide si responder en público.",
+      "state": "@BrisaHotels sois unos estafadores: me habéis cobrado el parking dos veces y nadie contesta. Como no me lo devolváis hoy, os voy a poner a caldo en todas las redes 😡",
+      "questions": {
+        "tipo": {
+          "type": "choice",
+          "instructions": "¿Qué tipo de mención es?",
+          "criteria": {
+            "queja": "Queja o reclamación.",
+            "consulta": "Pregunta o petición de información.",
+            "elogio": "Comentario positivo.",
+            "spam": "Publicidad o contenido irrelevante."
+          }
+        },
+        "toxicidad": {"type": "score", "instructions": "¿Qué nivel de toxicidad tiene el lenguaje?", "criteria": ["Ninguna", "Leve", "Moderada", "Grave"]},
+        "insulto": {"type": "noul", "instructions": "¿Contiene insultos?"},
+        "amenaza_fisica": {"type": "noul", "instructions": "¿Contiene una amenaza de violencia física?"},
+        "responder_en_publico": {"type": "noul", "instructions": "¿Conviene responder en público, además de por privado?"}
+      }
+    },
+    {
+      "id": "vacia",
+      "group": "negocio",
+      "title": "✍️ Desde cero",
+      "description": "Plantilla con un ejemplo de cada tipo de pregunta.",
+      "state": "Escribe aquí el texto (o un JSON) sobre el que quieres decidir.",
+      "questions": {
+        "categoria": {
+          "type": "choice",
+          "instructions": "¿A qué categoría pertenece?",
+          "criteria": {"a": "Descripción de la opción A.", "b": "Descripción de la opción B.", "c": "Descripción de la opción C."}
+        },
+        "prioridad": {"type": "score", "instructions": "¿Qué prioridad tiene?", "criteria": ["Baja", "Media", "Alta"]},
+        "requiere_humano": {"type": "noul", "instructions": "¿Requiere que lo revise una persona?"}
+      }
+    },
+    {
+      "id": "agente-skill",
+      "group": "agentes",
+      "title": "🧭 Skill picker",
+      "description": "Elige la skill (o ninguna) y el modelo antes de que el agente empiece a trabajar.",
+      "state": "Repositorio reservas-web: portal de reservas de una cadena hotelera (frontend React + API FastAPI).\n\nPetición del usuario al agente de programación:\n«El botón Pagar del checkout no hace nada en Safari en iPhone. En Chrome funciona. ¿Puedes revisarlo y arreglarlo?»",
+      "questions": {
+        "skill": {
+          "type": "choice",
+          "instructions": "¿Qué skill debe ejecutar el agente para atender la petición?",
+          "criteria": {
+            "depurar_frontend": "Diagnosticar y corregir errores de interfaz en el navegador: JavaScript, CSS y compatibilidad entre navegadores.",
+            "depurar_backend": "Diagnosticar errores de la API, la base de datos o la lógica de servidor.",
+            "escribir_tests": "Añadir o mejorar tests automáticos.",
+            "desplegar": "Construir y desplegar la aplicación en Azure.",
+            "documentar": "Escribir o actualizar documentación.",
+            "ninguna": "Ninguna skill aplica: responder directamente, sin herramientas."
+          }
+        },
+        "modelo": {
+          "type": "choice",
+          "instructions": "¿Qué modelo debe ejecutar la tarea?",
+          "criteria": {
+            "rapido": "Modelo rápido y barato: tareas pequeñas, acotadas y sin ambigüedad.",
+            "potente": "Modelo de razonamiento: depuración difícil, varios archivos o causa desconocida."
+          }
+        },
+        "aclarar": {
+          "type": "noul",
+          "instructions": "¿Falta información imprescindible para empezar, de forma que haya que preguntar al usuario antes de actuar?"
+        },
+        "complejidad": {"type": "score", "instructions": "¿Qué complejidad tiene la tarea?", "criteria": ["Trivial", "Pequeña", "Media", "Grande"]}
+      },
+      "labels": {
+        "questions": {"skill": "Skill", "modelo": "Modelo", "aclarar": "Pedir aclaración", "complejidad": "Complejidad"},
+        "values": {"modelo": {"rapido": "Rápido", "potente": "Potente"}}
+      }
+    },
+    {
+      "id": "agente-archivos",
+      "group": "agentes",
+      "title": "📂 Archivos relevantes",
+      "description": "Ordena los candidatos de una búsqueda para que el agente abra solo los necesarios.",
+      "state": "Repositorio reservas-web: portal de reservas de una cadena hotelera (frontend React + API FastAPI).\n\nPetición: «El botón Pagar del checkout no hace nada en Safari en iPhone. En Chrome funciona.»\n\nCandidatos de la búsqueda por palabras clave (ruta: contenido):\n- web/src/pages/Checkout.tsx: página de checkout: resumen de la reserva y botón «Pagar».\n- web/src/components/PayButton.tsx: botón de pago: onClick y Payment Request API.\n- web/src/hooks/usePayment.ts: hook que llama a POST /api/payments y gestiona los estados.\n- web/src/styles/checkout.css: estilos del checkout: overlay, z-index y pointer-events.\n- web/src/utils/browser.ts: detección de navegador y polyfills para Safari e iOS.\n- web/src/i18n/es.json: textos de la interfaz en español.\n- web/src/pages/Search.tsx: buscador de hoteles y filtros.\n- api/routes/payments.py: endpoint POST /api/payments.\n- api/models/booking.py: modelo de datos de la reserva.\n- docs/CHANGELOG.md: historial de versiones.\n- infra/main.bicep: infraestructura de Azure.\n- web/package.json: dependencias del frontend.",
+      "questions": {
+        "checkout_tsx": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/pages/Checkout.tsx para resolver la petición?"},
+        "paybutton_tsx": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/components/PayButton.tsx para resolver la petición?"},
+        "usepayment_ts": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/hooks/usePayment.ts para resolver la petición?"},
+        "checkout_css": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/styles/checkout.css para resolver la petición?"},
+        "browser_ts": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/utils/browser.ts para resolver la petición?"},
+        "es_json": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/i18n/es.json para resolver la petición?"},
+        "search_tsx": {"type": "noul", "instructions": "¿Debe el agente abrir web/src/pages/Search.tsx para resolver la petición?"},
+        "payments_py": {"type": "noul", "instructions": "¿Debe el agente abrir api/routes/payments.py para resolver la petición?"},
+        "booking_py": {"type": "noul", "instructions": "¿Debe el agente abrir api/models/booking.py para resolver la petición?"},
+        "changelog_md": {"type": "noul", "instructions": "¿Debe el agente abrir docs/CHANGELOG.md para resolver la petición?"},
+        "main_bicep": {"type": "noul", "instructions": "¿Debe el agente abrir infra/main.bicep para resolver la petición?"},
+        "package_json": {"type": "noul", "instructions": "¿Debe el agente abrir web/package.json para resolver la petición?"}
+      },
+      "labels": {
+        "questions": {
+          "checkout_tsx": "pages/Checkout.tsx",
+          "paybutton_tsx": "components/PayButton.tsx",
+          "usepayment_ts": "hooks/usePayment.ts",
+          "checkout_css": "styles/checkout.css",
+          "browser_ts": "utils/browser.ts",
+          "es_json": "i18n/es.json",
+          "search_tsx": "pages/Search.tsx",
+          "payments_py": "routes/payments.py",
+          "booking_py": "models/booking.py",
+          "changelog_md": "docs/CHANGELOG.md",
+          "main_bicep": "infra/main.bicep",
+          "package_json": "web/package.json"
+        }
+      },
+      "rank": {"title": "📂 Archivos a abrir", "yes": "Abrir", "no": "Omitir", "threshold": 0.5}
+    },
+    {
+      "id": "agente-compactacion",
+      "group": "agentes",
+      "title": "🗜️ Compactación de contexto",
+      "description": "Decide qué mensajes conservar cuando el contexto del agente se llena.",
+      "state": "Historial de una sesión de un agente de programación que hay que compactar para liberar contexto:\nM1 [usuario]: Quiero que la cancelación sea gratis hasta 24 horas antes del check-in.\nM2 [agente]: Voy a buscar dónde se calcula la penalización.\nM3 [herramienta]: grep «penalty»: 14 resultados en 6 archivos (listado completo de 180 líneas).\nM4 [agente]: La lógica está en api/services/cancellation.py, en la función cancellation_fee.\nM5 [usuario]: Ojo: las tarifas no reembolsables no cambian, siguen sin devolución.\nM6 [herramienta]: pytest: 212 passed, 0 failed (salida de 1.200 líneas).\nM7 [agente]: Cambio implementado en api/services/cancellation.py (cancellation_fee) y 3 tests nuevos.\nM8 [usuario]: Perfecto. Por cierto, ¿qué tal el fin de semana?\nM9 [agente]: ¡Muy bien, gracias! ¿Seguimos?\nM10 [usuario]: Sí. Falta la zona horaria: el check-in es a las 15:00, hora local del hotel.",
+      "questions": {
+        "m1": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M1 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m2": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M2 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m3": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M3 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m4": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M4 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m5": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M5 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m6": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M6 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m7": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M7 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m8": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M8 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m9": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M9 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        },
+        "m10": {
+          "type": "noul",
+          "instructions": "¿Hay que conservar M10 al compactar? Conserva requisitos del usuario, decisiones, hallazgos y el estado del trabajo; descarta la charla y las salidas de herramientas ya resumidas en otros mensajes."
+        }
+      },
+      "labels": {
+        "questions": {
+          "m1": "M1 · usuario: cancelación gratis hasta 24 h",
+          "m2": "M2 · agente: voy a buscar la penalización",
+          "m3": "M3 · herramienta: grep, 14 resultados",
+          "m4": "M4 · agente: la lógica está en cancellation_fee",
+          "m5": "M5 · usuario: no reembolsables, sin cambios",
+          "m6": "M6 · herramienta: pytest, 212 passed",
+          "m7": "M7 · agente: cambio hecho y 3 tests",
+          "m8": "M8 · usuario: ¿qué tal el fin de semana?",
+          "m9": "M9 · agente: ¡bien, gracias!",
+          "m10": "M10 · usuario: check-in a las 15:00 hora local"
+        }
+      },
+      "rank": {"title": "🗜️ Mensajes a conservar", "yes": "Conservar", "no": "Descartar", "threshold": 0.5}
+    },
+    {
+      "id": "agente-reglas",
+      "group": "agentes",
+      "title": "🛡️ Reglas del proyecto",
+      "description": "Comprueba cada cambio contra las reglas y bloquea las infracciones claras (≥ 80 %).",
+      "state": "Reglas del proyecto (AGENTS.md):\nR1. No se escriben secretos, claves ni cadenas de conexión en el código: se usan Key Vault o identidades administradas.\nR2. Toda consulta SQL usa parámetros; nunca se concatenan cadenas con datos del usuario.\nR3. Todo endpoint nuevo exige autenticación.\nR4. Los importes se calculan con Decimal, nunca con float.\nR5. No se escriben datos personales (email, teléfono, DNI o tarjeta) en los logs.\nR6. Todo cambio de lógica de negocio incluye tests.\n\nCambio propuesto por el agente:\n+ # api/routes/loyalty.py\n+ PAGOS_API_KEY = \"prod-7f3a9c…e21\"\n+\n+ @router.get(\"/loyalty/points\", dependencies=[Depends(require_user)])\n+ async def points(email: str):\n+     log.info(f\"Consultando los puntos de {email}\")\n+     rows = db.execute(f\"SELECT points FROM loyalty WHERE email = '{email}'\")\n+     return {\"saldo_eur\": Decimal(rows[0].points) * Decimal(\"0.01\")}\n+\n+ # api/tests/test_loyalty.py\n+ def test_points_returns_balance(client, user):\n+     assert client.get(\"/loyalty/points\", params={\"email\": user.email}).json()[\"saldo_eur\"] == Decimal(\"12.50\")",
+      "questions": {
+        "r1": {
+          "type": "noul",
+          "instructions": "¿El cambio propuesto infringe la regla R1: «No se escriben secretos, claves ni cadenas de conexión en el código: se usan Key Vault o identidades administradas.»?"
+        },
+        "r2": {
+          "type": "noul",
+          "instructions": "¿El cambio propuesto infringe la regla R2: «Toda consulta SQL usa parámetros; nunca se concatenan cadenas con datos del usuario.»?"
+        },
+        "r3": {"type": "noul", "instructions": "¿El cambio propuesto infringe la regla R3: «Todo endpoint nuevo exige autenticación.»?"},
+        "r4": {"type": "noul", "instructions": "¿El cambio propuesto infringe la regla R4: «Los importes se calculan con Decimal, nunca con float.»?"},
+        "r5": {
+          "type": "noul",
+          "instructions": "¿El cambio propuesto infringe la regla R5: «No se escriben datos personales (email, teléfono, DNI o tarjeta) en los logs.»?"
+        },
+        "r6": {"type": "noul", "instructions": "¿El cambio propuesto infringe la regla R6: «Todo cambio de lógica de negocio incluye tests.»?"}
+      },
+      "labels": {
+        "questions": {
+          "r1": "R1 · Secretos",
+          "r2": "R2 · SQL",
+          "r3": "R3 · Autenticación",
+          "r4": "R4 · Importes",
+          "r5": "R5 · Datos personales",
+          "r6": "R6 · Tests"
+        }
+      },
+      "rank": {"title": "🛡️ Infracciones", "yes": "Bloquear", "no": "Cumple", "threshold": 0.8, "tone": "bad"}
+    },
+    {
+      "id": "agente-revision",
+      "group": "agentes",
+      "title": "🔍 Revisión adaptativa",
+      "description": "Siete preguntas de riesgo deciden si un cambio necesita revisión rápida o exhaustiva.",
+      "state": "Pull request #482 · «Cancelación gratis hasta 24 h antes del check-in»\nArchivos: api/services/cancellation.py (+38 −12), api/routes/bookings.py (+1 −1), api/tests/test_cancellation.py (+41 −0)\n\n--- api/services/cancellation.py\n+def cancellation_fee(booking, now):\n+    hours_left = (booking.check_in - now).total_seconds() / 3600\n+    if hours_left >= 24:\n+        return Decimal(\"0\")\n+    return booking.total * booking.rate.penalty_pct\n\n--- api/routes/bookings.py\n-@router.post(\"/bookings/{id}/cancel\", dependencies=[Depends(require_owner_or_admin)])\n+@router.post(\"/bookings/{id}/cancel\")\n\n--- api/tests/test_cancellation.py\n+def test_free_cancellation_more_than_24h(): ...\n+def test_fee_less_than_24h(): ...\n+def test_non_refundable_keeps_fee(): ...",
+      "questions": {
+        "dinero": {"type": "noul", "instructions": "¿El cambio afecta a cobros, reembolsos, precios o penalizaciones?"},
+        "seguridad": {"type": "noul", "instructions": "¿El cambio debilita la autenticación, la autorización o los permisos?"},
+        "datos": {"type": "noul", "instructions": "¿El cambio modifica el esquema de la base de datos o migra datos?"},
+        "api_publica": {"type": "noul", "instructions": "¿Cambia el contrato de una API pública: rutas, parámetros o formato de respuesta?"},
+        "sin_tests": {"type": "noul", "instructions": "¿Hay lógica nueva o modificada que no cubra ningún test?"},
+        "fechas": {"type": "noul", "instructions": "¿Hay cálculos con fechas, horas o zonas horarias que puedan fallar en casos límite?"},
+        "tamano": {"type": "noul", "instructions": "¿Es un cambio grande: más de 300 líneas o más de 10 archivos?"},
+        "revision": {
+          "type": "choice",
+          "instructions": "¿Qué nivel de revisión necesita este pull request antes de fusionarlo?",
+          "criteria": {
+            "rapida": "Rápida y automática: cambio pequeño y sin riesgos.",
+            "estandar": "Estándar: una persona del equipo lo revisa.",
+            "exhaustiva": "Exhaustiva: dos personas y un experto, porque toca seguridad, dinero o datos."
+          }
+        }
+      },
+      "labels": {
+        "questions": {
+          "dinero": "Dinero",
+          "seguridad": "Seguridad",
+          "datos": "Datos",
+          "api_publica": "API pública",
+          "sin_tests": "Sin tests",
+          "fechas": "Fechas y zonas",
+          "tamano": "Tamaño",
+          "revision": "Nivel de revisión"
+        },
+        "values": {"revision": {"rapida": "Rápida", "estandar": "Estándar", "exhaustiva": "Exhaustiva"}}
+      },
+      "rank": {"title": "🔍 Riesgos detectados", "yes": "Riesgo", "no": "Sin riesgo", "threshold": 0.5, "tone": "warn"}
+    },
+    {
+      "id": "agente-navegador",
+      "group": "agentes",
+      "title": "🌐 Testing en navegador",
+      "description": "Elige el siguiente clic de un test funcional a partir del estado de la página.",
+      "state": {
+        "objetivo_del_test": "Buscar una habitación doble en Barcelona del 12 al 14 de noviembre para 2 adultos y llegar a la pantalla de pago.",
+        "pasos_hechos": ["Abrir la página de inicio", "Escribir «Barcelona» en Destino", "Elegir las fechas 12-14 nov"],
+        "pagina_actual": "Inicio. Buscador con Destino = Barcelona, Fechas = 12-14 nov y Huéspedes = 1 adulto.",
+        "elementos_visibles": {
+          "iniciar_sesion": "Enlace «Iniciar sesión»",
+          "huespedes": "Selector «Huéspedes: 1 adulto»",
+          "buscar": "Botón «Buscar»",
+          "ofertas": "Enlace «Ofertas de última hora»",
+          "idioma": "Selector de idioma «ES»",
+          "ayuda": "Enlace «Ayuda»"
+        }
+      },
+      "questions": {
+        "siguiente_accion": {
+          "type": "choice",
+          "instructions": "¿Sobre qué elemento debe actuar ahora el agente para avanzar hacia el objetivo del test?",
+          "criteria": {
+            "iniciar_sesion": "Enlace «Iniciar sesión»",
+            "huespedes": "Selector «Huéspedes: 1 adulto»",
+            "buscar": "Botón «Buscar»",
+            "ofertas": "Enlace «Ofertas de última hora»",
+            "idioma": "Selector de idioma «ES»",
+            "ayuda": "Enlace «Ayuda»"
+          }
+        },
+        "objetivo_cumplido": {"type": "noul", "instructions": "¿Se ha cumplido ya el objetivo del test?"},
+        "error_en_pagina": {"type": "noul", "instructions": "¿Hay un error visible o un bloqueo que impida continuar?"}
+      },
+      "labels": {
+        "questions": {"siguiente_accion": "Siguiente acción", "objetivo_cumplido": "Objetivo cumplido", "error_en_pagina": "Error en la página"},
+        "values": {
+          "siguiente_accion": {
+            "iniciar_sesion": "Iniciar sesión",
+            "huespedes": "Huéspedes",
+            "buscar": "Buscar",
+            "ofertas": "Ofertas",
+            "idioma": "Idioma",
+            "ayuda": "Ayuda"
+          }
+        }
+      }
+    },
+    {
+      "id": "agente-cobertura",
+      "group": "agentes",
+      "title": "📋 Requisitos sin tests",
+      "description": "Contrasta la documentación funcional con los tests y encuentra lo que nadie prueba.",
+      "state": "Requisitos funcionales (docs/cancelaciones.md):\nRF1. La cancelación es gratuita hasta 24 h antes del check-in.\nRF2. Con menos de 24 h se cobra el porcentaje de penalización de la tarifa.\nRF3. Las tarifas no reembolsables nunca devuelven importe.\nRF4. Las 24 h se cuentan en la hora local del hotel.\nRF5. El cliente recibe un email de confirmación al cancelar.\nRF6. Un administrador puede cancelar cualquier reserva sin penalización.\n\nTests existentes (api/tests/test_cancellation.py):\n- test_free_cancellation_more_than_24h\n- test_fee_less_than_24h\n- test_non_refundable_keeps_fee\n- test_admin_cancels_without_fee\n- test_booking_list_pagination",
+      "questions": {
+        "rf1": {"type": "noul", "instructions": "¿Le falta un test a RF1, es decir, ningún test existente lo comprueba?"},
+        "rf2": {"type": "noul", "instructions": "¿Le falta un test a RF2, es decir, ningún test existente lo comprueba?"},
+        "rf3": {"type": "noul", "instructions": "¿Le falta un test a RF3, es decir, ningún test existente lo comprueba?"},
+        "rf4": {"type": "noul", "instructions": "¿Le falta un test a RF4, es decir, ningún test existente lo comprueba?"},
+        "rf5": {"type": "noul", "instructions": "¿Le falta un test a RF5, es decir, ningún test existente lo comprueba?"},
+        "rf6": {"type": "noul", "instructions": "¿Le falta un test a RF6, es decir, ningún test existente lo comprueba?"}
+      },
+      "labels": {
+        "questions": {
+          "rf1": "RF1 · La cancelación es gratuita hasta 24 h antes del check-in.",
+          "rf2": "RF2 · Con menos de 24 h se cobra el porcentaje de penalización de la tarifa.",
+          "rf3": "RF3 · Las tarifas no reembolsables nunca devuelven importe.",
+          "rf4": "RF4 · Las 24 h se cuentan en la hora local del hotel.",
+          "rf5": "RF5 · El cliente recibe un email de confirmación al cancelar.",
+          "rf6": "RF6 · Un administrador puede cancelar cualquier reserva sin penalización."
+        }
+      },
+      "rank": {"title": "📋 Requisitos sin test", "yes": "Falta test", "no": "Cubierto", "threshold": 0.5, "tone": "warn"}
+    }
+  ]
+}

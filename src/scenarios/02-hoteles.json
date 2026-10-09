@@ -1,0 +1,336 @@
+{
+  "id": "hoteles",
+  "order": 2,
+  "icon": "🏨",
+  "title": "Voz del huésped",
+  "sector": "Hoteles y resorts",
+  "brand": "Brisa Hotels & Resorts",
+  "headline": "Todas las reseñas, en todos los idiomas, convertidas en acciones y en un mapa de calor por hotel.",
+  "view": "heatmap",
+  "item_label": "reseña",
+  "item_label_plural": "reseñas",
+  "item_ref": "la reseña",
+  "batch_key": "reseñas",
+  "state_fields": {
+    "hotel": "hotel",
+    "plataforma": "source",
+    "reseña": "text"
+  },
+  "review_label": "Revisión humana",
+  "primary": "accion",
+  "severity": "sentimiento",
+  "context": "Equipo de calidad de Brisa Hotels & Resorts, cadena vacacional y urbana con hoteles en España y el Caribe. Las reseñas llegan de Google, Booking, TripAdvisor y la encuesta post-estancia, en varios idiomas.",
+  "questions": {
+    "accion": {
+      "type": "choice",
+      "instructions": "¿Qué debe hacer el equipo de calidad con esta reseña?",
+      "criteria": {
+        "escalar": "Escalar a dirección ya: riesgo para la salud, la seguridad o la reputación (intoxicación, chinches, accidente, discriminación, amenaza de denuncia o difusión).",
+        "responder": "Responder: queja o mala experiencia concreta que requiere una respuesta del equipo de calidad.",
+        "agradecer": "Agradecer: reseña positiva o mayoritariamente positiva.",
+        "archivar": "Archivar: reseña neutra o genérica, sin nada que gestionar."
+      }
+    },
+    "sentimiento": {
+      "type": "score",
+      "instructions": "¿Cuál es el sentimiento global del huésped?",
+      "criteria": [
+        "Muy negativo",
+        "Negativo",
+        "Neutro",
+        "Positivo",
+        "Muy positivo"
+      ]
+    },
+    "limpieza": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped la limpieza?",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "habitacion": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped la habitación (confort, tamaño, estado, ruido, camas)?",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "comida": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped la comida y la bebida?",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "personal": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped al personal y el servicio (trato, recepción y check-in, rapidez, atención)?",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "instalaciones": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped las instalaciones y servicios comunes (piscinas, spa, tumbonas, wifi, zonas comunes)?",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "ubicacion": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped la ubicación y el entorno?",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "precio": {
+      "type": "choice",
+      "instructions": "¿Cómo valora el huésped la relación calidad-precio? Si no habla de precios ni de lo que pagó, la respuesta es sin_mencion.",
+      "criteria": {
+        "sin_mencion": "No habla de este aspecto.",
+        "negativo": "Lo critica.",
+        "neutro": "Lo menciona sin valorarlo claramente.",
+        "positivo": "Lo elogia."
+      }
+    },
+    "elogia_empleado": {
+      "type": "noul",
+      "instructions": "¿Elogia expresamente a algún empleado o equipo del hotel (por su nombre o por su puesto)?"
+    }
+  },
+  "actions": {
+    "escalar": {
+      "label": "Escalar a dirección",
+      "color": "#ef4444",
+      "icon": "🚨"
+    },
+    "responder": {
+      "label": "Responder",
+      "color": "#f59e0b",
+      "icon": "💬"
+    },
+    "agradecer": {
+      "label": "Agradecer",
+      "color": "#10b981",
+      "icon": "🙏"
+    },
+    "archivar": {
+      "label": "Archivar",
+      "color": "#64748b",
+      "icon": "🗂️"
+    }
+  },
+  "themes": {
+    "limpieza": "Limpieza",
+    "habitacion": "Habitación",
+    "comida": "Comida",
+    "personal": "Personal",
+    "instalaciones": "Instalaciones",
+    "ubicacion": "Ubicación",
+    "precio": "Calidad-precio"
+  },
+  "hotels": [
+    "Brisa Palma Beach",
+    "Brisa Tenerife Garden",
+    "Brisa Madrid Centro",
+    "Brisa Cancún Resort",
+    "Brisa Punta Cana"
+  ],
+  "items": [
+    {
+      "id": "R-201",
+      "hotel": "Brisa Palma Beach",
+      "source": "Booking",
+      "lang": "es",
+      "text": "Habitación impecable y con vistas al mar. Lo mejor, Lucía en recepción: nos consiguió mesa en el restaurante el día de nuestro aniversario. Repetiremos.",
+      "expected": {
+        "accion": "agradecer"
+      }
+    },
+    {
+      "id": "R-202",
+      "hotel": "Brisa Palma Beach",
+      "source": "Google",
+      "lang": "de",
+      "text": "Das Frühstück war jeden Tag gleich und um 9:30 Uhr war fast nichts mehr da. Das Zimmer war sauber, aber für diesen Preis enttäuschend.",
+      "expected": {
+        "accion": "responder"
+      }
+    },
+    {
+      "id": "R-203",
+      "hotel": "Brisa Palma Beach",
+      "source": "TripAdvisor",
+      "lang": "en",
+      "text": "Woke up with bites all over my arms and found bed bugs in the mattress on night two. Management moved us but never apologised. Posting photos everywhere.",
+      "expected": {
+        "accion": "escalar"
+      }
+    },
+    {
+      "id": "R-204",
+      "hotel": "Brisa Tenerife Garden",
+      "source": "Encuesta",
+      "lang": "es",
+      "text": "Todo correcto. Piscina bien, comida normal, nada especial.",
+      "expected": {
+        "accion": "archivar"
+      }
+    },
+    {
+      "id": "R-205",
+      "hotel": "Brisa Tenerife Garden",
+      "source": "Booking",
+      "lang": "fr",
+      "text": "Le personnel de l'animation était génial avec nos enfants, surtout Marco ! Par contre, le wifi ne fonctionne pas dans les chambres et personne n'a pu le réparer en une semaine.",
+      "expected": {
+        "accion": "responder"
+      }
+    },
+    {
+      "id": "R-206",
+      "hotel": "Brisa Tenerife Garden",
+      "source": "Google",
+      "lang": "it",
+      "text": "Posizione fantastica, a due passi dalla spiaggia. Camera un po' piccola ma pulitissima. Consigliato!",
+      "expected": {
+        "accion": "agradecer"
+      }
+    },
+    {
+      "id": "R-207",
+      "hotel": "Brisa Tenerife Garden",
+      "source": "Encuesta",
+      "lang": "es",
+      "text": "La barandilla del balcón de la habitación 412 está suelta. Mi hijo de 5 años se apoyó y casi se cae. Lo comunicamos y seguía igual al irnos.",
+      "expected": {
+        "accion": "escalar"
+      }
+    },
+    {
+      "id": "R-208",
+      "hotel": "Brisa Madrid Centro",
+      "source": "Google",
+      "lang": "es",
+      "text": "Me intoxiqué con el pescado del buffet de la cena y acabé en urgencias. Nadie del hotel se ha interesado. Voy a poner una reclamación.",
+      "expected": {
+        "accion": "escalar"
+      }
+    },
+    {
+      "id": "R-209",
+      "hotel": "Brisa Madrid Centro",
+      "source": "Booking",
+      "lang": "en",
+      "text": "Perfect location for business trips, fast check-in and great coffee in the lobby. The room facing the street was a little noisy, but they gave us earplugs. Will be back.",
+      "expected": {
+        "accion": "agradecer"
+      }
+    },
+    {
+      "id": "R-210",
+      "hotel": "Brisa Madrid Centro",
+      "source": "TripAdvisor",
+      "lang": "pt",
+      "text": "O quarto cheirava a tabaco e o ar condicionado não funcionou. Pedi para mudar e disseram que o hotel estava cheio. Não volto.",
+      "expected": {
+        "accion": "responder"
+      }
+    },
+    {
+      "id": "R-211",
+      "hotel": "Brisa Cancún Resort",
+      "source": "Google",
+      "lang": "en",
+      "text": "Our week at the resort was a dream. Spotless beach, amazing pools and the kids' club staff were fantastic. Worth every penny.",
+      "expected": {
+        "accion": "agradecer"
+      }
+    },
+    {
+      "id": "R-212",
+      "hotel": "Brisa Cancún Resort",
+      "source": "Encuesta",
+      "lang": "es",
+      "text": "Un vigilante de seguridad trató de forma racista a mi marido en la entrada del club de playa. Inaceptable. Quiero una explicación por escrito.",
+      "expected": {
+        "accion": "escalar"
+      }
+    },
+    {
+      "id": "R-213",
+      "hotel": "Brisa Cancún Resort",
+      "source": "TripAdvisor",
+      "lang": "de",
+      "text": "All-inclusive mit sehr guter Auswahl, die Steaks im À-la-carte-Restaurant waren hervorragend. Die Zimmer sind etwas in die Jahre gekommen.",
+      "expected": {
+        "accion": "agradecer"
+      }
+    },
+    {
+      "id": "R-214",
+      "hotel": "Brisa Punta Cana",
+      "source": "Google",
+      "lang": "es",
+      "text": "Precio altísimo para lo que ofrece: bebidas aguadas, tumbonas ocupadas desde las 7 de la mañana y un spa que hay que pagar aparte.",
+      "expected": {
+        "accion": "responder"
+      }
+    },
+    {
+      "id": "R-215",
+      "hotel": "Brisa Punta Cana",
+      "source": "Booking",
+      "lang": "en",
+      "text": "Check-in took 2 hours and our room wasn't ready until 6 pm, after a 10-hour flight with a baby. The rest of the stay was fine.",
+      "expected": {
+        "accion": "responder"
+      }
+    },
+    {
+      "id": "R-216",
+      "hotel": "Brisa Punta Cana",
+      "source": "Booking",
+      "lang": "es",
+      "text": "Gracias a Andrés, nuestro mayordomo, la luna de miel fue perfecta. Cada noche había un detalle nuevo en la habitación. ¡Volveremos!",
+      "expected": {
+        "accion": "agradecer"
+      }
+    }
+  ],
+  "notes": {
+    "reto": "Miles de reseñas al mes en 6 idiomas y 5 plataformas. Hoy se leen tarde y por muestreo: los incidentes graves (chinches, intoxicaciones, seguridad) se detectan cuando ya son virales.",
+    "solucion": "Una sola llamada por reseña responde a 10 preguntas: acción, sentimiento, valoración de 7 aspectos y si elogia a un empleado. El resultado alimenta un mapa de calor por hotel y una cola de alertas.",
+    "paradigma": "Decision-1 hace la criba (System 1) y un LLM solo redacta las respuestas que hacen falta (System 2). Se analiza el 100 % de las reseñas, no una muestra, y el gasto en LLM cae a una fracción.",
+    "aplica_a": [
+      "Reseñas y encuestas NPS",
+      "Redes sociales",
+      "Reconocimiento al empleado",
+      "Calidad por hotel y por aspecto"
+    ],
+    "savings": {
+      "volume_month": 60000,
+      "minutes_per_item": 2,
+      "eur_hour": 22
+    }
+  }
+}

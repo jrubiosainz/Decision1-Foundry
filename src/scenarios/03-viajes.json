@@ -1,0 +1,271 @@
+{
+  "id": "viajes",
+  "order": 3,
+  "icon": "✈️",
+  "title": "Asistencia 24/7",
+  "sector": "Viajes y turoperación",
+  "brand": "Alisio Travel Group",
+  "headline": "La bandeja se ordena sola por SLA: primero el viajero que está tirado en el aeropuerto.",
+  "view": "inbox",
+  "item_label": "mensaje",
+  "item_label_plural": "mensajes",
+  "item_ref": "el mensaje",
+  "batch_key": "mensajes",
+  "state_fields": {
+    "canal": "channel",
+    "cliente": "customer",
+    "mensaje": "text"
+  },
+  "review_label": "Revisión humana",
+  "primary": "equipo",
+  "severity": "urgencia",
+  "context": "Centro de asistencia 24/7 de Alisio Travel Group: turoperador, agencias de viajes, traslados y servicios en destino. Escriben viajeros particulares y agencias colaboradoras, por WhatsApp, email y chat, en varios idiomas.",
+  "questions": {
+    "equipo": {
+      "type": "choice",
+      "instructions": "¿Qué equipo debe atender este mensaje?",
+      "criteria": {
+        "asistencia_destino": "Asistencia en destino: el viajero ya está de viaje y tiene un problema con el hotel, una excursión, documentación perdida, un robo o la salud.",
+        "traslados": "Traslados: recogidas en aeropuerto u hotel, conductor que no aparece, cambios de hora de recogida.",
+        "aereo": "Vuelos: retrasos, cancelaciones de la aerolínea, cambios de vuelo, equipaje, check-in, conexiones perdidas.",
+        "reservas": "Reservas y ventas: presupuestos, nuevas reservas, ampliaciones o mejoras de un viaje.",
+        "cancelaciones": "Cancelaciones y reembolsos pedidos por el cliente, seguro de cancelación.",
+        "agencias_b2b": "Agencias y partners B2B: comisiones, liquidaciones, extranet, contratos, alta de nuevos partners.",
+        "otros": "Otros: felicitaciones, sugerencias o temas que no encajan en los anteriores."
+      }
+    },
+    "urgencia": {
+      "type": "score",
+      "instructions": "¿Con qué urgencia hay que responder?",
+      "criteria": [
+        "Baja: consulta sin fecha próxima; responder en 24 h.",
+        "Media: trámite con plazo de días; responder en 4 h.",
+        "Alta: afecta al viaje en las próximas horas; responder en 30 min.",
+        "Crítica: el viajero está en apuros ahora mismo: salud, seguridad o se ha quedado tirado sin el servicio contratado (nadie le recoge, sin alojamiento); responder en 5 min."
+      ]
+    },
+    "en_destino": {
+      "type": "noul",
+      "instructions": "¿Está el viajero de viaje ahora mismo (en destino, en el aeropuerto o en tránsito)? Si escribe antes de salir o después de volver, la respuesta es no."
+    },
+    "oportunidad_venta": {
+      "type": "noul",
+      "instructions": "¿Quiere el cliente comprar algo nuevo (otro viaje, ampliar la estancia, mejorar o añadir servicios)? Reclamar algo que ya ha pagado no es una oportunidad de venta."
+    }
+  },
+  "teams": {
+    "asistencia_destino": {
+      "label": "Asistencia en destino",
+      "color": "#ef4444"
+    },
+    "traslados": {
+      "label": "Traslados",
+      "color": "#f97316"
+    },
+    "aereo": {
+      "label": "Aéreo",
+      "color": "#3b82f6"
+    },
+    "reservas": {
+      "label": "Reservas y ventas",
+      "color": "#10b981"
+    },
+    "cancelaciones": {
+      "label": "Cancelaciones",
+      "color": "#8b5cf6"
+    },
+    "agencias_b2b": {
+      "label": "Agencias B2B",
+      "color": "#0ea5e9"
+    },
+    "otros": {
+      "label": "Otros",
+      "color": "#64748b"
+    }
+  },
+  "sla_minutes": [
+    1440,
+    240,
+    30,
+    5
+  ],
+  "upsell_value_eur": 450,
+  "items": [
+    {
+      "id": "M-301",
+      "channel": "WhatsApp",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "Estamos en el aeropuerto de Punta Cana y el conductor del traslado no aparece. Llevamos 40 minutos esperando con dos niños pequeños.",
+      "expected": {
+        "equipo": "traslados"
+      }
+    },
+    {
+      "id": "M-302",
+      "channel": "Email",
+      "customer": "Particular",
+      "lang": "en",
+      "text": "The airline cancelled our flight to Cancún, which was due to leave tomorrow morning. Can you rebook us and keep the hotel booking?",
+      "expected": {
+        "equipo": "aereo"
+      }
+    },
+    {
+      "id": "M-303",
+      "channel": "Web",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "Quiero presupuesto para 7 noches en Riviera Maya en julio, 2 adultos y 2 niños, todo incluido.",
+      "expected": {
+        "equipo": "reservas"
+      }
+    },
+    {
+      "id": "M-304",
+      "channel": "Email",
+      "customer": "Particular",
+      "lang": "fr",
+      "text": "Bonjour, je dois annuler notre voyage à Lisbonne pour raison médicale. J'ai souscrit l'assurance annulation. Comment être remboursé ?",
+      "expected": {
+        "equipo": "cancelaciones"
+      }
+    },
+    {
+      "id": "M-305",
+      "channel": "Email",
+      "customer": "Agencia",
+      "lang": "es",
+      "text": "Somos Viajes Sol y Mar. No nos aparece la comisión del expediente 88123 en la liquidación de septiembre.",
+      "expected": {
+        "equipo": "agencias_b2b"
+      }
+    },
+    {
+      "id": "M-306",
+      "channel": "WhatsApp",
+      "customer": "Particular",
+      "lang": "en",
+      "text": "Lost my passport in Rome today and our flight home is in 2 days. What do we do??",
+      "expected": {
+        "equipo": "asistencia_destino"
+      }
+    },
+    {
+      "id": "M-307",
+      "channel": "Email",
+      "customer": "Particular",
+      "lang": "de",
+      "text": "Wir sind gerade im Hotel in Tulum angekommen und es gefällt uns so gut, dass wir 3 Nächte verlängern möchten. Geht das?",
+      "expected": {
+        "equipo": "reservas"
+      }
+    },
+    {
+      "id": "M-308",
+      "channel": "Chat",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "Acabamos de llegar al hotel de Cancún y nos han dado una habitación con dos camas individuales. Habíamos reservado una suite con jacuzzi para nuestra luna de miel.",
+      "expected": {
+        "equipo": "asistencia_destino"
+      }
+    },
+    {
+      "id": "M-309",
+      "channel": "Email",
+      "customer": "Particular",
+      "lang": "it",
+      "text": "Il volo di ritorno da Ibiza è in ritardo di 5 ore: perderemo la coincidenza a Madrid per Milano.",
+      "expected": {
+        "equipo": "aereo"
+      }
+    },
+    {
+      "id": "M-310",
+      "channel": "Web",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "¿Cuánto equipaje de mano se puede llevar en los vuelos chárter a Cuba?",
+      "expected": {
+        "equipo": "aereo"
+      }
+    },
+    {
+      "id": "M-311",
+      "channel": "WhatsApp",
+      "customer": "Particular",
+      "lang": "pt",
+      "text": "A minha mãe passou mal na excursão de barco em Saona e estamos a caminho do hospital. O seguro cobre?",
+      "expected": {
+        "equipo": "asistencia_destino"
+      }
+    },
+    {
+      "id": "M-312",
+      "channel": "Email",
+      "customer": "Agencia",
+      "lang": "en",
+      "text": "Hi, we are a DMC in Mexico and would like to become a partner. Who handles new contracts?",
+      "expected": {
+        "equipo": "agencias_b2b"
+      }
+    },
+    {
+      "id": "M-313",
+      "channel": "Email",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "Quiero cancelar la reserva de Tenerife de diciembre y que me devolváis el dinero; me ha salido un viaje de trabajo.",
+      "expected": {
+        "equipo": "cancelaciones"
+      }
+    },
+    {
+      "id": "M-314",
+      "channel": "WhatsApp",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "Mañana nos recogen a las 5:00 para ir al aeropuerto de Palma. ¿Podéis cambiar la recogida a las 4:00? Nos han adelantado el vuelo.",
+      "expected": {
+        "equipo": "traslados"
+      }
+    },
+    {
+      "id": "M-315",
+      "channel": "Chat",
+      "customer": "Particular",
+      "lang": "en",
+      "text": "We loved the Cuba trip! Do you have something similar in Mexico for Christmas, maybe with a cooking class?",
+      "expected": {
+        "equipo": "reservas"
+      }
+    },
+    {
+      "id": "M-316",
+      "channel": "Email",
+      "customer": "Particular",
+      "lang": "es",
+      "text": "Quiero felicitar a vuestra guía en Marrakech, Amina. Fue increíble con todo el grupo.",
+      "expected": {
+        "equipo": "otros"
+      }
+    }
+  ],
+  "notes": {
+    "reto": "Un centro 24/7 recibe mensajes de viajeros y agencias en 6 idiomas. Por orden de llegada, el viajero tirado en el aeropuerto espera detrás de un presupuesto para julio, y las oportunidades de venta se pierden en la bandeja.",
+    "solucion": "Decision-1 decide equipo, urgencia (y por tanto el SLA), si el viajero está en destino y si hay oportunidad de venta. La bandeja se reordena sola con una prioridad continua basada en probabilidades.",
+    "paradigma": "Priorizar cada mensaje en milisegundos permite ordenar la cola en tiempo real, antes de que la lea nadie. Es imposible con humanos y caro con LLM a este volumen.",
+    "aplica_a": [
+      "Asistencia en destino 24/7",
+      "Atención B2B a agencias",
+      "Detección de ventas cruzadas",
+      "Gestión de incidencias aéreas"
+    ],
+    "savings": {
+      "volume_month": 90000,
+      "minutes_per_item": 1.5,
+      "eur_hour": 24
+    }
+  }
+}

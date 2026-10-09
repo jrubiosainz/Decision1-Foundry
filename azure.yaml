@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: decision1-foundry
+metadata:
+  template: decision1-foundry@1.0.0
+services:
+  web:
+    project: ./src
+    language: py
+    host: appservice
+# interactive: true conecta el hook a la consola; sin él, azd oculta su salida al terminar.
+hooks:
+  preprovision:
+    posix:
+      shell: sh
+      run: ./scripts/codigo-acceso.sh
+      interactive: true
+    windows:
+      shell: pwsh
+      run: ./scripts/codigo-acceso.ps1
+      interactive: true
+  postdeploy:
+    posix:
+      shell: sh
+      run: echo "Demo lista -> ${WEB_URL}/?code=${DEMO_ACCESS_CODE}"
+      interactive: true
+    windows:
+      shell: pwsh
+      run: Write-Host "Demo lista -> $env:WEB_URL/?code=$env:DEMO_ACCESS_CODE"
+      interactive: true

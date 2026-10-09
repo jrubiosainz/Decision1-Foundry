@@ -1,0 +1,265 @@
+{
+  "id": "energia",
+  "order": 1,
+  "icon": "⚡",
+  "title": "Triage de tickets",
+  "sector": "Energía y utilities",
+  "brand": "Nexa Energía",
+  "headline": "Cada ticket en su cola correcta en milisegundos, y los urgentes primero.",
+  "view": "kanban",
+  "item_label": "ticket",
+  "item_label_plural": "tickets",
+  "item_ref": "el ticket",
+  "batch_key": "tickets",
+  "state_fields": {
+    "canal": "channel",
+    "mensaje": "text"
+  },
+  "review_label": "Revisión humana",
+  "primary": "cola",
+  "severity": "urgencia",
+  "context": "Centro de atención al cliente de Nexa Energía, comercializadora de electricidad y gas. Los tickets llegan por email, web, WhatsApp, redes sociales y llamadas transcritas, en varios idiomas.",
+  "questions": {
+    "cola": {
+      "type": "choice",
+      "instructions": "¿Qué equipo debe gestionar el problema principal de este ticket?",
+      "criteria": {
+        "averias": "Averías y emergencias: sin luz o sin gas, cortes de suministro, olor a gas, cables caídos, chispas, contador averiado.",
+        "facturacion": "Facturación y pagos: importes, cobros duplicados, lecturas, impagos, fraccionamiento, bono social, devoluciones.",
+        "contratacion": "Contratación: altas, bajas, cambio de titular, mudanzas, cambio de tarifa o de potencia.",
+        "autoconsumo": "Autoconsumo solar: placas, inversor, baterías, compensación de excedentes.",
+        "movilidad": "Movilidad eléctrica: puntos de recarga, cargador doméstico, app o tarjeta de recarga.",
+        "reclamaciones": "Reclamaciones formales: queja escalada, amenaza de denuncia, organismo de consumo, abogado o difusión pública.",
+        "otros": "Cualquier otra consulta: patrocinios, empleo, prensa, temas no relacionados con el suministro."
+      }
+    },
+    "urgencia": {
+      "type": "score",
+      "instructions": "¿Con qué urgencia hay que atender este ticket?",
+      "criteria": [
+        "Baja: consulta informativa o trámite sin impacto inmediato.",
+        "Media: problema real que puede esperar unos días.",
+        "Alta: impacto relevante hoy, como estar sin suministro o un cobro indebido importante.",
+        "Crítica: riesgo para personas o bienes, o persona dependiente afectada ahora."
+      ]
+    },
+    "riesgo_seguridad": {
+      "type": "noul",
+      "instructions": "¿Describe el mensaje un peligro físico inmediato en la instalación o en la red (olor a gas, cables caídos, chispas, humo, fuego, descargas)?"
+    },
+    "cliente_vulnerable": {
+      "type": "noul",
+      "instructions": "¿Menciona el cliente una situación de vulnerabilidad (persona mayor o dependiente, equipo médico eléctrico en casa, menores en riesgo o dificultades económicas graves)?"
+    },
+    "riesgo_baja": {
+      "type": "noul",
+      "instructions": "¿El cliente amenaza o insinúa con darse de baja o irse a otra compañía?"
+    }
+  },
+  "lanes": {
+    "averias": {
+      "label": "Averías",
+      "color": "#ef4444"
+    },
+    "facturacion": {
+      "label": "Facturación",
+      "color": "#3b82f6"
+    },
+    "contratacion": {
+      "label": "Contratación",
+      "color": "#8b5cf6"
+    },
+    "autoconsumo": {
+      "label": "Autoconsumo",
+      "color": "#f59e0b"
+    },
+    "movilidad": {
+      "label": "Movilidad",
+      "color": "#10b981"
+    },
+    "reclamaciones": {
+      "label": "Reclamaciones",
+      "color": "#ec4899"
+    },
+    "otros": {
+      "label": "Otros",
+      "color": "#64748b"
+    }
+  },
+  "flags": {
+    "riesgo_seguridad": {
+      "label": "Seguridad",
+      "icon": "🔥"
+    },
+    "cliente_vulnerable": {
+      "label": "Vulnerable",
+      "icon": "🫶"
+    },
+    "riesgo_baja": {
+      "label": "Riesgo de baja",
+      "icon": "🚪"
+    }
+  },
+  "items": [
+    {
+      "id": "T-1041",
+      "channel": "Email",
+      "lang": "es",
+      "text": "Buenos días, en la factura de septiembre me habéis cobrado dos veces el mismo importe (84,32 €). Adjunto el extracto del banco. ¿Podéis devolverme el cargo duplicado?",
+      "expected": {
+        "cola": "facturacion"
+      }
+    },
+    {
+      "id": "T-1042",
+      "channel": "WhatsApp",
+      "lang": "es",
+      "text": "Huele muchísimo a gas en el portal y en la escalera, los vecinos están bajando a la calle. ¿Qué hacemos?",
+      "expected": {
+        "cola": "averias"
+      }
+    },
+    {
+      "id": "T-1043",
+      "channel": "Web",
+      "lang": "es",
+      "text": "Mi madre tiene 87 años y usa un concentrador de oxígeno. Lleva sin luz desde las 6 de la mañana en la calle Mayor 12 de Valladolid. Por favor, es urgente.",
+      "expected": {
+        "cola": "averias"
+      }
+    },
+    {
+      "id": "T-1044",
+      "channel": "Email",
+      "lang": "en",
+      "text": "Hi, I'm moving into a new flat on 1 November and need to transfer the electricity contract into my name. The current holder is the landlord. What documents do you need?",
+      "expected": {
+        "cola": "contratacion"
+      }
+    },
+    {
+      "id": "T-1045",
+      "channel": "Email",
+      "lang": "pt",
+      "text": "Boa tarde. Instalei painéis solares em julho e ainda não vejo a compensação de excedentes nas faturas. Podem verificar?",
+      "expected": {
+        "cola": "autoconsumo"
+      }
+    },
+    {
+      "id": "T-1046",
+      "channel": "Web",
+      "lang": "ca",
+      "text": "El punt de recàrrega de l'aparcament de l'oficina no carrega el cotxe des d'ahir; l'app diu \"error 42\".",
+      "expected": {
+        "cola": "movilidad"
+      }
+    },
+    {
+      "id": "T-1047",
+      "channel": "X / Twitter",
+      "lang": "es",
+      "text": "Tercera vez que llamo por la misma factura y nadie me lo soluciona. Si el lunes no está resuelto me voy a la competencia y pongo una reclamación en consumo. @NexaEnergia",
+      "expected": {
+        "cola": "reclamaciones"
+      }
+    },
+    {
+      "id": "T-1048",
+      "channel": "Email",
+      "lang": "es",
+      "text": "Quiero bajar la potencia contratada de 5,75 kW a 4,6 kW para ahorrar. ¿Tiene algún coste el cambio?",
+      "expected": {
+        "cola": "contratacion"
+      }
+    },
+    {
+      "id": "T-1049",
+      "channel": "WhatsApp",
+      "lang": "es",
+      "text": "Hay un cable de la luz colgando de un poste y echando chispas al lado del colegio de la calle Olmo.",
+      "expected": {
+        "cola": "averias"
+      }
+    },
+    {
+      "id": "T-1050",
+      "channel": "Email",
+      "lang": "es",
+      "text": "Estoy en paro y no puedo pagar las dos últimas facturas. ¿Puedo fraccionar la deuda o pedir el bono social? Tengo dos niños pequeños.",
+      "expected": {
+        "cola": "facturacion"
+      }
+    },
+    {
+      "id": "T-1051",
+      "channel": "Chat",
+      "lang": "en",
+      "text": "Can you install an EV charger in my garage? I have a Kia EV6 and a 6 kW contract.",
+      "expected": {
+        "cola": "movilidad"
+      }
+    },
+    {
+      "id": "T-1052",
+      "channel": "Llamada",
+      "lang": "es",
+      "text": "Transcripción: el cliente pregunta qué diferencia hay entre la tarifa con discriminación horaria y la tarifa fija, y cuál le conviene si teletrabaja.",
+      "expected": {
+        "cola": "contratacion"
+      }
+    },
+    {
+      "id": "T-1053",
+      "channel": "Email",
+      "lang": "es",
+      "text": "La batería de mi instalación solar no se carga desde la actualización del inversor de la semana pasada.",
+      "expected": {
+        "cola": "autoconsumo"
+      }
+    },
+    {
+      "id": "T-1054",
+      "channel": "Web",
+      "lang": "eu",
+      "text": "Kaixo, etxean argirik gabe gaude atzo gauetik. Noiz konponduko duzue?",
+      "expected": {
+        "cola": "averias"
+      }
+    },
+    {
+      "id": "T-1055",
+      "channel": "Email",
+      "lang": "es",
+      "text": "¿Patrocináis el maratón de la ciudad? Me gustaría enviaros una propuesta de colaboración para la edición de 2027.",
+      "expected": {
+        "cola": "otros"
+      }
+    },
+    {
+      "id": "T-1056",
+      "channel": "Email",
+      "lang": "es",
+      "text": "He recibido una carta de corte por impago, pero tengo todos los recibos pagados. Necesito que lo paréis ya: en casa vive mi padre, que es dependiente.",
+      "expected": {
+        "cola": "facturacion"
+      }
+    }
+  ],
+  "notes": {
+    "reto": "Cientos de miles de contactos al mes por email, web, WhatsApp y redes, en varios idiomas. Clasificar y priorizar a mano consume minutos por ticket y retrasa justo los casos críticos (olor a gas, clientes vulnerables).",
+    "solucion": "Decision-1 lee cada ticket y responde en una sola llamada a 5 preguntas cerradas: cola, urgencia y 3 alertas (seguridad, cliente vulnerable, riesgo de baja), cada una con probabilidades calibradas.",
+    "paradigma": "No redacta, decide. Por eso cabe en línea con cada evento entrante a una fracción del coste de un LLM. La confianza calibrada marca el corte: por encima del umbral se automatiza; por debajo, revisión humana.",
+    "aplica_a": [
+      "Atención al cliente multicanal",
+      "Averías y emergencias",
+      "Detección de clientes vulnerables",
+      "Prevención de bajas (churn)"
+    ],
+    "savings": {
+      "volume_month": 250000,
+      "minutes_per_item": 1.5,
+      "eur_hour": 24
+    }
+  }
+}

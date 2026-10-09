@@ -1,0 +1,13 @@
+{
+  "usd_to_eur": 0.86,
+  "source": "Precios de lista DataZone en USD por millón de tokens (octubre de 2026). Edita este fichero si cambian. Precio de entrada cacheada de GPT-6 Sol estimado en un 10 % del normal.",
+  "models": {
+    "Microsoft-Decision-1": { "label": "Microsoft-Decision-1", "input": 0.042, "cached_input": 0.042, "output": 0.0 },
+    "gpt-5.4-mini": { "label": "GPT-5.4 mini", "input": 0.825, "cached_input": 0.0825, "output": 4.95 },
+    "gpt-6-sol": { "label": "GPT-6 Sol", "input": 2.4, "cached_input": 0.24, "output": 12.0 }
+  },
+  "comparisons": [
+    { "id": "gpt-5.4-mini", "deployment": "gpt-5.4-mini", "label": "GPT-5.4 mini · sin razonamiento", "reasoning_effort": "none" },
+    { "id": "gpt-6-sol", "deployment": "gpt-6-sol", "label": "GPT-6 Sol · razonamiento por defecto", "reasoning_effort": null }
+  ]
+}

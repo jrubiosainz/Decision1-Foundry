@@ -1,4 +1,4 @@
-// Portada: qué es Decision-1, por qué es un nuevo paradigma y acceso a los cinco casos.
+// Portada: qué es Decision-1, por qué es un nuevo paradigma y acceso a los seis casos.
 import { h, jsonHtml } from './util.js';
 import { S, regionLabel, skuLabel } from './core.js';
 import { note, noteList } from './notes.js';
@@ -42,7 +42,7 @@ const FACTS = [
 
 const MEASURED = [
   ['~300 ms', 'p50 por llamada (Spain Central, DataZone UE)'],
-  ['74/74', 'decisiones principales correctas en los 5 casos'],
+  ['74/74', 'decisiones principales correctas en los casos 1 a 5'],
   ['< 0,001 €', 'por lote de 12 a 16 elementos, en ~1 s'],
   ['×10 · ×30+', 'más rápido (en caliente) y más barato que GPT-6 Sol con el mismo lote'],
 ];
@@ -149,7 +149,7 @@ export function mountIntro(stage, notes) {
         h('div', null, h('div', { class: 'im-label' }, 'Petición: estado + preguntas'), h('pre', { class: 'json', html: jsonHtml(SAMPLE_REQUEST) })),
         h('div', null, h('div', { class: 'im-label' }, 'Respuesta: decisión + probabilidades'), h('pre', { class: 'json', html: jsonHtml(SAMPLE_RESPONSE) })),
       ),
-      h('div', { class: 'section-title' }, h('span', null, '🗂️ Los cinco casos')),
+      h('div', { class: 'section-title' }, h('span', null, '🗂️ Los seis casos')),
       h('div', { class: 'case-cards' }, cases),
       h('div', { class: 'section-title' }, h('span', null, '🤖 Y dentro de tus agentes de IA')),
       ...agentFlow(),
@@ -170,16 +170,17 @@ export function mountIntro(stage, notes) {
           [h('b', null, 'Coste casi cero: '), 'salida gratis y 0,042 $ por millón de tokens de entrada. Miles de decisiones por céntimos.'],
           [h('b', null, 'Velocidad de Sistema 1: '), 'cientos de milisegundos. 20 decisiones encadenadas caben en ~2 s.'],
           [h('b', null, 'Confianza calibrada: '), 'un 90 % acierta 9 de cada 10. El umbral decide qué se automatiza y qué revisa una persona.'],
+          [h('b', null, 'Tiempo real: '), 'en el caso 6 Decision-1 y un LLM juegan a la vez a Space Invaders. El mundo no espera: la latencia se convierte en puntos.'],
         ]),
       ),
       note(
         '🌍',
         'Disponibilidad',
         noteList([
-          [h('b', null, 'Esta demo: '), `${regionLabel(d.location)} · ${skuLabel(d.sku, d.location)} · ${d.rpm || 17} RPM`],
+          [h('b', null, 'Esta demo: '), `${regionLabel(d.location)} · ${skuLabel(d.sku, d.location)} · ${d.rpm || 60} RPM`],
           [h('b', null, 'DataZone UE (7): '), 'Spain Central, Sweden Central, West Europe, France Central, Germany West Central, Italy North y Poland Central.'],
           [h('b', null, 'DataZone EE. UU. (9) '), 'y ', h('b', null, 'Global Standard (31 regiones).')],
-          [h('b', null, 'Cuota: '), 'con pocas RPM, el modo lote mete hasta 255 preguntas en una llamada.'],
+          [h('b', null, 'Cuota: '), 'con pocas RPM, el modo lote mete hasta 255 preguntas en una llamada. El caso 6 pide una decisión por segundo a cada modelo: necesita ~60 RPM.'],
         ]),
       ),
       note(
@@ -209,9 +210,9 @@ export function mountIntro(stage, notes) {
           { class: 'keys' },
           [
             ['← →', 'anterior / siguiente'],
-            ['0–5', 'portada y casos'],
+            ['0–6', 'portada y casos'],
             ['L', 'laboratorio'],
-            ['Espacio', 'procesar'],
+            ['Espacio', 'procesar · jugar o pausar'],
             ['C', 'carrera'],
             ['B', 'lote / uno a uno'],
             ['R', 'reiniciar'],

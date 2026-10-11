@@ -5,6 +5,7 @@ import { fmtCountdown } from './views/common.js';
 import { mountCase, unmountCase, currentCase, refresh, caseAction } from './casepage.js';
 import { mountIntro } from './intro.js';
 import { mountLab, unmountLab, labRun } from './lab.js';
+import { mountArcade, unmountArcade, arcadeAction, arcadeFlags, isArcade } from './arcade.js';
 
 const stage = $('#stage');
 const notes = $('#notes');
@@ -68,8 +69,9 @@ function updateNav() {
     if (active) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
     const st = S.byId[page] ? caseState(page) : null;
-    el.classList.toggle('running', !!(st && (st.busy || st.race?.running)));
-    el.classList.toggle('has-result', !!(st && !st.busy && Object.keys(st.results).length));
+    const arc = S.byId[page]?.kind === 'game' ? arcadeFlags() : null;
+    el.classList.toggle('running', !!(st && (st.busy || st.race?.running)) || !!arc?.running);
+    el.classList.toggle('has-result', !!(st && !st.busy && Object.keys(st.results).length) || !!arc?.hasResult);
   }
 }
 
@@ -123,9 +125,11 @@ function show(page) {
   if (!pages().includes(page)) page = 'intro';
   unmountCase();
   unmountLab();
+  unmountArcade();
   S.page = page;
   const sc = S.byId[page];
-  if (sc) mountCase(sc, stage, notes);
+  if (sc?.kind === 'game') mountArcade(sc, stage, notes);
+  else if (sc) mountCase(sc, stage, notes);
   else if (page === 'lab') mountLab(stage, notes);
   else mountIntro(stage, notes);
   stage.scrollTop = 0;
@@ -159,12 +163,12 @@ function step(delta) {
 const KEYS = [
   ['← →', 'Página anterior / siguiente'],
   ['0', 'Introducción'],
-  ['1 – 5', 'Ir a un caso'],
+  ['1 – 6', 'Ir a un caso'],
   ['L', 'Laboratorio'],
-  ['Espacio', 'Procesar el caso'],
+  ['Espacio', 'Procesar el caso · jugar o pausar (caso 6)'],
   ['C', 'Carrera contra un LLM'],
   ['B', 'Cambiar entre lote y uno a uno'],
-  ['R', 'Reiniciar el caso'],
+  ['R', 'Reiniciar el caso o la partida'],
   ['N', 'Mostrar u ocultar las notas'],
   ['Ctrl + Enter', 'Decidir en el laboratorio'],
   ['Esc', 'Cerrar la ventana'],
@@ -192,11 +196,13 @@ function onKey(e) {
   else if (k === ' ') {
     if (e.target.closest?.('button')) return;
     if (sc) caseAction('process');
+    else if (isArcade()) arcadeAction('toggle');
     else if (S.page === 'lab') labRun();
     else return;
   } else if (sc && k === 'c') caseAction('race');
   else if (sc && k === 'b') caseAction('mode');
   else if (sc && k === 'r') caseAction('reset');
+  else if (isArcade() && k === 'r') arcadeAction('reset');
   else if (k === 'n') toggleNotes();
   else if (k === '?') showHelp();
   else return;

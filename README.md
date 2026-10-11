@@ -19,7 +19,7 @@ Muchas decisiones de negocio no necesitan generar texto: clasificar, priorizar, 
 
 Una web de tres columnas pensada para presentar:
 
-- **Izquierda:** introducción, los 5 casos de uso y un laboratorio.
+- **Izquierda:** introducción, los 6 casos de uso y un laboratorio.
 - **Centro:** la demo en vivo de cada caso, con KPIs (latencia, coste, automatización y acierto) y una vista visual distinta por caso.
 - **Derecha:** notas visibles para la audiencia. Incluyen el reto, la solución, por qué es un nuevo paradigma, dónde aplica, el resultado de la ejecución y una **proyección mensual de ahorro** con supuestos editables.
 
@@ -31,27 +31,40 @@ Una web de tres columnas pensada para presentar:
 | 4 | 🔀 Router de modelos GenAI | Transversal | A dónde va cada petición: respuesta predefinida, modelo pequeño, modelo grande o persona | 14 × 4 | 0,50 s | 0,00019 € | 14/14 |
 | 5 | 🛡️ Guardarraíles para agentes | Transversal | Si cada acción de un agente se permite, pide aprobación humana o se bloquea (prompt injection, datos sensibles, límites) | 12 × 5 | 0,56 s | 0,00019 € | 12/12 |
 
-Estas cifras se midieron el 10 de octubre de 2026 en la web desplegada (Spain Central, DataZone UE), con todo el caso en una sola llamada. Las empresas de los casos (Nexa Energía, Brisa Hotels & Resorts y Alisio Travel Group) son ficticias, y los datos son de ejemplo.
+Estas cifras se midieron el 10 de octubre de 2026 en la web desplegada (Spain Central, DataZone UE), con todo el caso en una sola llamada. Las empresas de los casos (Nexa Energía, Brisa Hotels & Resorts y Alisio Travel Group) son ficticias, y los datos son de ejemplo. El caso 6 no es un lote, sino un duelo en tiempo real: se describe después de los atajos de teclado.
 
 Además:
 
 - **Modo lote o uno a uno (tecla B).** En modo lote, todo el caso viaja en **una sola llamada** de hasta 255 preguntas. En modo uno a uno, se hace una llamada por elemento.
 - **Umbral de confianza.** Lo que no lo supera pasa a revisión humana.
-- **Carrera (tecla C).** Resuelve el mismo lote con las mismas preguntas, a la vez, con Decision-1 y con un LLM desplegado (GPT-6 Sol o GPT-5.4 mini, con salida JSON). En el caso 2 se midió 0,8 s frente a 10,1 s de GPT-6 Sol: ×13 más rápido, ×34 más barato y la misma decisión principal en 16 de 16.
+- **Carrera (tecla C).** Resuelve el mismo lote con las mismas preguntas, a la vez, con Decision-1 y con un LLM desplegado a tu elección (GPT-6 Sol, GPT-6 Luna o GPT-5.4 mini, con salida JSON). En el caso 2 se midió 0,8 s frente a 10,1 s de GPT-6 Sol: ×13 más rápido, ×34 más barato y la misma decisión principal en 16 de 16.
 - **Detalle de cada elemento y petición real.** Haz clic en un elemento para ver todas sus probabilidades. «Ver petición» y «Ver respuesta» muestran el JSON real intercambiado con Foundry.
 - **Laboratorio (tecla L).** Prueba tu propio texto con tus preguntas, o parte de una de las 12 plantillas. Hay 5 de negocio (calidad de llamadas, datos personales, relevancia para RAG, moderación de redes y una desde cero) y 7 de agentes.
 
 | Tecla | Acción |
 |---|---|
 | ← → | Página anterior o siguiente |
-| 0 · 1–5 · L | Introducción, caso 1–5 o laboratorio |
-| Espacio | Procesar el caso |
-| C | Carrera contra un LLM |
-| B | Cambiar entre lote y uno a uno |
-| R | Reiniciar el caso |
+| 0 · 1–6 · L | Introducción, caso 1–6 o laboratorio |
+| Espacio | Procesar el caso (en el caso 6, iniciar o pausar la partida) |
+| C | Carrera contra un LLM (casos 1–5) |
+| B | Cambiar entre lote y uno a uno (casos 1–5) |
+| R | Reiniciar el caso o la partida |
 | N | Mostrar u ocultar las notas |
 | Ctrl + Enter | Decidir en el laboratorio |
 | ? | Ver los atajos |
+
+### Caso 6 · Space Invaders en directo (Decision-1 contra GPT-6 Luna)
+
+![Caso 6: Decision-1 y GPT-6 Luna juegan a la vez la misma partida de Space Invaders](docs/img/07-invaders-partida.png)
+
+Es el único caso que no es un lote: es una **decisión en tiempo real**. Dos tableros idénticos (misma semilla y mismas reglas) se juegan a la vez, uno con Decision-1 y otro con GPT-6 Luna. Cada segundo, la web describe el estado de la partida en texto y hace a cada modelo las mismas dos preguntas: a qué carril (de 13) debe ir la nave y si una bomba la va a alcanzar. **El juego no espera al modelo:** si tarda, el mundo ya ha cambiado cuando llega su respuesta.
+
+- **Qué se ve.** El contorno hueco es el mundo que veía el modelo al decidir y el triángulo, el carril al que mandó la nave. Decision-1 añade un mapa de calor con su probabilidad por carril. Cada tablero muestra el peligro, la latencia, la edad del mundo y el coste de cada decisión.
+- **Controles.** Cinco semillas, velocidad ×1, ×1,5 o ×2 (acelera el mundo, no el modelo) y rival a elegir (GPT-6 Luna, GPT-6 Sol o GPT-5.4 mini). Espacio inicia o pausa la partida y R la reinicia.
+- **Al terminar** aparece una comparativa con puntos, vidas, latencia, acierto por decisión, tokens y coste, y una lectura de por qué ganó cada uno.
+- **Resultados.** A ×1 los dos llegan a tiempo y gana quien decide mejor: en nuestras pruebas, GPT-6 Luna ganó 4–2. Al acelerar el mundo (×1,5 y ×2), Decision-1 ganó 10 de 12. Por decisión contesta unas 2,3 veces más rápido (≈0,35 s frente a ≈0,8 s) y cuesta unas 3 veces menos; la calidad es parecida. Es una demostración, no un benchmark: una partida cambia con la semilla y la velocidad, y un bot clásico lo haría mejor.
+- **Sin interfaz.** `node scripts/probar-juego.mjs` ejecuta las 29 pruebas del motor, sin red. `node scripts/partida.mjs --url http://localhost:8000 --semillas 7,11 --velocidad 1` juega partidas reales contra los modelos y resume el marcador (si la web pide código, añade `--code`). Requieren Node.js 22 o superior.
+- **Requisitos.** Necesita GPT-6 Luna (se despliega por defecto; consulta [Configuración](#configuración)) y unas 60 RPM de Decision-1 para llevar una decisión por segundo.
 
 ## Decision-1 dentro de un agente
 
@@ -84,6 +97,7 @@ Cada decisión tarda entre 0,3 y 0,5 s y cuesta milésimas de céntimo. Decision
 - [Azure Developer CLI (azd)](https://aka.ms/azd-install) y [Azure CLI](https://aka.ms/azcli). Se probó con azd 1.34.
 - En Windows, PowerShell 7 (`pwsh`) para los hooks de azd.
 - Python 3.10 o superior, solo para ejecutarlo en local.
+- Node.js 22 o superior, solo si quieres probar el caso 6 sin interfaz (`scripts/probar-juego.mjs` y `scripts/partida.mjs`).
 
 ### Pasos
 
@@ -107,8 +121,8 @@ Abre ese enlace una vez. El navegador guarda el código y lo quita de la barra d
 Qué se despliega:
 
 - Una cuenta de Microsoft Foundry con un proyecto, con la autenticación local desactivada (solo Entra ID, sin claves).
-- El despliegue `decision-1` de Microsoft-Decision-1 y los LLMs de la carrera (`gpt-5.4-mini` y `gpt-6-sol`).
-- Un App Service Linux B1 con Python 3.12 e identidad administrada.
+- El despliegue `decision-1` de Microsoft-Decision-1, los LLMs de la carrera (`gpt-5.4-mini` y `gpt-6-sol`) y `gpt-6-luna`, el rival del caso 6.
+- Un App Service Linux (B1 por defecto) con Python 3.12 e identidad administrada.
 - El rol *Cognitive Services User* para la identidad de la web y para tu usuario.
 
 ### Configuración
@@ -119,11 +133,14 @@ Cambia estos valores con `azd env set <VARIABLE> <valor>` antes de ejecutar `azd
 |---|---|---|
 | `AZURE_LOCATION` | `spaincentral` | Región de la cuenta de Foundry y de la web |
 | `DECISION_SKU` | `DataZoneStandard` | `DataZoneStandard` procesa dentro de la zona de datos (UE o EE. UU.); `GlobalStandard` puede procesar en cualquier región de Azure |
-| `DECISION_CAPACITY` | `17` | Capacidad de Decision-1, en peticiones por minuto (RPM) |
+| `DECISION_CAPACITY` | `60` | Capacidad de Decision-1, en peticiones por minuto (RPM). El caso 6 hace una decisión por segundo, así que necesita unas 60; los casos 1 a 5 usan muy pocas |
 | `COMPARISON_MODELS` | `gpt-5.4-mini,gpt-6-sol` | LLMs para la carrera, separados por comas (`nombre` o `nombre:versión`). Si la dejas vacía, no hay carrera |
 | `COMPARISON_SKU` | `DataZoneStandard` | SKU de los LLMs de la carrera |
 | `COMPARISON_CAPACITY` | `50` | Miles de tokens por minuto de cada LLM de la carrera |
-| `APP_SERVICE_SKU` | `B1` | Plan de App Service de la web |
+| `GAME_MODEL` | `gpt-6-luna` | LLM rival del caso 6 (`nombre` o `nombre:versión`). Con `none` no se despliega y el caso 6 usa el primer LLM de la carrera |
+| `GAME_SKU` | `GlobalStandard` | SKU de ese LLM. Con `DataZoneStandard`, el procesamiento se queda en la zona de datos de la UE, pero cuesta un 20 % más y necesita cuota DataZone |
+| `GAME_CAPACITY` | `100` | Miles de tokens por minuto del LLM del caso 6 |
+| `APP_SERVICE_SKU` | `B1` | Plan de App Service de la web. `F1` es gratuito, pero se duerme tras unos 20 minutos sin uso y no admite Always On |
 | `DEMO_ACCESS_CODE` | Se genera (`d1-…`) | Código de acceso a la web |
 
 ### Regiones y cuota
@@ -136,20 +153,21 @@ Microsoft-Decision-1 está disponible (octubre de 2026) en:
 | DataZone EE. UU. (9) | eastus, eastus2, centralus, northcentralus, southcentralus, westcentralus, westus, westus2 y westus3 |
 | GlobalStandard | 31 regiones |
 
-La cuota DataZone **se comparte entre todas las regiones de la zona**. En nuestra suscripción de pruebas hay 17 RPM para toda la UE con DataZone y 50 RPM con GlobalStandard. Por eso la web trabaja en modo lote, con una llamada por caso. Si la suscripción ya tiene otro despliegue DataZone de Decision-1 en la UE, usa GlobalStandard:
+La cuota DataZone **se comparte entre todas las regiones de la zona**. Los valores por defecto dependen de la suscripción: en la nuestra de pruebas hay 60 RPM de Decision-1, tanto con DataZone (para toda la UE) como con GlobalStandard, y en otras hemos visto 17 RPM con DataZone y 50 con GlobalStandard. Los casos 1 a 5 trabajan en modo lote, con una llamada por caso, y casi no gastan cuota. El caso 6 sí necesita ritmo: hace una llamada por segundo, unas 60 RPM. Con menos cuota funciona igual, pero la web espacia las decisiones (con 17 RPM, una cada 3,7 s aproximadamente) y la nave reacciona más tarde. Si la suscripción ya tiene otro despliegue DataZone de Decision-1 en la UE, usa GlobalStandard:
 
 ```bash
 azd env set DECISION_SKU GlobalStandard
-azd env set DECISION_CAPACITY 50
+azd env set DECISION_CAPACITY 60          # ajústalo a tu cuota disponible
 ```
 
 Para consultar tu cuota:
 
 ```bash
 az cognitiveservices usage list -l spaincentral --query "[?contains(name.value,'Decision')]" -o table
+az cognitiveservices usage list -l spaincentral --query "[?contains(name.value,'gpt-6-luna')]" -o table
 ```
 
-Si no tienes cuota de GPT-6 Sol, ejecuta `azd env set COMPARISON_MODELS gpt-5.4-mini`.
+Si no tienes cuota de GPT-6 Sol, ejecuta `azd env set COMPARISON_MODELS gpt-5.4-mini`. Si no tienes cuota de GPT-6 Luna, ejecuta `azd env set GAME_MODEL none`: el caso 6 usará el primer LLM de la carrera como rival.
 
 ## Ejecutar en local
 
@@ -212,7 +230,8 @@ Admite hasta 255 preguntas por llamada, un estado de hasta 64.000 tokens y un cu
 
 - **Decision-1:** 0,042 $ por millón de tokens de entrada; la salida es gratis. Cada lote de la demo cuesta entre 0,0002 € y 0,0005 €, es decir, de 0,01 € a 0,03 € por cada 1.000 elementos.
 - **LLMs de la carrera:** se paga por uso. Una carrera con GPT-6 Sol cuesta unos 0,02–0,03 €.
-- **App Service B1 Linux:** unos 11,5 € al mes en Spain Central. Es el único coste fijo mientras exista.
+- **Caso 6:** una decisión de Decision-1 cuesta unos 0,00002 € y una de GPT-6 Luna, unos 0,00007 € (3 veces más). Una partida completa sale por unos 0,001 € con Decision-1 y unos 0,004 € con GPT-6 Luna.
+- **App Service B1 Linux:** unos 11,5 € al mes en Spain Central. Es el único coste fijo mientras exista. Con `azd env set APP_SERVICE_SKU F1` es gratuito, pero se duerme tras unos 20 minutos sin uso.
 
 Los precios que usan los cálculos de la web están en `src/pricing.json`. Para borrarlo todo, ejecuta `azd down --purge`; `--purge` elimina la cuenta de Foundry definitivamente y libera la cuota.
 
@@ -241,11 +260,13 @@ azd deploy
 
 El entorno virtual `.venv` lo crea `scripts/run-local`.
 
+El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`llm`, `seeds` y `speeds`), las dos preguntas del juego y las notas, pero no tiene `items` ni `view`. El motor del juego está en `src/static/js/game/`. `evaluar.py` lo omite; para medirlo usa `scripts/partida.mjs`.
+
 ## Seguridad
 
 - **Sin claves.** La cuenta de Foundry tiene la autenticación local desactivada. La web usa su identidad administrada y, en local, tu sesión de Entra ID.
 - **El código de acceso** solo evita que cualquiera con la URL consuma tu cuota; no autentica a los usuarios. Si la demo va a durar, activa la autenticación de App Service con Entra ID.
-- **Residencia de datos.** Con DataZoneStandard, el procesamiento se queda dentro de la zona de datos de la UE.
+- **Residencia de datos.** Con DataZoneStandard, el procesamiento de Decision-1 y de los LLMs de la carrera se queda dentro de la zona de datos de la UE. GPT-6 Luna (caso 6) se despliega en GlobalStandard por la cuota disponible, así que su procesamiento puede salir de la UE; el juego solo envía el estado de la partida, sin datos personales. Para mantenerlo dentro de la UE, ejecuta `azd env set GAME_SKU DataZoneStandard` (necesita cuota DataZone de GPT-6 Luna).
 
 ## Solución de problemas
 
@@ -256,8 +277,11 @@ El entorno virtual `.venv` lo crea `scripts/run-local`.
 | azd avisa de que no ha visto cambios de estado en 5 minutos | El primer arranque de App Service es lento. La web queda lista igualmente; compruébalo en `/healthz` |
 | La web pide un código | Abre el enlace con `?code=`, o recupéralo con `azd env get-value DEMO_ACCESS_CODE` |
 | Error 502 de Foundry con estado 401 o 403 recién desplegado | El rol de la identidad administrada tarda unos minutos en propagarse. Espera y recarga |
-| Error 429 | Se han superado las RPM de Decision-1 y se agotaron los reintentos automáticos. Espera unos segundos o usa el modo lote; la cabecera de la web muestra las RPM disponibles |
+| Error 429 | Se han superado las RPM de Decision-1 y se agotaron los reintentos automáticos. Espera unos segundos o usa el modo lote; la cabecera de la web muestra las RPM disponibles. En el caso 6 la partida no se detiene: aparece «Límite de peticiones por minuto» y esa decisión se salta |
 | La primera decisión tarda unos 3 s | El modelo está en frío tras unos minutos sin uso. La web lo calienta cada vez que cambias de página, así que normalmente ya está en caliente al pulsar «Procesar» |
+| En el caso 6, la nave reacciona tarde o a tirones | La cuota de Decision-1 es menor de 60 RPM y la web espacia las decisiones. Sube `DECISION_CAPACITY` si tu cuota lo permite, o juega a ×1 |
+| El caso 6 dice «Falta el modelo rival» | La web no tiene ningún LLM de comparación. Deja `GAME_MODEL` en `gpt-6-luna` o define `COMPARISON_MODELS`, y ejecuta `azd provision` |
+| La web tarda 10–30 s en abrir tras un rato sin uso | Pasa con el plan F1, que se duerme tras unos 20 minutos sin tráfico. Ábrela unos minutos antes de presentar, o usa B1 (`azd env set APP_SERVICE_SKU B1` y `azd provision`) |
 
 ## Estructura
 
@@ -267,15 +291,17 @@ El entorno virtual `.venv` lo crea `scripts/run-local`.
 ├── scripts/
 │   ├── codigo-acceso.sh|ps1    # hook preprovision: genera el código de acceso
 │   ├── run-local.sh|ps1        # ejecuta la web en local
-│   └── evaluar.py              # mide el acierto de los casos
+│   ├── evaluar.py              # mide el acierto de los casos 1 a 5
+│   ├── partida.mjs             # juega el caso 6 sin interfaz contra los modelos reales
+│   └── probar-juego.mjs        # 29 pruebas del motor del juego, sin red
 ├── src/
 │   ├── app.py                  # API (FastAPI) y web estática
 │   ├── decision_client.py      # cliente de Foundry (Decision-1 y LLMs) con Entra ID
 │   ├── demo.py                 # peticiones, lotes y costes
-│   ├── scenarios/*.json        # los 5 casos: contexto, preguntas, ejemplos y notas
+│   ├── scenarios/*.json        # los 6 casos: contexto, preguntas, ejemplos y notas
 │   ├── lab.json                # plantillas del laboratorio
 │   ├── pricing.json            # precios para los cálculos
-│   └── static/                 # web en HTML, CSS y JavaScript, sin compilación
+│   └── static/                 # web en HTML, CSS y JavaScript, sin compilación (el juego, en js/game/)
 └── docs/
     ├── GUION-DEMO.md           # guion para presentar la demo
     └── img/                    # capturas de una ejecución real

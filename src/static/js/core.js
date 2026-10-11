@@ -160,7 +160,7 @@ export function errorText(e) {
     case 401:
       return 'Hace falta el código de acceso.';
     case 429:
-      return `Límite de peticiones por minuto alcanzado (${S.quota?.limit ?? 17} RPM). Usa el modo lote o espera unos segundos.`;
+      return `Límite de peticiones por minuto alcanzado (${S.quota?.limit ?? S.config?.decision?.rpm ?? 60} RPM). Espera unos segundos o usa el modo lote.`;
     case 503:
       return detail || 'El servicio no está configurado.';
     default:

@@ -1,0 +1,63 @@
+{
+  "id": "invaders",
+  "kind": "game",
+  "order": 6,
+  "icon": "🕹️",
+  "title": "Space Invaders en directo",
+  "sector": "Decisiones en tiempo real",
+  "brand": "Decision-1 vs GPT-6 Luna",
+  "headline": "El mundo no espera: gana el modelo que decide a tiempo.",
+  "primary": "carril",
+  "game": {
+    "llm": "gpt-6-luna",
+    "seeds": [7, 11, 23, 42, 101],
+    "speeds": [1, 1.5, 2]
+  },
+  "context": "Juegas al Space Invaders. Controlas el carril de destino de la nave.",
+  "questions": {
+    "carril": {
+      "type": "choice",
+      "instructions": "Elige el carril al que debe ir la nave ahora. Reglas por orden de prioridad: 1) Nunca elijas un carril que tenga una bomba: si la bomba llega mientras la nave está ahí, pierde una vida. 2) Si la nave está en un carril con bomba, huye ya a un carril sin bomba. 3) Entre los carriles sin bomba, elige uno con invasores; cuanto más bajo esté su invasor más bajo, más urgente es. 4) A igualdad, el carril más cercano a la nave.",
+      "criteria": {
+        "0": "Ir al carril 0",
+        "1": "Ir al carril 1",
+        "2": "Ir al carril 2",
+        "3": "Ir al carril 3",
+        "4": "Ir al carril 4",
+        "5": "Ir al carril 5",
+        "6": "Ir al carril 6",
+        "7": "Ir al carril 7",
+        "8": "Ir al carril 8",
+        "9": "Ir al carril 9",
+        "10": "Ir al carril 10",
+        "11": "Ir al carril 11",
+        "12": "Ir al carril 12"
+      }
+    },
+    "peligro": {
+      "type": "noul",
+      "instructions": "¿Va a alcanzar una bomba a la nave en los próximos 2 segundos si se queda en su carril actual?"
+    }
+  },
+  "notes": {
+    "reto": "Un videojuego no espera a nadie: si el modelo tarda, el mundo ya ha cambiado cuando llega su respuesta. Llegar tarde es tan malo como equivocarse. Es el mismo problema de un robot, de un agente que maneja una pantalla o de un sistema que reacciona a eventos.",
+    "solucion": "Los dos modelos reciben **el mismo estado del juego en texto** y **las mismas dos preguntas** (¿a qué carril voy? ¿me van a dar?). Decision-1 contesta en unos **0,3 s** y además reparte probabilidades entre los 13 carriles (el mapa de calor). GPT-6 Luna, sin razonamiento, necesita unos **0,8 s**. Mientras piensan, la partida sigue: los contornos huecos son el mundo que veían al pedir la decisión.",
+    "paradigma": "No todas las decisiones de un agente necesitan razonamiento generativo. Elegir una opción entre varias con el estado delante es clasificar, y para eso basta un modelo de decisión barato y de baja latencia en el camino crítico. El modelo grande se reserva para planificar. Es el patrón «reflejos + cabeza».",
+    "aplica_a": [
+      "Agentes que usan el ordenador (qué botón pulsar)",
+      "Robótica y automatización",
+      "Controles en línea de agentes de IA",
+      "Elegir la skill o la herramienta de un agente",
+      "Moderación y alertas en directo",
+      "Control de procesos y energía"
+    ],
+    "lectura": [
+      "**Mismas condiciones**: mismo texto, mismas preguntas, misma partida (semilla) y las dos peticiones a la vez. Solo cambia quién contesta y cuánto tarda.",
+      "**La palanca es la velocidad**: a ritmo normal (×1) los dos llegan a tiempo y gana quien decide mejor; en nuestras pruebas, GPT-6 Luna ganó 4–2. Al acelerar el mundo (×1,5 y ×2), Decision-1 ganó 10 de 12.",
+      "**Calidad parecida por decisión**: contra un oráculo aproximado con vista de futuro, los dos puntúan ≈0,7. Decision-1 no juega «mejor»: llega antes, con el mundo más fresco.",
+      "**Un bot clásico lo haría mejor**: lo importante es que aquí la regla se escribe en lenguaje natural y sirve igual para otros entornos.",
+      "**Una partida no es un benchmark**: repite con otra semilla o cambia la velocidad. Es una demostración, no una medida independiente.",
+      "**Datos**: GPT-6 Luna está desplegado en Global Standard (el procesamiento puede salir de la zona de datos de la UE). El juego no usa datos personales."
+    ]
+  }
+}

@@ -6,6 +6,7 @@ import asyncio
 import hmac
 import json
 import logging
+import math
 import os
 import time
 from contextlib import asynccontextmanager
@@ -28,10 +29,14 @@ DECISION_SKU = os.environ.get("DECISION_SKU", "DataZoneStandard")
 LOCATION = os.environ.get("AZURE_LOCATION", "")
 ACCESS_CODE = os.environ.get("DEMO_ACCESS_CODE", "").strip()
 ALLOWED_LLMS = [d.strip() for d in os.environ.get("COMPARISON_DEPLOYMENTS", "").split(",") if d.strip()]
-DEFAULT_RPM = int(os.environ.get("DECISION_RPM", "17"))
+DEFAULT_RPM = int(os.environ.get("DECISION_RPM", "60"))
 
 LAB_MAX_STATE_CHARS = 20_000
 LAB_MAX_QUESTIONS = 32
+GAME_MAX_STATE_CHARS = 6_000
+GAME_D1_ID = "decision-1"
+GAME_LLM_TOKENS = 256  # sin razonamiento la respuesta son ~20 tokens; con razonamiento hace falta más margen
+GAME_LLM_REASONING_TOKENS = 4000
 D1_PRICE_KEY = "Microsoft-Decision-1"
 
 SCENARIOS = demo.load_scenarios()
@@ -133,8 +138,15 @@ def quota(client: FoundryClient) -> dict:
 
 def scenario(scenario_id: str) -> dict:
     sc = SCENARIOS.get(scenario_id)
-    if not sc:
+    if not sc or sc.get("kind") == "game":
         raise HTTPException(status_code=404, detail=f"Escenario desconocido: {scenario_id}")
+    return sc
+
+
+def game(game_id: str) -> dict:
+    sc = SCENARIOS.get(game_id)
+    if not sc or sc.get("kind") != "game":
+        raise HTTPException(status_code=404, detail=f"Juego desconocido: {game_id}")
     return sc
 
 
@@ -187,6 +199,12 @@ class CompareIn(BaseModel):
     item_ids: list[str] | None = None
 
 
+class GameIn(BaseModel):
+    game: str = "invaders"
+    model: str
+    state: str
+
+
 @app.get("/healthz")
 async def healthz() -> dict:
     return {"ok": True}
@@ -202,6 +220,8 @@ async def config() -> dict:
             "location": LOCATION,
             "rpm": DEFAULT_RPM,
         },
+        # Cadencia de decisión de los juegos: el límite de Decision-1 con un 5 % de margen. Los dos modelos usan la misma.
+        "game": {"cadence_ms": max(1000, math.ceil(60_000 / max(1, DEFAULT_RPM) * 1.05))},
         "comparisons": [{"id": c["id"], "label": c["label"], "deployment": c["deployment"]} for c in COMPARISONS.values()],
         "pricing": PRICING.data,
         "access_required": bool(ACCESS_CODE),
@@ -244,6 +264,40 @@ async def decide(body: DecideIn, request: Request) -> dict:
     async with request.app.state.d1_sem:
         res = await client.decide(state, questions)
     return {**res, "item_id": body.item_id, "cost": PRICING.cost(D1_PRICE_KEY, res["usage"]), "quota": quota(client)}
+
+
+@app.post("/api/game/decide", dependencies=[Depends(require_code)])
+async def game_decide(body: GameIn, request: Request) -> dict:
+    """Una decisión en tiempo real: mismo estado y mismas preguntas para Decision-1 o para el LLM rival.
+
+    No reintenta ante 429: en un juego una respuesta tardía vale menos que ninguna; el cliente se salta ese turno.
+    """
+    client = client_of(request)
+    sc = game(body.game)
+    if not body.state.strip() or len(body.state) > GAME_MAX_STATE_CHARS:
+        raise HTTPException(status_code=400, detail=f"El estado debe tener entre 1 y {GAME_MAX_STATE_CHARS} caracteres.")
+    if body.model == GAME_D1_ID:
+        async with request.app.state.d1_sem:
+            res = await client.decide(f"{sc['context']}\n\n{body.state}", sc["questions"], max_wait_s=0)
+        cost, extra = PRICING.cost(D1_PRICE_KEY, res["usage"]), {"quota": quota(client)}
+    else:
+        cmp = comparison(body.model)
+        effort = cmp.get("reasoning_effort")
+        tokens = GAME_LLM_TOKENS if effort == "none" else GAME_LLM_REASONING_TOKENS
+        async with request.app.state.llm_sem:
+            res = await client.decide_with_llm(cmp["deployment"], body.state, sc["questions"], sc["context"], effort, tokens, max_wait_s=0)
+        cost, extra = PRICING.cost(cmp["deployment"], res["usage"]), {}
+    answers = res["answers"]
+    if any(answers.get(name, {}).get("type") == "missing" for name in sc["questions"]):
+        raise HTTPException(status_code=502, detail="El modelo no devolvió una respuesta completa.")
+    return {
+        "model": body.model,
+        "answers": answers,
+        "latency_ms": res["latency_ms"],
+        "usage": res["usage"],
+        "cost": cost,
+        **extra,
+    }
 
 
 @app.post("/api/decide-batch", dependencies=[Depends(require_code)])

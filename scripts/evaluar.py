@@ -6,6 +6,8 @@ Uso, desde la raíz del repo y con las variables del entorno de azd cargadas:
     python scripts/evaluar.py                       # todos los escenarios en modo lote (1 llamada cada uno)
     python scripts/evaluar.py energia hoteles --uno-a-uno
     python scripts/evaluar.py router --llm gpt-5.4-mini
+
+El caso de juego (Space Invaders) no tiene etiquetas de referencia y se omite; para ese caso, ver scripts/partida.mjs.
 """
 
 from __future__ import annotations
@@ -67,15 +69,18 @@ async def main() -> None:
     if not endpoint:
         sys.exit('Falta AZURE_AI_ENDPOINT. Ejecuta: set -a; eval "$(azd env get-values)"; set +a')
     scenarios = demo.load_scenarios()
-    selected = args.escenarios or list(scenarios)
+    selected = args.escenarios or [sid for sid, sc in scenarios.items() if sc.get("kind") != "game"]
     pricing = demo.Pricing(demo.load_json("pricing.json"))
-    # Sin prisa en la evaluación: esperamos a que se recargue la cuota (17 peticiones/min en DataZone).
+    # Sin prisa en la evaluación: si hace falta, esperamos a que se recargue la cuota de peticiones por minuto.
     client = FoundryClient(endpoint, os.environ.get("DECISION_DEPLOYMENT", "decision-1"), max_rate_wait_s=600)
     await client.warmup()
     sem = asyncio.Semaphore(4)
     try:
         for sid in selected:
             sc = scenarios[sid]
+            if sc.get("kind") == "game":
+                print(f"\n{sc.get('icon', '')} {sc['title']}: caso de juego, sin etiquetas de referencia (se omite; ver scripts/partida.mjs).")
+                continue
             items = sc["items"]
             t0 = time.perf_counter()
             if args.uno_a_uno:

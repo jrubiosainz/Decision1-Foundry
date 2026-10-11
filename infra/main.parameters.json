@@ -7,10 +7,13 @@
     "principalId": { "value": "${AZURE_PRINCIPAL_ID}" },
     "principalType": { "value": "${AZURE_PRINCIPAL_TYPE=User}" },
     "decisionSku": { "value": "${DECISION_SKU=DataZoneStandard}" },
-    "decisionCapacity": { "value": "${DECISION_CAPACITY=17}" },
+    "decisionCapacity": { "value": "${DECISION_CAPACITY=60}" },
     "comparisonModels": { "value": "${COMPARISON_MODELS=gpt-5.4-mini,gpt-6-sol}" },
     "comparisonSku": { "value": "${COMPARISON_SKU=DataZoneStandard}" },
     "comparisonCapacity": { "value": "${COMPARISON_CAPACITY=50}" },
+    "gameModel": { "value": "${GAME_MODEL=gpt-6-luna}" },
+    "gameSku": { "value": "${GAME_SKU=GlobalStandard}" },
+    "gameCapacity": { "value": "${GAME_CAPACITY=100}" },
     "appServiceSku": { "value": "${APP_SERVICE_SKU=B1}" },
     "demoAccessCode": { "value": "${DEMO_ACCESS_CODE=}" }
   }

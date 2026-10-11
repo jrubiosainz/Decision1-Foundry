@@ -30,13 +30,17 @@ def load_scenarios(folder: Path = BASE / "scenarios") -> dict[str, dict]:
 
 
 def _validate(sc: dict, source: str) -> None:
-    for key in ("id", "title", "context", "questions", "items", "primary", "state_fields"):
+    game = sc.get("kind") == "game"
+    required = ("id", "title", "context", "questions", "primary") + (("notes",) if game else ("items", "state_fields"))
+    for key in required:
         if key not in sc:
             raise ValueError(f"{source}: falta '{key}'")
     if sc["primary"] not in sc["questions"]:
         raise ValueError(f"{source}: 'primary' debe ser una de las preguntas")
     if sc["questions"][sc["primary"]]["type"] != "choice":
         raise ValueError(f"{source}: la pregunta principal debe ser de tipo 'choice'")
+    if game:
+        return
     ids = [it["id"] for it in sc["items"]]
     if len(ids) != len(set(ids)):
         raise ValueError(f"{source}: hay ids de elementos repetidos")

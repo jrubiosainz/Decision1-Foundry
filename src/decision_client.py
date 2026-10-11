@@ -93,11 +93,13 @@ class FoundryClient:
         except httpx.HTTPError:
             pass
 
-    async def _post(self, path: str, body: dict) -> dict:
+    async def _post(self, path: str, body: dict, max_wait_s: float | None = None) -> dict:
         """POST con reintentos ante 429 (respetando retry-after-ms) y 5xx.
 
         Devuelve el JSON y métricas: latency_ms (solo el intento bueno), wait_ms (espera por cuota) y attempts.
+        `max_wait_s` sustituye al máximo de espera por cuota (0 = sin reintentos, para llamadas en tiempo real).
         """
+        limit_s = self.max_rate_wait_s if max_wait_s is None else max_wait_s
         attempts, waited = 0, 0.0
         t_start = time.perf_counter()
         while True:
@@ -107,7 +109,7 @@ class FoundryClient:
             resp = await self._http.post(f"{self.endpoint}{path}", json=body, headers=headers)
             latency_ms = (time.perf_counter() - t0) * 1000
             retryable = resp.status_code == 429 or resp.status_code in (500, 502, 503, 504)
-            if retryable and attempts < 100 and waited < self.max_rate_wait_s:
+            if retryable and attempts < 100 and waited < limit_s:
                 hint = resp.headers.get("retry-after-ms")
                 wait_s = float(hint) / 1000 if hint else float(resp.headers.get("retry-after", 0) or 0)
                 wait_s = max(wait_s, 0.2 * attempts) + random.uniform(0.05, 0.35)
@@ -132,9 +134,9 @@ class FoundryClient:
 
     # ---------- Microsoft-Decision-1 ----------
 
-    async def decide(self, state: Any, questions: dict[str, dict]) -> dict:
+    async def decide(self, state: Any, questions: dict[str, dict], max_wait_s: float | None = None) -> dict:
         body = {"model": self.decision_deployment, "state": state, "questions": questions}
-        res = await self._post(DECISION_PATH, body)
+        res = await self._post(DECISION_PATH, body, max_wait_s)
         self.last_rate = res["rate"]
         self.last_rate_ts = time.time()
         data = res.pop("data")
@@ -151,7 +153,14 @@ class FoundryClient:
     # ---------- LLM generativo equivalente (para la carrera) ----------
 
     async def chat_json(
-        self, deployment: str, system: str, user: str, schema: dict, reasoning_effort: str | None = None, max_tokens: int = 4000
+        self,
+        deployment: str,
+        system: str,
+        user: str,
+        schema: dict,
+        reasoning_effort: str | None = None,
+        max_tokens: int = 4000,
+        max_wait_s: float | None = None,
     ) -> dict:
         """Chat completions con salida estructurada (json_schema estricto). Devuelve el JSON ya parseado."""
         body: dict[str, Any] = {
@@ -162,7 +171,7 @@ class FoundryClient:
         }
         if reasoning_effort:
             body["reasoning_effort"] = reasoning_effort
-        res = await self._post(CHAT_PATH, body)
+        res = await self._post(CHAT_PATH, body, max_wait_s)
         data = res.pop("data")
         content = (data.get("choices") or [{}])[0].get("message", {}).get("content") or "{}"
         try:
@@ -185,10 +194,19 @@ class FoundryClient:
         }
 
     async def decide_with_llm(
-        self, deployment: str, state: Any, questions: dict[str, dict], context: str = "", reasoning_effort: str | None = None
+        self,
+        deployment: str,
+        state: Any,
+        questions: dict[str, dict],
+        context: str = "",
+        reasoning_effort: str | None = None,
+        max_tokens: int = 4000,
+        max_wait_s: float | None = None,
     ) -> dict:
         user = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
-        res = await self.chat_json(deployment, llm_system_prompt(context, questions), user, llm_schema(questions), reasoning_effort)
+        res = await self.chat_json(
+            deployment, llm_system_prompt(context, questions), user, llm_schema(questions), reasoning_effort, max_tokens, max_wait_s
+        )
         parsed = res.pop("parsed")
         return {**res, "answers": normalize_llm(parsed, questions), "raw": parsed}
 

@@ -7,6 +7,10 @@ param decisionCapacity int
 param comparisonModels string
 param comparisonSku string
 param comparisonCapacity int
+@description('LLM del caso 6 (Space Invaders), con SKU y capacidad propios. "none" = no desplegarlo.')
+param gameModel string
+param gameSku string
+param gameCapacity int
 
 var accountName = 'aif-decision1-${resourceToken}'
 var projectName = 'decision1-demo'
@@ -25,6 +29,12 @@ var comparisonDefs = [
     version: contains(m, ':') ? last(split(m, ':')) : (knownVersions[?m] ?? '')
   }
 ]
+var comparisonNames = map(comparisonDefs, d => d.name)
+
+var gameName = first(split(trim(gameModel), ':'))
+var gameVersion = contains(gameModel, ':') ? last(split(gameModel, ':')) : (knownVersions[?gameName] ?? '')
+// Si el LLM del juego ya está en la lista de comparación, no se vuelve a desplegar.
+var deployGame = !empty(gameName) && toLower(gameName) != 'none' && !contains(comparisonNames, gameName)
 
 resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: accountName
@@ -110,8 +120,29 @@ resource comparison 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01
   }
 ]
 
+// Va después de la comparación: los despliegues de una misma cuenta se crean de uno en uno.
+resource game 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = if (deployGame) {
+  parent: account
+  name: gameName
+  sku: {
+    name: gameSku
+    capacity: gameCapacity
+  }
+  properties: {
+    model: {
+      format: 'OpenAI'
+      name: gameName
+      version: empty(gameVersion) ? null : gameVersion
+    }
+    versionUpgradeOption: 'OnceNewDefaultVersionAvailable'
+  }
+  dependsOn: [
+    comparison
+  ]
+}
+
 output accountName string = account.name
 output projectName string = project.name
 output endpoint string = 'https://${accountName}.services.ai.azure.com'
 output decisionDeployment string = decision.name
-output comparisonDeployments string = join(map(comparisonDefs, d => d.name), ',')
+output comparisonDeployments string = join(concat(comparisonNames, deployGame ? [gameName] : []), ',')

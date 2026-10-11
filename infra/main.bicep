@@ -38,8 +38,8 @@ param principalType string = 'User'
 param decisionSku string = 'DataZoneStandard'
 
 @minValue(1)
-@description('Capacidad del despliegue de Microsoft-Decision-1 (unidades de cuota).')
-param decisionCapacity int = 17
+@description('Capacidad del despliegue de Microsoft-Decision-1, en peticiones por minuto (RPM). El caso 6 (Space Invaders) pide una decisión por segundo y modelo, así que necesita unas 60; con menos funciona, pero más despacio.')
+param decisionCapacity int = 60
 
 @description('LLMs opcionales para la carrera comparativa, separados por comas ("nombre" o "nombre:versión"). Cadena vacía = sin comparativa.')
 param comparisonModels string = 'gpt-5.4-mini,gpt-6-sol'
@@ -50,6 +50,17 @@ param comparisonSku string = 'DataZoneStandard'
 @minValue(1)
 @description('Capacidad (miles de TPM) de cada LLM de comparación.')
 param comparisonCapacity int = 50
+
+@description('LLM del caso 6 (Space Invaders), que juega contra Decision-1. "none" = no desplegarlo: el caso 6 usará un LLM de la lista de comparación.')
+param gameModel string = 'gpt-6-luna'
+
+@allowed(['DataZoneStandard', 'GlobalStandard'])
+@description('SKU del LLM del caso 6. GlobalStandard tiene más cuota, pero el procesamiento puede salir de la zona de datos de la UE (el juego no usa datos personales).')
+param gameSku string = 'GlobalStandard'
+
+@minValue(1)
+@description('Capacidad (miles de TPM) del LLM del caso 6.')
+param gameCapacity int = 100
 
 @description('SKU del plan de App Service que aloja la web de la demo.')
 param appServiceSku string = 'B1'
@@ -82,6 +93,9 @@ module foundry 'modules/foundry.bicep' = {
     comparisonModels: comparisonModels
     comparisonSku: comparisonSku
     comparisonCapacity: comparisonCapacity
+    gameModel: gameModel
+    gameSku: gameSku
+    gameCapacity: gameCapacity
   }
 }
 

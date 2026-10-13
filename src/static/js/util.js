@@ -1,4 +1,5 @@
-// Utilidades de interfaz: DOM, formato en español, animaciones y diálogos.
+// Utilidades de interfaz: DOM, formato según el idioma, animaciones y diálogos.
+import { t, locale } from './i18n.js';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -46,7 +47,15 @@ export function rich(text) {
 
 // ---------- Formato ----------
 
-const nf = (o) => new Intl.NumberFormat('es-ES', o);
+// Un formateador por idioma y opciones: cambiar de idioma cambia separadores, símbolos de moneda y porcentajes.
+const nfCache = new Map();
+const nf = (o) => {
+  const loc = locale();
+  const key = `${loc}|${JSON.stringify(o)}`;
+  let f = nfCache.get(key);
+  if (!f) nfCache.set(key, (f = new Intl.NumberFormat(loc, o)));
+  return f;
+};
 
 function money(v, currency) {
   if (v == null || Number.isNaN(v)) return '—';
@@ -70,17 +79,24 @@ export const fmt = {
   },
   eur: (v) => money(v, 'EUR'),
   usd: (v) => money(v, 'USD'),
-  times: (r) => (r == null || !Number.isFinite(r) ? '—' : `×${r >= 10 ? fmt.int(r) : fmt.num(r, 1)}`),
+  // «×13» en español y «13×» en inglés.
+  times: (r) => {
+    if (r == null || !Number.isFinite(r)) return '—';
+    const v = r >= 10 ? fmt.int(r) : fmt.num(r, 1);
+    return locale().startsWith('en') ? `${v}×` : `×${v}`;
+  },
 };
 
+// Nombres de idioma en su propia lengua (igual en toda la interfaz).
 export const LANGS = {
-  es: 'Español', ca: 'Català', eu: 'Euskara', gl: 'Galego', pt: 'Português', en: 'English',
+  es: 'Español', ca: 'Català', eu: 'Euskara', gl: 'Galego', pt: 'Português', en: 'English', // i18n-ok
   de: 'Deutsch', fr: 'Français', it: 'Italiano', nl: 'Nederlands',
 };
 
+// Los canales llegan del escenario ya traducido (Llamada → Call, Empleado → Employee, Encuesta → Survey).
 const CHANNEL_ICONS = {
-  email: '✉️', whatsapp: '💬', web: '🌐', 'x / twitter': '𝕏', chat: '💭', llamada: '📞',
-  app: '📱', empleado: '🪪', booking: '🛏️', google: '🔎', tripadvisor: '🦉', encuesta: '📝',
+  email: '✉️', whatsapp: '💬', web: '🌐', 'x / twitter': '𝕏', chat: '💭', llamada: '📞', call: '📞', phone: '📞',
+  app: '📱', empleado: '🪪', employee: '🪪', booking: '🛏️', google: '🔎', tripadvisor: '🦉', encuesta: '📝', survey: '📝',
 };
 export const channelIcon = (name) => CHANNEL_ICONS[String(name || '').toLowerCase()] || '•';
 
@@ -168,7 +184,7 @@ export function openModal(content, { wide = false, onClose } = {}) {
   const m = $('#modal');
   lastFocus = document.activeElement;
   m.innerHTML = '';
-  const close = h('button', { class: 'modal-close', 'aria-label': 'Cerrar', title: 'Cerrar (Esc)', onclick: closeModal }, '×');
+  const close = h('button', { class: 'modal-close', 'aria-label': t('Cerrar'), title: t('Cerrar (Esc)'), onclick: closeModal }, '×');
   m.append(h('div', { class: `modal${wide ? ' wide' : ''}`, role: 'dialog', 'aria-modal': 'true' }, close, content));
   m.hidden = false;
   m.onclick = (e) => {
@@ -207,14 +223,14 @@ export function jsonHtml(value, maxLen = 80000) {
       return `<span class="j-num">${num}</span>`;
     },
   );
-  return s + (cut ? '\n<span class="j-cut">… (recortado)</span>' : '');
+  return s + (cut ? `\n<span class="j-cut">${esc(t('… (recortado)'))}</span>` : '');
 }
 
 export function copyText(text) {
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text).then(
-      () => toast('Copiado al portapapeles', 'ok', 1800),
-      () => toast('No se pudo copiar', 'error'),
+      () => toast(t('Copiado al portapapeles'), 'ok', 1800),
+      () => toast(t('No se pudo copiar'), 'error'),
     );
   }
 }

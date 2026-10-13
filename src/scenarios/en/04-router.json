@@ -1,0 +1,137 @@
+{
+  "title": "GenAI model router",
+  "sector": "Generative AI (cross-industry)",
+  "brand": "Corporate GenAI assistant",
+  "headline": "Not every question needs the most expensive model: decide which one in milliseconds.",
+  "item_label": "request",
+  "item_label_plural": "requests",
+  "item_ref": "the request",
+  "item_text_label": "Request text",
+  "batch_key": "requests",
+  "state_fields": {
+    "channel": "channel",
+    "request": "text"
+  },
+  "review_label": "Large-model fallback",
+  "context": "Generative AI gateway of a travel, hotel and energy company. Before calling a model, the router decides who should handle each request from customers and employees.",
+  "questions": {
+    "ruta": {
+      "instructions": "Who should handle this request?",
+      "criteria": {
+        "faq": "Predefined answer: greeting or frequently asked question whose answer is already published (hours, policies, hotel services, contact details).",
+        "modelo_pequeno": "Small model: simple, narrowly scoped task: translating, correcting or summarizing a short text, or looking up a specific customer data point (status of a booking, a payment or a refund).",
+        "modelo_grande": "Large model: complex reasoning, analysis of several documents, planning, code or long-form writing.",
+        "humano": "Human agent: emergency, serious complaint, decision with legal or financial impact, or an explicit request to talk to an agent."
+      }
+    },
+    "complejidad": {
+      "instructions": "How complex is the task?",
+      "criteria": [
+        "Trivial",
+        "Low",
+        "Medium",
+        "High"
+      ]
+    },
+    "datos_internos": {
+      "instructions": "Does it require looking up internal company or customer data (bookings, payments, contracts, reports, CRM)? Public hotel information (hours, services, policies) doesn't count."
+    },
+    "datos_personales": {
+      "instructions": "Does it contain sensitive personal data (health, identity documents, bank details)?"
+    }
+  },
+  "routes": {
+    "faq": {
+      "label": "FAQ answer"
+    },
+    "modelo_pequeno": {
+      "label": "Small model"
+    },
+    "modelo_grande": {
+      "label": "Large model"
+    },
+    "humano": {
+      "label": "Human agent"
+    }
+  },
+  "items": [
+    {
+      "id": "P-401",
+      "lang": "en",
+      "text": "What time is check-out?"
+    },
+    {
+      "id": "P-402",
+      "channel": "Employee",
+      "lang": "en",
+      "text": "Translate this message into Spanish for a customer: \"Your transfer is confirmed for tomorrow at 9:00 a.m. at the main entrance\"."
+    },
+    {
+      "id": "P-403",
+      "channel": "Employee",
+      "lang": "en",
+      "text": "Analyze these three laundry supplier proposals and recommend one, taking into account the total cost over 3 years, the SLAs and the contractual risks."
+    },
+    {
+      "id": "P-404",
+      "lang": "en",
+      "text": "I want to talk to a person. You've overcharged me €1,200 and nobody is answering me. This is a disgrace."
+    },
+    {
+      "id": "P-405",
+      "lang": "en",
+      "text": "What is the cancellation policy for the non-refundable rate?"
+    },
+    {
+      "id": "P-406",
+      "channel": "Employee",
+      "lang": "en",
+      "text": "Summarize this email in three bullet points: \"Hi, we arrive on Friday at 23:00, we need a crib and a room far from the elevator. Thanks.\""
+    },
+    {
+      "id": "P-407",
+      "lang": "en",
+      "text": "Design me a 10-day itinerary through Japan for a family with two kids and a budget of €8,000, combining bullet trains and domestic flights."
+    },
+    {
+      "id": "P-409",
+      "channel": "Employee",
+      "lang": "en",
+      "text": "Write a Python script that calculates the average occupancy per hotel from a CSV and detects anomalies week by week."
+    },
+    {
+      "id": "P-410",
+      "channel": "Employee",
+      "lang": "en",
+      "text": "Correct the spelling: \"Please note that breakfast is sirved from 7 to 10 in the main restaurent.\""
+    },
+    {
+      "id": "P-411",
+      "lang": "en",
+      "text": "My daughter has had a severe allergic reaction at the hotel restaurant and we're at the hospital. I need help now."
+    },
+    {
+      "id": "P-412",
+      "channel": "Employee",
+      "lang": "en",
+      "text": "Compare sales for the last 4 quarters by channel and explain to me, using the attached reports, why the B2B channel is dropping."
+    },
+    {
+      "id": "P-413",
+      "lang": "en",
+      "text": "Hello"
+    }
+  ],
+  "notes": {
+    "reto": "Sending everything to the most powerful model is the easy option, but it makes cost and latency skyrocket. Most requests are greetings, FAQs or simple tasks that don't need it.",
+    "solucion": "Before each call, Decision-1 decides the route (FAQ, small model, large model or human agent), the complexity, and whether internal data is needed or sensitive data is involved, in about 300 ms and for a fraction of a cent.",
+    "paradigma": "The router costs less than what it saves on a single misrouted request. It is real-time AI FinOps: LLM spend drops by half or more without touching the applications. The same pattern picks the skill of an AI agent (the “Skill picker” template in the lab).",
+    "aplica_a": [
+      "AI gateways and APIM",
+      "Internal copilots",
+      "Customer chatbots",
+      "Sensitive data governance",
+      "Agent skill picker"
+    ]
+  }
+}

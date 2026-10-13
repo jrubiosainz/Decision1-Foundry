@@ -4,29 +4,94 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import time
 from pathlib import Path
 from typing import Any
 
 from decision_client import FoundryClient, llm_schema, llm_system_prompt, normalize_llm
 
+log = logging.getLogger("decision1")
+
 BASE = Path(__file__).parent
 # El API admite hasta 255 preguntas por llamada; dejamos margen.
 MAX_QUESTIONS_PER_CALL = 250
+# Idiomas de la interfaz: el español es el original y el resto se superpone desde scenarios/<idioma>/ y lab.<idioma>.json.
+LANGS = ("es", "en")
+DEFAULT_LANG = "es"
+# Claves que la traducción sustituye por completo porque en otro idioma cambian también sus nombres
+# (campos del estado y acción propuesta por el agente, cuyos argumentos ve el modelo y el público; en el laboratorio,
+# además, las etiquetas por valor, que van con el nombre de la pregunta).
+SCENARIO_REPLACE = frozenset({"state_fields", "action"})
+LAB_REPLACE = frozenset({"state", "questions", "values"})
 
 
 def load_json(name: str) -> Any:
     return json.loads((BASE / name).read_text(encoding="utf-8"))
 
 
-def load_scenarios(folder: Path = BASE / "scenarios") -> dict[str, dict]:
+def merge_overlay(base: Any, over: Any, replace: frozenset[str] = frozenset(), path: str = "$") -> Any:
+    """Superpone una traducción sobre el original sin cambiar su estructura.
+
+    Diccionarios: por clave (una clave que no existe en el original es un error, salvo las de `replace`).
+    Listas de diccionarios con `id`: por id (la traducción puede traer solo algunos). Otras listas: misma longitud,
+    elemento a elemento. El resto de valores se sustituyen y deben ser del mismo tipo.
+    """
+    if isinstance(base, dict) and isinstance(over, dict):
+        out = dict(base)
+        for key, val in over.items():
+            if key in replace:
+                out[key] = val
+            elif key not in base:
+                raise ValueError(f"{path}.{key}: no existe en el original")
+            else:
+                out[key] = merge_overlay(base[key], val, replace, f"{path}.{key}")
+        return out
+    if isinstance(base, list) and isinstance(over, list):
+        if base and all(isinstance(b, dict) and "id" in b for b in base):
+            index = {b["id"]: i for i, b in enumerate(base)}
+            out = list(base)
+            for o in over:
+                oid = o.get("id") if isinstance(o, dict) else None
+                if oid not in index:
+                    raise ValueError(f"{path}: id desconocido {oid!r}")
+                out[index[oid]] = merge_overlay(base[index[oid]], o, replace, f"{path}[{oid}]")
+            return out
+        if len(base) != len(over):
+            raise ValueError(f"{path}: {len(over)} elementos, el original tiene {len(base)}")
+        return [merge_overlay(b, o, replace, f"{path}[{i}]") for i, (b, o) in enumerate(zip(base, over))]
+    numbers = (int, float)
+    if type(base) is not type(over) and not (isinstance(base, numbers) and isinstance(over, numbers)):
+        raise ValueError(f"{path}: es {type(over).__name__} y el original {type(base).__name__}")
+    return over
+
+
+def localized(base: dict, overlay: Path, lang: str, replace: frozenset[str], source: str) -> dict:
+    """El original en español o, si existe, su traducción a `lang`; `locale` indica el idioma realmente servido."""
+    if lang == DEFAULT_LANG:
+        return {**base, "locale": DEFAULT_LANG}
+    if not overlay.exists():
+        log.warning("%s: sin traducción a '%s'; se sirve en español", source, lang)
+        return {**base, "locale": DEFAULT_LANG}
+    try:
+        merged = merge_overlay(base, json.loads(overlay.read_text(encoding="utf-8")), replace)
+    except ValueError as exc:
+        raise ValueError(f"{overlay.relative_to(BASE)}: {exc}") from exc
+    return {**merged, "locale": lang}
+
+
+def load_scenarios(folder: Path = BASE / "scenarios", lang: str = DEFAULT_LANG) -> dict[str, dict]:
     scenarios = []
     for path in sorted(folder.glob("*.json")):
-        sc = json.loads(path.read_text(encoding="utf-8"))
+        sc = localized(json.loads(path.read_text(encoding="utf-8")), folder / lang / path.name, lang, SCENARIO_REPLACE, path.name)
         _validate(sc, path.name)
         scenarios.append(sc)
     scenarios.sort(key=lambda s: s.get("order", 99))
     return {s["id"]: s for s in scenarios}
+
+
+def load_lab(lang: str = DEFAULT_LANG) -> dict:
+    return localized(load_json("lab.json"), BASE / f"lab.{lang}.json", lang, LAB_REPLACE, "lab.json")
 
 
 def _validate(sc: dict, source: str) -> None:
@@ -48,6 +113,36 @@ def _validate(sc: dict, source: str) -> None:
 
 # ---------- Construcción de peticiones ----------
 
+# Textos que viajan al modelo y dependen del idioma del escenario (`sc["locale"]`).
+REQUEST_TEXTS = {
+    "es": {
+        "context": "contexto",
+        "ref": "el elemento",
+        "batch_key": "elementos",
+        "about": "Sobre {ref} {id}: {instructions}",
+        "plural": "elementos",
+        "llm_batch": (
+            "Recibirás varios {plural} en JSON, identificados por su id. "
+            "Responde a todas las preguntas para cada uno de ellos, de forma independiente."
+        ),
+    },
+    "en": {
+        "context": "context",
+        "ref": "the item",
+        "batch_key": "items",
+        "about": "About {ref} {id}: {instructions}",
+        "plural": "items",
+        "llm_batch": (
+            "You will receive several {plural} as JSON, identified by their id. "
+            "Answer all the questions for each of them, independently."
+        ),
+    },
+}
+
+
+def request_texts(sc: dict) -> dict:
+    return REQUEST_TEXTS.get(sc.get("locale", DEFAULT_LANG)) or REQUEST_TEXTS[DEFAULT_LANG]
+
 
 def item_fields(sc: dict, item: dict) -> dict:
     return {key: item.get(field) for key, field in sc["state_fields"].items()}
@@ -55,18 +150,26 @@ def item_fields(sc: dict, item: dict) -> dict:
 
 def item_state(sc: dict, item: dict) -> dict:
     """Estado de Decision-1 para un elemento: contexto del negocio + campos del elemento."""
-    return {"contexto": sc["context"], **item_fields(sc, item)}
+    return {request_texts(sc)["context"]: sc["context"], **item_fields(sc, item)}
 
 
 def batch_payload(sc: dict, items: list[dict]) -> tuple[dict, dict]:
     """Varios elementos en una sola llamada: todos en el estado y las preguntas repetidas por elemento."""
-    ref = sc.get("item_ref", "el elemento")
-    state = {"contexto": sc["context"], sc.get("batch_key", "elementos"): {it["id"]: item_fields(sc, it) for it in items}}
+    txt = request_texts(sc)
+    ref = sc.get("item_ref", txt["ref"])
+    state = {txt["context"]: sc["context"], sc.get("batch_key", txt["batch_key"]): {it["id"]: item_fields(sc, it) for it in items}}
     questions: dict[str, dict] = {}
     for it in items:
         for name, q in sc["questions"].items():
-            questions[f"{it['id']}__{name}"] = {**q, "instructions": f"Sobre {ref} {it['id']}: {q['instructions']}"}
+            about = txt["about"].format(ref=ref, id=it["id"], instructions=q["instructions"])
+            questions[f"{it['id']}__{name}"] = {**q, "instructions": about}
     return state, questions
+
+
+class UnknownItems(KeyError):
+    def __init__(self, ids: list[str]):
+        super().__init__(f"Elementos desconocidos: {', '.join(ids)}")
+        self.ids = ids
 
 
 def chunk_items(sc: dict, items: list[dict]) -> list[list[dict]]:
@@ -80,7 +183,7 @@ def select_items(sc: dict, item_ids: list[str] | None) -> list[dict]:
     by_id = {it["id"]: it for it in sc["items"]}
     missing = [i for i in item_ids if i not in by_id]
     if missing:
-        raise KeyError(f"Elementos desconocidos: {', '.join(missing)}")
+        raise UnknownItems(missing)
     return [by_id[i] for i in item_ids]
 
 
@@ -152,7 +255,12 @@ async def d1_batch(client: FoundryClient, sc: dict, items: list[dict]) -> dict:
 
 async def llm_item(client: FoundryClient, sc: dict, item: dict, cmp: dict) -> dict:
     return await client.decide_with_llm(
-        cmp["deployment"], item_fields(sc, item), sc["questions"], sc["context"], cmp.get("reasoning_effort")
+        cmp["deployment"],
+        item_fields(sc, item),
+        sc["questions"],
+        sc["context"],
+        cmp.get("reasoning_effort"),
+        lang=sc.get("locale", DEFAULT_LANG),
     )
 
 
@@ -167,11 +275,9 @@ def llm_batch_schema(item_ids: list[str], questions: dict[str, dict]) -> dict:
 
 
 async def llm_batch(client: FoundryClient, sc: dict, items: list[dict], cmp: dict) -> dict:
-    plural = sc.get("item_label_plural", "elementos")
-    system = llm_system_prompt(sc["context"], sc["questions"]) + (
-        f"\n\nRecibirás varios {plural} en JSON, identificados por su id. "
-        "Responde a todas las preguntas para cada uno de ellos, de forma independiente."
-    )
+    txt = request_texts(sc)
+    plural = sc.get("item_label_plural", txt["plural"])
+    system = llm_system_prompt(sc["context"], sc["questions"], sc.get("locale", DEFAULT_LANG)) + "\n\n" + txt["llm_batch"].format(plural=plural)
     user = json.dumps({it["id"]: item_fields(sc, it) for it in items}, ensure_ascii=False)
     schema = llm_batch_schema([it["id"] for it in items], sc["questions"])
     t0 = time.perf_counter()

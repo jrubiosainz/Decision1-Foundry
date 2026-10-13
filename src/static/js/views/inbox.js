@@ -1,5 +1,6 @@
 // Caso 3 · Asistencia 24/7: la bandeja se reordena por urgencia y SLA, con cuenta atrás.
 import { h, fmt } from '../util.js';
+import { t } from '../i18n.js';
 import { ans, primary, processedItems, tile, metaChips, confPill, latencyChip, flagChip, suggestion, yes, level, expected, fmtCountdown, sectionTitle } from './common.js';
 
 const REVIEW_COLOR = '#d97706';
@@ -18,9 +19,9 @@ function slaBadge(ctx, it) {
   const at = ctx.st.meta?.items?.[it.id]?.at ?? ctx.st.meta?.at ?? Date.now();
   if (mins <= 60) {
     const deadline = at + mins * 60000;
-    return h('span', { class: `sla sla-${lvl}`, dataset: { deadline: String(deadline) }, title: `Responder en ${mins} min` }, '⏱ ', fmtCountdown(deadline - Date.now()));
+    return h('span', { class: `sla sla-${lvl}`, dataset: { deadline: String(deadline) }, title: t('Responder en {mins} min', { mins: fmt.int(mins) }) }, '⏱ ', fmtCountdown(deadline - Date.now()));
   }
-  return h('span', { class: `sla sla-${lvl}`, title: `Responder en ${mins / 60} h` }, `${fmt.num(mins / 60, 0)} h`);
+  return h('span', { class: `sla sla-${lvl}`, title: t('Responder en {horas} h', { horas: fmt.num(mins / 60, 1) }) }, `${fmt.num(mins / 60, 0)} h`);
 }
 
 function row(ctx, it, idx, arrival) {
@@ -39,18 +40,18 @@ function row(ctx, it, idx, arrival) {
       dataset: { flip: it.id },
       style: { '--c': team?.color || (p?.low ? REVIEW_COLOR : '#cbd5e1') },
       onclick: () => ctx.onItem(it.id),
-      title: 'Ver la decisión en detalle',
+      title: t('Ver la decisión en detalle'),
     },
     h('span', { class: 'row-pos' }, idx + 1),
-    h('span', { class: `row-move${move > 0 ? ' up' : move < 0 ? ' down' : ''}`, title: 'Posiciones ganadas o perdidas respecto al orden de llegada' }, move > 0 ? `▲${move}` : move < 0 ? `▼${-move}` : '·'),
+    h('span', { class: `row-move${move > 0 ? ' up' : move < 0 ? ' down' : ''}`, title: t('Posiciones ganadas o perdidas respecto al orden de llegada') }, move > 0 ? `▲${move}` : move < 0 ? `▼${-move}` : '·'),
     p ? slaBadge(ctx, it) : h('span', { class: 'sla none' }, pending ? '…' : 'FIFO'),
     h('div', { class: 'row-main' }, h('div', { class: 'row-head' }, h('b', null, it.id), metaChips(it)), h('div', { class: 'row-text' }, it.text)),
     h(
       'div',
       { class: 'row-side' },
       team ? h('span', { class: 'team', style: { '--c': team.color } }, team.label) : p?.low ? suggestion(ctx, p.a) : null,
-      yes(dest) ? flagChip('📍', 'En destino', dest) : null,
-      yes(sale) ? flagChip('💰', 'Venta', sale, { bad: false }) : null,
+      yes(dest) ? flagChip('📍', t('En destino'), dest) : null,
+      yes(sale) ? flagChip('💰', t('Venta'), sale, { bad: false }) : null,
       p ? confPill(p.a, ctx.threshold) : null,
       latencyChip(ctx, it.id),
     ),
@@ -90,18 +91,23 @@ export default {
       h(
         'div',
         { class: 'tiles' },
-        tile('🚨', 'Críticos · 5 min', s.crit, { color: '#ef4444' }),
-        tile('📍', 'Viajeros en destino', s.dest, { color: '#f97316' }),
-        tile('💰', 'Oportunidades de venta', s.opp, { color: '#10b981', sub: s.opp ? `≈ ${fmt.eur(s.opp * sc.upsell_value_eur)} de venta potencial` : `${fmt.eur(sc.upsell_value_eur)} por oportunidad` }),
+        tile('🚨', t('Críticos · 5 min'), s.crit, { color: '#ef4444' }),
+        tile('📍', t('Viajeros en destino'), s.dest, { color: '#f97316' }),
+        tile('💰', t('Oportunidades de venta'), s.opp, {
+          color: '#10b981',
+          sub: s.opp
+            ? t('≈ {importe} de venta potencial', { importe: fmt.eur(s.opp * sc.upsell_value_eur) })
+            : t('{importe} por oportunidad', { importe: fmt.eur(sc.upsell_value_eur) }),
+        }),
         tile('👀', sc.review_label, s.low, { color: REVIEW_COLOR }),
       ),
       h(
         'div',
         { class: 'team-chips' },
-        Object.entries(sc.teams).map(([k, t]) => h('span', { class: `team${teamCounts[k] ? '' : ' dim'}`, style: { '--c': t.color } }, t.label, ' ', h('b', null, teamCounts[k] || 0))),
+        Object.entries(sc.teams).map(([k, tm]) => h('span', { class: `team${teamCounts[k] ? '' : ' dim'}`, style: { '--c': tm.color } }, tm.label, ' ', h('b', null, teamCounts[k] || 0))),
       ),
       sectionTitle(
-        s.done.length ? '📬 Bandeja ordenada por Decision-1 · urgencia y SLA' : '📬 Bandeja en orden de llegada (FIFO)',
+        s.done.length ? t('📬 Bandeja ordenada por Decision-1 · urgencia y SLA') : t('📬 Bandeja en orden de llegada (FIFO)'),
         h('span', { class: 'muted' }, `${s.done.length}/${sc.items.length}`),
       ),
       h('div', { class: 'rows' }, ordered(ctx).map((it, i) => row(ctx, it, i, s.arrival[it.id]))),
@@ -112,11 +118,17 @@ export default {
     const { sc } = ctx;
     const s = stats(ctx);
     const rows = [
-      { icon: '🚨', label: 'Críticos, a responder en 5 min', value: s.crit },
-      { icon: '📍', label: 'Viajeros en destino', value: s.dest },
-      { icon: '💰', label: 'Oportunidades de venta', value: s.opp ? `${s.opp} · ≈ ${fmt.eur(s.opp * sc.upsell_value_eur)}` : 0 },
+      { icon: '🚨', label: t('Críticos, a responder en 5 min'), value: s.crit },
+      { icon: '📍', label: t('Viajeros en destino'), value: s.dest },
+      { icon: '💰', label: t('Oportunidades de venta'), value: s.opp ? `${s.opp} · ≈ ${fmt.eur(s.opp * sc.upsell_value_eur)}` : 0 },
     ];
-    if (s.jump) rows.push({ icon: '⏫', label: 'Mayor adelanto en la cola', value: `${s.jump.id}: puesto ${s.jump.from} → ${s.jump.to}` });
+    if (s.jump) {
+      rows.push({
+        icon: '⏫',
+        label: t('Mayor adelanto en la cola'),
+        value: t('{id}: puesto {from} → {to}', { id: s.jump.id, from: fmt.int(s.jump.from), to: fmt.int(s.jump.to) }),
+      });
+    }
     rows.push({ icon: '👀', label: sc.review_label, value: s.low });
     return { processed: s.done.length, automated: s.done.length - s.low, review: s.low, rows };
   },

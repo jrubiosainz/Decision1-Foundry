@@ -22,6 +22,7 @@ Una web de tres columnas pensada para presentar:
 - **Izquierda:** introducción, los 6 casos de uso y un laboratorio.
 - **Centro:** la demo en vivo de cada caso, con KPIs (latencia, coste, automatización y acierto) y una vista visual distinta por caso.
 - **Derecha:** notas visibles para la audiencia. Incluyen el reto, la solución, por qué es un nuevo paradigma, dónde aplica, el resultado de la ejecución y una **proyección mensual de ahorro** con supuestos editables.
+- **Arriba a la derecha:** el selector de idioma, con las banderas de España y del Reino Unido. Cambia toda la demo entre español e inglés (consulta [Idiomas](#idiomas-español-e-inglés)).
 
 | # | Caso | Sector | Qué decide Decision-1 | Elementos × preguntas | Latencia (1 llamada) | Coste del lote | Acierto |
 |---|---|---|---|---|---|---|---|
@@ -88,6 +89,30 @@ La introducción muestra este flujo, y cada etapa abre su plantilla en el labora
 
 Cada decisión tarda entre 0,3 y 0,5 s y cuesta milésimas de céntimo. Decision-1 no sustituye a las validaciones deterministas (tests, linters o escáneres de secretos). Úsalo para priorizar y filtrar, y combina los bloqueos con reglas deterministas.
 
+## Idiomas: español e inglés
+
+![Caso 2 con la web en inglés: el selector de idioma está arriba a la derecha](docs/img/09-caso2-en.png)
+
+El selector de la esquina superior derecha, con las banderas de España y del Reino Unido, cambia **toda la demo** de idioma sin recargar la página. El español es el idioma por defecto.
+
+- **Qué cambia.** La interfaz, los ejemplos de los casos 1 a 5, las notas del panel derecho, la proyección de ahorro, las 12 plantillas del laboratorio y los textos del caso 6.
+- **Lo que ve el modelo también cambia.** En inglés, el contexto, las preguntas y los criterios que se envían a Decision-1 y a los LLMs van en inglés, y «Ver petición» muestra el JSON real en inglés. Los ejemplos que ya venían en otro idioma (francés, alemán, catalán…) no se traducen, para que siga viéndose que no hay que configurar nada por idioma. El caso 6 es la excepción: sus preguntas y el estado de la partida se envían siempre en español.
+- **Al cambiar de idioma** se mantienen los resultados de los casos ya ejecutados y solo se recargan los textos. La partida del caso 6 en curso se queda en pausa con su marcador, y se reanuda con «Seguir».
+- **Cómo se elige.** El navegador recuerda la última elección (`localStorage`, clave `d1-lang`). Con `?lang=en` o `?lang=es` en la URL se fuerza y se recuerda; por ejemplo, `https://app-xxxxxxxxxxxxx.azurewebsites.net/?lang=en&code=…`. La web le pide el idioma a la API con la cabecera `X-Demo-Lang`; sin ella, responde en español.
+- **El inglés muestra un idioma menos.** Los ejemplos que estaban en español se traducen al inglés, así que el contador «Idiomas, sin traducir» baja en uno (en el caso 3 pasa de 6 a 5).
+- **Acierto en inglés.** Frente a la referencia, el inglés da entre 73 y 74 de 74 (el español, 74 de 74). El único elemento limítrofe es M-315 del caso 3, una felicitación que a la vez pide un viaje parecido. Oscila entre «reservas» y «otros» con una confianza cercana a 0,5, por debajo del umbral, así que acaba en revisión humana igualmente; en español también es limítrofe (acierta con 0,74). Los criterios en inglés son traducción fiel de los españoles y no se han retocado para forzar la cifra.
+
+Para añadir o corregir una traducción:
+
+| Qué | Dónde |
+|---|---|
+| Textos de la interfaz | `src/static/js/i18n/en/*.js`. El texto en español es la clave: `t('Procesar')`, y cada fragmento asigna su traducción |
+| Ejemplos, preguntas y notas de los casos 1 a 6 | `src/scenarios/en/<mismo nombre>.json`: solo lo que cambia, sin tocar identificadores |
+| Plantillas del laboratorio | `src/lab.en.json` |
+| Precios y etiquetas de las comparaciones | `source_en` y `label_en` en `src/pricing.json` |
+
+Dos comprobaciones sin red: `node scripts/probar-i18n.mjs` (que no falte ninguna traducción ni quede un texto sin envolver) y `.venv/bin/python scripts/probar-idiomas.py --lang en` (que las traducciones de los casos y del laboratorio mantengan la misma estructura y los mismos identificadores que el original). Para medir el acierto del modelo en inglés, ejecuta `scripts/evaluar.py <caso> --lang en` (consulta [Adaptar un caso a tu cliente](#adaptar-un-caso-a-tu-cliente)).
+
 ## Despliegue
 
 ### Requisitos
@@ -97,7 +122,7 @@ Cada decisión tarda entre 0,3 y 0,5 s y cuesta milésimas de céntimo. Decision
 - [Azure Developer CLI (azd)](https://aka.ms/azd-install) y [Azure CLI](https://aka.ms/azcli). Se probó con azd 1.34.
 - En Windows, PowerShell 7 (`pwsh`) para los hooks de azd.
 - Python 3.10 o superior, solo para ejecutarlo en local.
-- Node.js 22 o superior, solo si quieres probar el caso 6 sin interfaz (`scripts/probar-juego.mjs` y `scripts/partida.mjs`).
+- Node.js 22 o superior, solo si quieres probar el caso 6 sin interfaz (`scripts/probar-juego.mjs` y `scripts/partida.mjs`) o comprobar las traducciones (`scripts/probar-i18n.mjs`).
 
 ### Pasos
 
@@ -254,11 +279,14 @@ Lo más sencillo es copiar el caso más parecido y cambiar el contexto, las opci
 ```bash
 set -a; eval "$(azd env get-values)"; set +a
 .venv/bin/python scripts/evaluar.py energia                       # acierto frente a "expected"
+.venv/bin/python scripts/evaluar.py energia --lang en             # lo mismo con el caso en inglés
 .venv/bin/python scripts/evaluar.py energia --llm gpt-5.4-mini    # comparado con un LLM
 azd deploy
 ```
 
 El entorno virtual `.venv` lo crea `scripts/run-local`.
+
+**Versión en inglés.** Para que el caso también se vea en inglés, crea `src/scenarios/en/<mismo nombre>.json` con solo lo que cambia: los textos, las preguntas con sus criterios, los ejemplos (con el mismo `id`) y las notas. Los identificadores (nombres de preguntas, claves de opciones, `expected`, `view`…) no se traducen. Valídalo con `.venv/bin/python scripts/probar-idiomas.py --lang en`. Sin ese archivo, el caso se muestra en español aunque elijas inglés. Las plantillas del laboratorio se traducen en `src/lab.en.json`.
 
 El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`llm`, `seeds` y `speeds`), las dos preguntas del juego y las notas, pero no tiene `items` ni `view`. El motor del juego está en `src/static/js/game/`. `evaluar.py` lo omite; para medirlo usa `scripts/partida.mjs`.
 
@@ -282,6 +310,8 @@ El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`ll
 | En el caso 6, la nave reacciona tarde o a tirones | La cuota de Decision-1 es menor de 60 RPM y la web espacia las decisiones. Sube `DECISION_CAPACITY` si tu cuota lo permite, o juega a ×1 |
 | El caso 6 dice «Falta el modelo rival» | La web no tiene ningún LLM de comparación. Deja `GAME_MODEL` en `gpt-6-luna` o define `COMPARISON_MODELS`, y ejecuta `azd provision` |
 | La web tarda 10–30 s en abrir tras un rato sin uso | Pasa con el plan F1, que se duerme tras unos 20 minutos sin tráfico. Ábrela unos minutos antes de presentar, o usa B1 (`azd env set APP_SERVICE_SKU B1` y `azd provision`) |
+| Con la web en inglés, un texto sigue en español | Falta su traducción. En la consola del navegador, `window.__d1Missing` lista las claves sin traducir; añádelas en `src/static/js/i18n/en/*.js`. Si es un ejemplo o una nota de un caso, falta en `src/scenarios/en/*.json` |
+| Quieres localizar textos sin traducir a simple vista | En la consola, `localStorage.setItem('d1-pseudo', '1')` y recarga: cada texto traducible aparece entre ⟦ ⟧. Lo que se vea sin marcar no pasa por la traducción. Para quitarlo, `localStorage.removeItem('d1-pseudo')` |
 
 ## Estructura
 
@@ -291,17 +321,22 @@ El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`ll
 ├── scripts/
 │   ├── codigo-acceso.sh|ps1    # hook preprovision: genera el código de acceso
 │   ├── run-local.sh|ps1        # ejecuta la web en local
-│   ├── evaluar.py              # mide el acierto de los casos 1 a 5
+│   ├── evaluar.py              # mide el acierto de los casos 1 a 5 (--lang en para la versión en inglés)
 │   ├── partida.mjs             # juega el caso 6 sin interfaz contra los modelos reales
-│   └── probar-juego.mjs        # 29 pruebas del motor del juego, sin red
+│   ├── probar-juego.mjs        # 29 pruebas del motor del juego, sin red
+│   ├── probar-i18n.mjs         # comprueba que la interfaz no deja textos sin traducir
+│   └── probar-idiomas.py       # valida las traducciones de src/scenarios/en y src/lab.en.json
 ├── src/
 │   ├── app.py                  # API (FastAPI) y web estática
 │   ├── decision_client.py      # cliente de Foundry (Decision-1 y LLMs) con Entra ID
-│   ├── demo.py                 # peticiones, lotes y costes
-│   ├── scenarios/*.json        # los 6 casos: contexto, preguntas, ejemplos y notas
+│   ├── demo.py                 # peticiones, lotes y costes; carga los casos en el idioma pedido
+│   ├── scenarios/*.json        # los 6 casos en español: contexto, preguntas, ejemplos y notas
+│   ├── scenarios/en/*.json     # su traducción al inglés (solo lo que cambia)
 │   ├── lab.json                # plantillas del laboratorio
+│   ├── lab.en.json             # las plantillas en inglés
 │   ├── pricing.json            # precios para los cálculos
 │   └── static/                 # web en HTML, CSS y JavaScript, sin compilación (el juego, en js/game/)
+│       └── js/i18n.js, i18n/   # selector de idioma (langswitch.js) y diccionario en inglés (i18n/en/*.js)
 └── docs/
     ├── GUION-DEMO.md           # guion para presentar la demo
     └── img/                    # capturas de una ejecución real

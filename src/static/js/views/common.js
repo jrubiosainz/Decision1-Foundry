@@ -1,6 +1,7 @@
 // Piezas comunes de las vistas de los casos de uso.
 // ctx = { sc, st, threshold, onItem(id), eur(usd) }
 import { h, fmt, LANGS, channelIcon } from '../util.js';
+import { t, tx, N_ } from '../i18n.js';
 
 export const valid = (a) => !!a && a.type !== 'missing' && a.type !== 'unknown';
 export const ans = (ctx, id, q) => ctx.st.results[id]?.[q];
@@ -17,28 +18,40 @@ const humanize = (k) => {
   const s = String(k ?? '').replace(/_/g, ' ');
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
-const VALUE_LABELS = { sin_mencion: 'Sin mención', negativo: 'Negativo', neutro: 'Neutro', positivo: 'Positivo' };
+const VALUE_LABELS = { sin_mencion: N_('Sin mención'), negativo: N_('Negativo'), neutro: N_('Neutro'), positivo: N_('Positivo') };
 const Q_LABELS = {
-  elogia_empleado: 'Elogia a un empleado', en_destino: 'Viajero en destino', oportunidad_venta: 'Oportunidad de venta',
-  datos_internos: 'Necesita datos internos', datos_personales: 'Datos personales sensibles', sentimiento: 'Sentimiento',
+  elogia_empleado: N_('Elogia a un empleado'), en_destino: N_('Viajero en destino'), oportunidad_venta: N_('Oportunidad de venta'),
+  datos_internos: N_('Necesita datos internos'), datos_personales: N_('Datos personales sensibles'), sentimiento: N_('Sentimiento'),
 };
+// Etiqueta por defecto, traducida al pintar (solo claves propias del mapa).
+const defaultLabel = (map, k) => (typeof map[k] === 'string' ? t(map[k]) : null);
 
 export function qLabel(sc, q) {
-  if (q === sc.primary) return 'Decisión principal';
-  return sc.qLabels?.[q] || sc.flags?.[q]?.label || sc.themes?.[q] || sc.checks?.[q]?.label || Q_LABELS[q] || humanize(q);
+  if (q === sc.primary) return t('Decisión principal');
+  return sc.qLabels?.[q] || sc.flags?.[q]?.label || sc.themes?.[q] || sc.checks?.[q]?.label || defaultLabel(Q_LABELS, q) || humanize(q);
 }
 
 export function choiceLabel(sc, q, key) {
   if (key == null) return '—';
   if (q === sc.primary) return primaryMap(sc)[key]?.label || humanize(key);
-  return sc.valueLabels?.[q]?.[key] || VALUE_LABELS[key] || humanize(key);
+  return sc.valueLabels?.[q]?.[key] || defaultLabel(VALUE_LABELS, key) || humanize(key);
+}
+
+/**
+ * Etiqueta de un nivel de escala sacada del escenario actual (mismo recorte que short_label del backend).
+ * Los resultados guardados llevan la etiqueta del idioma en que se pidieron; así siempre sigue al idioma activo.
+ */
+export function scoreLabel(sc, q, lvl, fallback) {
+  const c = sc?.questions?.[q]?.criteria?.[lvl];
+  if (typeof c !== 'string') return fallback;
+  return c.slice(0, 40).includes(':') ? c.split(':', 1)[0].trim() : c.slice(0, 40);
 }
 
 export function answerText(sc, q, a) {
   if (!valid(a)) return '—';
   if (a.type === 'choice') return choiceLabel(sc, q, a.value);
-  if (a.type === 'score') return a.label ?? String(a.value);
-  if (a.type === 'noul') return a.value ? 'Sí' : 'No';
+  if (a.type === 'score') return scoreLabel(sc, q, a.value, a.label) ?? String(a.value);
+  if (a.type === 'noul') return a.value ? t('Sí') : t('No');
   return '—';
 }
 
@@ -53,10 +66,10 @@ export function primary(ctx, id) {
 
 // ---------- Chips y distintivos ----------
 
-export function sevBadge(a, n = 4) {
+export function sevBadge(a, n = 4, label = a?.label) {
   if (!a || a.type !== 'score' || a.value == null) return null;
   const lvl = n === 4 ? a.value : Math.round((a.value / Math.max(1, n - 1)) * 3);
-  return h('span', { class: `sev sev-${lvl}`, title: `Nivel ${a.value} · valor esperado ${fmt.num(a.expected, 2)}` }, a.label);
+  return h('span', { class: `sev sev-${lvl}`, title: t('Nivel {nivel} · valor esperado {valor}', { nivel: fmt.int(a.value), valor: fmt.num(a.expected, 2) }) }, label);
 }
 
 export function confPill(a, thr) {
@@ -64,7 +77,7 @@ export function confPill(a, thr) {
   const low = a.confidence < thr;
   return h(
     'span',
-    { class: `conf${low ? ' low' : ''}`, title: low ? 'Confianza por debajo del umbral: revisión' : 'Confianza calibrada de Decision-1' },
+    { class: `conf${low ? ' low' : ''}`, title: low ? t('Confianza por debajo del umbral: revisión') : t('Confianza calibrada de Decision-1') },
     fmt.pct(a.confidence),
   );
 }
@@ -75,14 +88,14 @@ export function metaChips(it) {
   return [
     it.channel && h('span', { class: 'chip ch' }, channelIcon(it.channel), ' ', it.channel),
     it.source && h('span', { class: 'chip ch' }, channelIcon(it.source), ' ', it.source),
-    it.customer && h('span', { class: `chip cust${it.customer === 'Agencia' ? ' b2b' : ''}` }, it.customer),
+    it.customer && h('span', { class: `chip cust${/\bagenc/i.test(it.customer) ? ' b2b' : ''}` }, it.customer),
     langChip(it.lang),
   ];
 }
 
 export function latencyChip(ctx, id) {
   const ms = ctx.st.meta?.items?.[id]?.latency_ms;
-  return ms != null ? h('span', { class: 'lat', title: 'Latencia de la llamada a Decision-1' }, '⚡ ', fmt.ms(ms)) : null;
+  return ms != null ? h('span', { class: 'lat', title: t('Latencia de la llamada a Decision-1') }, '⚡ ', fmt.ms(ms)) : null;
 }
 
 export function flagChip(icon, label, a, { bad = true } = {}) {
@@ -91,11 +104,11 @@ export function flagChip(icon, label, a, { bad = true } = {}) {
 }
 
 export function suggestion(ctx, a) {
-  if (!valid(a)) return h('span', { class: 'chip warn' }, '👀 Sin respuesta');
+  if (!valid(a)) return h('span', { class: 'chip warn' }, t('👀 Sin respuesta'));
   return h(
     'span',
-    { class: 'chip warn', title: 'La confianza no llega al umbral: lo revisa una persona' },
-    '👀 ¿', choiceLabel(ctx.sc, ctx.sc.primary, a.value), '? ', fmt.pct(a.confidence),
+    { class: 'chip warn', title: t('La confianza no llega al umbral: lo revisa una persona') },
+    t('👀 ¿{label}? {conf}', { label: choiceLabel(ctx.sc, ctx.sc.primary, a.value), conf: fmt.pct(a.confidence) }),
   );
 }
 
@@ -114,7 +127,7 @@ export function card(ctx, it, { color, badges = [], cls = '', text = it.text, he
       dataset: { flip: it.id },
       style: { '--c': color },
       onclick: () => ctx.onItem(it.id),
-      title: 'Ver la decisión en detalle',
+      title: t('Ver la decisión en detalle'),
     },
     h('div', { class: 'card-head' }, h('b', { class: 'card-id' }, it.id), head, metaChips(it), h('span', { class: 'grow' }), p && confPill(p.a, ctx.threshold)),
     h('div', { class: 'card-text' }, text),
@@ -147,12 +160,26 @@ export function inboxBlock(ctx, waiting = waitingItems(ctx)) {
   const { sc } = ctx;
   const total = sc.items.length;
   if (!waiting.length) {
-    return h('div', { class: 'inbox-empty' }, '✓ Bandeja vacía · ', h('b', null, `${total} de ${total}`), ` ${sc.item_label_plural} con decisión`);
+    return h(
+      'div',
+      { class: 'inbox-empty' },
+      tx('✓ Bandeja vacía · {cuenta} {items} con decisión', {
+        cuenta: h('b', null, t('{n} de {total}', { n: fmt.int(total), total: fmt.int(total) })),
+        items: sc.item_label_plural,
+      }),
+    );
   }
   return h(
     'section',
     { class: 'inbox' },
-    h('header', { class: 'inbox-head' }, '📥 Entrada ', h('span', { class: 'count' }, waiting.length), h('span', { class: 'muted' }, ` ${sc.item_label_plural} sin decidir`)),
+    h(
+      'header',
+      { class: 'inbox-head' },
+      t('📥 Entrada'),
+      ' ',
+      h('span', { class: 'count' }, waiting.length),
+      h('span', { class: 'muted' }, ' ', t('{items} sin decidir', { items: sc.item_label_plural })),
+    ),
     h('div', { class: 'inbox-grid' }, waiting.map((it) => card(ctx, it, { cls: 'mini' }))),
   );
 }
@@ -162,7 +189,7 @@ export function sectionTitle(text, extra) {
 }
 
 export const fmtCountdown = (ms) => {
-  if (ms <= 0) return 'vencido';
+  if (ms <= 0) return t('vencido');
   const s = Math.floor(ms / 1000);
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 };

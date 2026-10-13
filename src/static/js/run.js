@@ -1,6 +1,7 @@
 // Ejecución de un caso: en lote (1 llamada), uno a uno, o carrera contra un LLM.
 import { pool, median, toast } from './util.js';
-import { S, caseState, freshCase, api, fail, errorText, emit } from './core.js';
+import { S, caseState, freshCase, api, fail, emit } from './core.js';
+import { t, tn } from './i18n.js';
 
 const changed = (id, flip = true) => emit('case', { id, flip });
 
@@ -55,7 +56,7 @@ export async function runBatch(sc) {
       items: {},
     };
     st.cost = r.cost || { usd: 0, eur: 0 };
-    st.last = { request: r.request, raw: r.raw, label: `1 llamada · ${r.decisions} decisiones` };
+    st.last = { mode: 'batch', request: r.request, raw: r.raw, decisions: r.decisions || 0 };
     addSession(r.calls || 1, r.decisions || 0, r.cost, [r.latency_ms]);
     ok = true;
   } catch (e) {
@@ -74,7 +75,16 @@ export async function runSingle(sc) {
   if (st.busy) return false;
   const left = S.quota?.remaining;
   if (left != null && left < sc.items.length) {
-    toast(`Quedan ${left} peticiones en este minuto (límite ${S.quota.limit} RPM): proceso en lote, 1 sola llamada.`, 'warn', 6000);
+    toast(
+      tn(
+        left,
+        'Queda {n} petición en este minuto (límite {limit} RPM): proceso en lote, 1 sola llamada.',
+        'Quedan {n} peticiones en este minuto (límite {limit} RPM): proceso en lote, 1 sola llamada.',
+        { limit: S.quota.limit },
+      ),
+      'warn',
+      6000,
+    );
     return runBatch(sc);
   }
   clearRun(st);
@@ -99,7 +109,7 @@ export async function runSingle(sc) {
       st.meta.decisions += nq;
       st.meta.wait_ms += r.wait_ms || 0;
       st.cost = { usd: st.cost.usd + (r.cost?.usd || 0), eur: st.cost.eur + (r.cost?.eur || 0) };
-      st.last = { request: r.request, raw: r.raw, label: `Última llamada · ${it.id}` };
+      st.last = { mode: 'single', request: r.request, raw: r.raw, id: it.id };
       addSession(1, nq, r.cost, [r.latency_ms]);
     } catch (e) {
       errors++;
@@ -123,20 +133,20 @@ export async function runRace(sc, modelId = S.raceModel) {
   if (st.busy || st.race?.running) return;
   const cmp = (S.config?.comparisons || []).find((c) => c.id === modelId) || S.config?.comparisons?.[0];
   if (!cmp) {
-    toast('No hay ningún modelo de comparación desplegado.', 'warn');
+    toast(t('No hay ningún modelo de comparación desplegado.'), 'warn');
     return;
   }
-  const race = { model: cmp.id, label: cmp.label, running: true, t0: performance.now(), d1: null, llm: null, error: null };
+  const race = { model: cmp.id, running: true, t0: performance.now(), d1: null, llm: null, error: null };
   st.race = race;
   st.llm = null;
   changed(sc.id, false);
   const llm = api('/api/compare-batch', { scenario: sc.id, model: cmp.id })
     .then((r) => {
       race.llm = { ms: performance.now() - race.t0, latency_ms: r.latency_ms ?? r.wall_ms, cost: r.cost, usage: r.usage };
-      st.llm = { ...r, label: cmp.label, model: cmp.id };
+      st.llm = { ...r, model: cmp.id };
     })
     .catch((e) => {
-      race.error = errorText(e);
+      race.error = e;
       race.llm = { ms: performance.now() - race.t0, failed: true };
       fail(e);
     })

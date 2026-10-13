@@ -6,6 +6,7 @@ Uso, desde la raíz del repo y con las variables del entorno de azd cargadas:
     python scripts/evaluar.py                       # todos los escenarios en modo lote (1 llamada cada uno)
     python scripts/evaluar.py energia hoteles --uno-a-uno
     python scripts/evaluar.py router --llm gpt-5.4-mini
+    python scripts/evaluar.py --lang en             # los mismos escenarios en su versión en inglés
 
 El caso de juego (Space Invaders) no tiene etiquetas de referencia y se omite; para ese caso, ver scripts/partida.mjs.
 """
@@ -63,12 +64,13 @@ async def main() -> None:
     ap.add_argument("escenarios", nargs="*", help="ids de escenario (por defecto, todos)")
     ap.add_argument("--uno-a-uno", action="store_true", help="una llamada por elemento en lugar de una por escenario")
     ap.add_argument("--llm", help="id de comparación de pricing.json para evaluar también un LLM")
+    ap.add_argument("--lang", choices=demo.LANGS, default=demo.DEFAULT_LANG, help="idioma de los escenarios (por defecto, es)")
     args = ap.parse_args()
 
     endpoint = os.environ.get("AZURE_AI_ENDPOINT")
     if not endpoint:
         sys.exit('Falta AZURE_AI_ENDPOINT. Ejecuta: set -a; eval "$(azd env get-values)"; set +a')
-    scenarios = demo.load_scenarios()
+    scenarios = demo.load_scenarios(lang=args.lang)
     selected = args.escenarios or [sid for sid, sc in scenarios.items() if sc.get("kind") != "game"]
     pricing = demo.Pricing(demo.load_json("pricing.json"))
     # Sin prisa en la evaluación: si hace falta, esperamos a que se recargue la cuota de peticiones por minuto.

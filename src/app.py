@@ -39,9 +39,59 @@ GAME_LLM_TOKENS = 256  # sin razonamiento la respuesta son ~20 tokens; con razon
 GAME_LLM_REASONING_TOKENS = 4000
 D1_PRICE_KEY = "Microsoft-Decision-1"
 
-SCENARIOS = demo.load_scenarios()
-LAB = demo.load_json("lab.json")
+SCENARIOS_BY_LANG = {lang: demo.load_scenarios(lang=lang) for lang in demo.LANGS}
+LABS = {lang: demo.load_lab(lang) for lang in demo.LANGS}
 PRICING = demo.Pricing(demo.load_json("pricing.json"))
+
+# Los juegos mandan al modelo siempre el mismo texto en español: no dependen del idioma de la interfaz.
+GAMES = SCENARIOS_BY_LANG[demo.DEFAULT_LANG]
+
+# Mensajes de error que ve el usuario, por idioma de la interfaz (cabecera X-Demo-Lang).
+MESSAGES = {
+    "es": {
+        "bad_code": "Código de acceso incorrecto",
+        "no_endpoint": "Configura AZURE_AI_ENDPOINT para llamar al modelo.",
+        "unknown_scenario": "Escenario desconocido: {id}",
+        "unknown_game": "Juego desconocido: {id}",
+        "unknown_items": "Elementos desconocidos: {ids}",
+        "unknown_model": "Modelo de comparación no disponible: {model}",
+        "lab_state": "El estado debe ser un texto o un objeto JSON no vacío.",
+        "lab_state_size": "En el laboratorio el estado admite hasta {max} caracteres.",
+        "lab_no_questions": "Añade al menos una pregunta.",
+        "lab_max_questions": "En el laboratorio se admiten hasta {max} preguntas.",
+        "lab_question_type": "La pregunta '{name}' debe tener type 'choice', 'score' o 'noul'.",
+        "game_state": "El estado debe tener entre 1 y {max} caracteres.",
+        "game_incomplete": "El modelo no devolvió una respuesta completa.",
+    },
+    "en": {
+        "bad_code": "Wrong access code",
+        "no_endpoint": "Set AZURE_AI_ENDPOINT to call the model.",
+        "unknown_scenario": "Unknown scenario: {id}",
+        "unknown_game": "Unknown game: {id}",
+        "unknown_items": "Unknown items: {ids}",
+        "unknown_model": "Comparison model not available: {model}",
+        "lab_state": "The state must be a non-empty text or JSON object.",
+        "lab_state_size": "In the lab the state accepts up to {max} characters.",
+        "lab_no_questions": "Add at least one question.",
+        "lab_max_questions": "The lab accepts up to {max} questions.",
+        "lab_question_type": "Question '{name}' must have type 'choice', 'score' or 'noul'.",
+        "game_state": "The state must be between 1 and {max} characters.",
+        "game_incomplete": "The model did not return a complete answer.",
+    },
+}
+
+
+def lang_of(request: Request) -> str:
+    code = request.headers.get("x-demo-lang", "").strip().lower()
+    return code if code in demo.LANGS else demo.DEFAULT_LANG
+
+
+def fail(status: int, lang: str, key: str, **params: Any) -> HTTPException:
+    return HTTPException(status_code=status, detail=MESSAGES[lang][key].format(**params))
+
+
+def loc_label(item: dict, lang: str) -> str:
+    return item.get(f"label_{lang}") or item["label"]
 
 
 def _comparisons() -> dict[str, dict]:
@@ -105,7 +155,9 @@ async def _foundry_error(_: Request, exc: FoundryError) -> JSONResponse:
 @app.middleware("http")
 async def _no_cache_static(request: Request, call_next):
     response = await call_next(request)
-    if not request.url.path.startswith("/api/"):
+    if request.url.path.startswith("/api/"):
+        response.headers.setdefault("Vary", "X-Demo-Lang")
+    else:
         response.headers.setdefault("Cache-Control", "no-cache")
     return response
 
@@ -114,13 +166,13 @@ def require_code(request: Request) -> None:
     if ACCESS_CODE:
         given = request.headers.get("x-demo-code", "")
         if not hmac.compare_digest(given.encode(), ACCESS_CODE.encode()):
-            raise HTTPException(status_code=401, detail="Código de acceso incorrecto")
+            raise fail(401, lang_of(request), "bad_code")
 
 
 def client_of(request: Request) -> FoundryClient:
     client = request.app.state.client
     if not client:
-        raise HTTPException(status_code=503, detail="Configura AZURE_AI_ENDPOINT para llamar al modelo.")
+        raise fail(503, lang_of(request), "no_endpoint")
     return client
 
 
@@ -136,47 +188,47 @@ def quota(client: FoundryClient) -> dict:
     return {"limit": limit, "remaining": int(estimate), "region": rate.get("region")}
 
 
-def scenario(scenario_id: str) -> dict:
-    sc = SCENARIOS.get(scenario_id)
+def scenario(scenario_id: str, lang: str) -> dict:
+    sc = SCENARIOS_BY_LANG[lang].get(scenario_id)
     if not sc or sc.get("kind") == "game":
-        raise HTTPException(status_code=404, detail=f"Escenario desconocido: {scenario_id}")
+        raise fail(404, lang, "unknown_scenario", id=scenario_id)
     return sc
 
 
-def game(game_id: str) -> dict:
-    sc = SCENARIOS.get(game_id)
+def game(game_id: str, lang: str) -> dict:
+    sc = GAMES.get(game_id)
     if not sc or sc.get("kind") != "game":
-        raise HTTPException(status_code=404, detail=f"Juego desconocido: {game_id}")
+        raise fail(404, lang, "unknown_game", id=game_id)
     return sc
 
 
-def items_of(sc: dict, item_ids: list[str] | None) -> list[dict]:
+def items_of(sc: dict, item_ids: list[str] | None, lang: str) -> list[dict]:
     try:
         return demo.select_items(sc, item_ids)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except demo.UnknownItems as exc:
+        raise fail(404, lang, "unknown_items", ids=", ".join(exc.ids)) from exc
 
 
-def comparison(model: str) -> dict:
+def comparison(model: str, lang: str) -> dict:
     cmp = COMPARISONS.get(model)
     if not cmp:
-        raise HTTPException(status_code=400, detail=f"Modelo de comparación no disponible: {model}")
+        raise fail(400, lang, "unknown_model", model=model)
     return cmp
 
 
-def lab_payload(state: Any, questions: dict | None) -> tuple[Any, dict]:
+def lab_payload(state: Any, questions: dict | None, lang: str) -> tuple[Any, dict]:
     if not isinstance(state, (str, dict)) or not state:
-        raise HTTPException(status_code=400, detail="El estado debe ser un texto o un objeto JSON no vacío.")
+        raise fail(400, lang, "lab_state")
     size = len(state) if isinstance(state, str) else len(json.dumps(state, ensure_ascii=False))
     if size > LAB_MAX_STATE_CHARS:
-        raise HTTPException(status_code=413, detail=f"En el laboratorio el estado admite hasta {LAB_MAX_STATE_CHARS} caracteres.")
+        raise fail(413, lang, "lab_state_size", max=LAB_MAX_STATE_CHARS)
     if not questions:
-        raise HTTPException(status_code=400, detail="Añade al menos una pregunta.")
+        raise fail(400, lang, "lab_no_questions")
     if len(questions) > LAB_MAX_QUESTIONS:
-        raise HTTPException(status_code=400, detail=f"En el laboratorio se admiten hasta {LAB_MAX_QUESTIONS} preguntas.")
+        raise fail(400, lang, "lab_max_questions", max=LAB_MAX_QUESTIONS)
     for name, q in questions.items():
         if not isinstance(q, dict) or q.get("type") not in ("choice", "score", "noul"):
-            raise HTTPException(status_code=400, detail=f"La pregunta '{name}' debe tener type 'choice', 'score' o 'noul'.")
+            raise fail(400, lang, "lab_question_type", name=name)
     return state, questions
 
 
@@ -211,7 +263,13 @@ async def healthz() -> dict:
 
 
 @app.get("/api/config")
-async def config() -> dict:
+async def config(request: Request) -> dict:
+    lang = lang_of(request)
+    pricing = {
+        **PRICING.data,
+        "source": PRICING.data.get(f"source_{lang}") or PRICING.data.get("source"),
+        "comparisons": [{**c, "label": loc_label(c, lang)} for c in PRICING.data.get("comparisons", [])],
+    }
     return {
         "decision": {
             "model": "Microsoft-Decision-1",
@@ -222,16 +280,17 @@ async def config() -> dict:
         },
         # Cadencia de decisión de los juegos: el límite de Decision-1 con un 5 % de margen. Los dos modelos usan la misma.
         "game": {"cadence_ms": max(1000, math.ceil(60_000 / max(1, DEFAULT_RPM) * 1.05))},
-        "comparisons": [{"id": c["id"], "label": c["label"], "deployment": c["deployment"]} for c in COMPARISONS.values()],
-        "pricing": PRICING.data,
+        "comparisons": [{"id": c["id"], "label": loc_label(c, lang), "deployment": c["deployment"]} for c in COMPARISONS.values()],
+        "pricing": pricing,
         "access_required": bool(ACCESS_CODE),
         "configured": bool(ENDPOINT),
     }
 
 
 @app.get("/api/scenarios", dependencies=[Depends(require_code)])
-async def scenarios() -> dict:
-    return {"scenarios": list(SCENARIOS.values()), "lab": LAB}
+async def scenarios(request: Request) -> dict:
+    lang = lang_of(request)
+    return {"lang": lang, "scenarios": list(SCENARIOS_BY_LANG[lang].values()), "lab": LABS[lang]}
 
 
 @app.get("/api/quota", dependencies=[Depends(require_code)])
@@ -255,12 +314,13 @@ async def warm(request: Request) -> dict:
 async def decide(body: DecideIn, request: Request) -> dict:
     """Una llamada a Decision-1: un elemento de un escenario o un estado libre (laboratorio)."""
     client = client_of(request)
+    lang = lang_of(request)
     if body.scenario:
-        sc = scenario(body.scenario)
-        item = items_of(sc, [body.item_id] if body.item_id else None)[0]
+        sc = scenario(body.scenario, lang)
+        item = items_of(sc, [body.item_id] if body.item_id else None, lang)[0]
         state, questions = demo.item_state(sc, item), sc["questions"]
     else:
-        state, questions = lab_payload(body.state, body.questions)
+        state, questions = lab_payload(body.state, body.questions, lang)
     async with request.app.state.d1_sem:
         res = await client.decide(state, questions)
     return {**res, "item_id": body.item_id, "cost": PRICING.cost(D1_PRICE_KEY, res["usage"]), "quota": quota(client)}
@@ -273,15 +333,16 @@ async def game_decide(body: GameIn, request: Request) -> dict:
     No reintenta ante 429: en un juego una respuesta tardía vale menos que ninguna; el cliente se salta ese turno.
     """
     client = client_of(request)
-    sc = game(body.game)
+    lang = lang_of(request)
+    sc = game(body.game, lang)
     if not body.state.strip() or len(body.state) > GAME_MAX_STATE_CHARS:
-        raise HTTPException(status_code=400, detail=f"El estado debe tener entre 1 y {GAME_MAX_STATE_CHARS} caracteres.")
+        raise fail(400, lang, "game_state", max=GAME_MAX_STATE_CHARS)
     if body.model == GAME_D1_ID:
         async with request.app.state.d1_sem:
             res = await client.decide(f"{sc['context']}\n\n{body.state}", sc["questions"], max_wait_s=0)
         cost, extra = PRICING.cost(D1_PRICE_KEY, res["usage"]), {"quota": quota(client)}
     else:
-        cmp = comparison(body.model)
+        cmp = comparison(body.model, lang)
         effort = cmp.get("reasoning_effort")
         tokens = GAME_LLM_TOKENS if effort == "none" else GAME_LLM_REASONING_TOKENS
         async with request.app.state.llm_sem:
@@ -289,7 +350,7 @@ async def game_decide(body: GameIn, request: Request) -> dict:
         cost, extra = PRICING.cost(cmp["deployment"], res["usage"]), {}
     answers = res["answers"]
     if any(answers.get(name, {}).get("type") == "missing" for name in sc["questions"]):
-        raise HTTPException(status_code=502, detail="El modelo no devolvió una respuesta completa.")
+        raise fail(502, lang, "game_incomplete")
     return {
         "model": body.model,
         "answers": answers,
@@ -304,8 +365,9 @@ async def game_decide(body: GameIn, request: Request) -> dict:
 async def decide_batch(body: BatchIn, request: Request) -> dict:
     """Todos los elementos en una sola llamada (o en pocas, si superan 250 preguntas)."""
     client = client_of(request)
-    sc = scenario(body.scenario)
-    items = items_of(sc, body.item_ids)
+    lang = lang_of(request)
+    sc = scenario(body.scenario, lang)
+    items = items_of(sc, body.item_ids, lang)
     async with request.app.state.d1_sem:
         res = await demo.d1_batch(client, sc, items)
     return {**res, "cost": PRICING.cost(D1_PRICE_KEY, res["usage"]), "quota": quota(client)}
@@ -315,23 +377,25 @@ async def decide_batch(body: BatchIn, request: Request) -> dict:
 async def compare(body: CompareIn, request: Request) -> dict:
     """Mismo elemento y mismas preguntas con un LLM generativo y salida estructurada."""
     client = client_of(request)
-    cmp = comparison(body.model)
-    sc = scenario(body.scenario)
-    item = items_of(sc, [body.item_id] if body.item_id else None)[0]
+    lang = lang_of(request)
+    cmp = comparison(body.model, lang)
+    sc = scenario(body.scenario, lang)
+    item = items_of(sc, [body.item_id] if body.item_id else None, lang)[0]
     async with request.app.state.llm_sem:
         res = await demo.llm_item(client, sc, item, cmp)
-    return {**res, "item_id": item["id"], "label": cmp["label"], "cost": PRICING.cost(cmp["deployment"], res["usage"])}
+    return {**res, "item_id": item["id"], "label": loc_label(cmp, lang), "cost": PRICING.cost(cmp["deployment"], res["usage"])}
 
 
 @app.post("/api/compare-batch", dependencies=[Depends(require_code)])
 async def compare_batch(body: CompareIn, request: Request) -> dict:
     client = client_of(request)
-    cmp = comparison(body.model)
-    sc = scenario(body.scenario)
-    items = items_of(sc, body.item_ids)
+    lang = lang_of(request)
+    cmp = comparison(body.model, lang)
+    sc = scenario(body.scenario, lang)
+    items = items_of(sc, body.item_ids, lang)
     async with request.app.state.llm_sem:
         res = await demo.llm_batch(client, sc, items, cmp)
-    return {**res, "label": cmp["label"], "cost": PRICING.cost(cmp["deployment"], res["usage"])}
+    return {**res, "label": loc_label(cmp, lang), "cost": PRICING.cost(cmp["deployment"], res["usage"])}
 
 
 app.mount("/", StaticFiles(directory=demo.BASE / "static", html=True), name="static")

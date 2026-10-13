@@ -10,6 +10,7 @@
   "item_label": "mensaje",
   "item_label_plural": "mensajes",
   "item_ref": "el mensaje",
+  "item_text_label": "Texto del mensaje",
   "batch_key": "mensajes",
   "state_fields": {
     "canal": "channel",

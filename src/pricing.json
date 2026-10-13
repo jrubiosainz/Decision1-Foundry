@@ -1,6 +1,7 @@
 {
   "usd_to_eur": 0.86,
   "source": "Precios de lista en USD por millón de tokens (octubre de 2026): DataZone para Decision-1, GPT-5.4 mini y GPT-6 Sol; Global Standard para GPT-6 Luna (en DataZone costaría un 20 % más). Edita este fichero si cambian. Precio de entrada cacheada de GPT-6 Sol estimado en un 10 % del normal.",
+  "source_en": "List prices in USD per million tokens (October 2026): DataZone for Decision-1, GPT-5.4 mini and GPT-6 Sol; Global Standard for GPT-6 Luna (on DataZone it would cost 20 % more). Edit this file if they change. GPT-6 Sol cached-input price estimated at 10 % of the regular one.",
   "models": {
     "Microsoft-Decision-1": { "label": "Microsoft-Decision-1", "input": 0.042, "cached_input": 0.042, "output": 0.0 },
     "gpt-5.4-mini": { "label": "GPT-5.4 mini", "input": 0.825, "cached_input": 0.0825, "output": 4.95 },
@@ -8,8 +9,8 @@
     "gpt-6-luna": { "label": "GPT-6 Luna", "input": 0.1, "cached_input": 0.01, "output": 0.5 }
   },
   "comparisons": [
-    { "id": "gpt-5.4-mini", "deployment": "gpt-5.4-mini", "label": "GPT-5.4 mini · sin razonamiento", "reasoning_effort": "none" },
-    { "id": "gpt-6-sol", "deployment": "gpt-6-sol", "label": "GPT-6 Sol · razonamiento por defecto", "reasoning_effort": null },
-    { "id": "gpt-6-luna", "deployment": "gpt-6-luna", "label": "GPT-6 Luna · sin razonamiento", "reasoning_effort": "none" }
+    { "id": "gpt-5.4-mini", "deployment": "gpt-5.4-mini", "label": "GPT-5.4 mini · sin razonamiento", "label_en": "GPT-5.4 mini · no reasoning", "reasoning_effort": "none" },
+    { "id": "gpt-6-sol", "deployment": "gpt-6-sol", "label": "GPT-6 Sol · razonamiento por defecto", "label_en": "GPT-6 Sol · default reasoning", "reasoning_effort": null },
+    { "id": "gpt-6-luna", "deployment": "gpt-6-luna", "label": "GPT-6 Luna · sin razonamiento", "label_en": "GPT-6 Luna · no reasoning", "reasoning_effort": "none" }
   ]
 }

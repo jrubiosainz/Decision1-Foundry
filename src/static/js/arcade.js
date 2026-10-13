@@ -2,6 +2,7 @@
 // La partida (engine/match) no tiene DOM: aquí solo se monta la pantalla, el bucle de fotogramas y los marcadores.
 import { h, fmt } from './util.js';
 import { S, api, errorText, eur, emit, skuLabel } from './core.js';
+import { t, tx, tn, N_ } from './i18n.js';
 import { addSession } from './run.js';
 import { renderResult } from './arcade-result.js';
 import { renderArcadeNotes } from './arcade-notes.js';
@@ -13,7 +14,7 @@ import { BoardView } from './game/render.js';
 
 const COLORS = { d1: '#0f6cbd', rv: '#7c3aed' };
 const WARM_TTL = 60_000;
-const OVER_BANNER = { won: '¡VICTORIA!', lost: 'SIN VIDAS', invaded: 'INVADIDOS', timeout: 'TIEMPO' };
+const OVER_BANNER = { won: N_('¡VICTORIA!'), lost: N_('SIN VIDAS'), invaded: N_('INVADIDOS'), timeout: N_('TIEMPO') };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const randomSeed = () => 1 + Math.floor(Math.random() * 9998);
@@ -55,13 +56,9 @@ function makePlayer(id, label) {
     label,
     cadenceMs: cadenceMs(),
     decide: async (state) => {
-      try {
-        const r = await api('/api/game/decide', { model: id, state }, { retry: false });
-        addSession(1, 2, r.cost, id === D1_ID ? [r.latency_ms] : []);
-        return r;
-      } catch (e) {
-        throw Object.assign(new Error(errorText(e)), { status: e?.status ?? null });
-      }
+      const r = await api('/api/game/decide', { model: id, state }, { retry: false });
+      addSession(1, 2, r.cost, id === D1_ID ? [r.latency_ms] : []);
+      return r;
     },
   });
 }
@@ -96,11 +93,11 @@ function stat(label, ...value) {
 
 function buildCard(side, name, sub, caption) {
   const c = { side, laneKey: '', overKind: null, danger: null };
-  c.canvas = h('canvas', { class: 'arc-canvas', role: 'img', 'aria-label': `Tablero de ${name}` });
+  c.canvas = h('canvas', { class: 'arc-canvas', role: 'img', 'aria-label': t('Tablero de {name}', { name }) });
   c.overTitle = h('b');
   c.overScore = h('span');
   c.over = h('div', { class: 'arc-over', hidden: true }, c.overTitle, c.overScore);
-  c.crown = h('span', { class: 'arc-crown', hidden: true, title: 'Ganador de la partida' }, '🏆');
+  c.crown = h('span', { class: 'arc-crown', hidden: true, title: t('Ganador de la partida') }, '🏆');
   c.who = h('b', null, name);
   c.sub = h('small', null, sub);
   c.score = h('b', null, '0');
@@ -121,7 +118,7 @@ function buildCard(side, name, sub, caption) {
       'header',
       { class: 'arc-head' },
       h('div', { class: 'arc-who' }, h('div', null, c.who, c.crown), c.sub),
-      h('div', { class: 'arc-hud' }, h('span', { class: 'arc-pts' }, c.score, ' pts'), h('span', { class: 'arc-lives', role: 'img', 'aria-label': 'Vidas' }, c.hearts), c.time),
+      h('div', { class: 'arc-hud' }, h('span', { class: 'arc-pts' }, c.score, ' pts'), h('span', { class: 'arc-lives', role: 'img', 'aria-label': t('Vidas') }, c.hearts), c.time),
     ),
     h(
       'div',
@@ -133,10 +130,10 @@ function buildCard(side, name, sub, caption) {
     h(
       'div',
       { class: 'arc-stats' },
-      stat('⚠️ Peligro', c.dangerText, h('span', { class: 'arc-meter', title: 'Probabilidad de que una bomba alcance a la nave en los próximos 2 s' }, c.meter)),
-      stat('⏱ Decisión', c.think),
-      stat('🕰️ Mundo viejo', c.age),
-      stat('💶 Coste', c.cost),
+      stat(t('⚠️ Peligro'), c.dangerText, h('span', { class: 'arc-meter', title: t('Probabilidad de que una bomba alcance a la nave en los próximos 2 s') }, c.meter)),
+      stat(t('⏱ Decisión'), c.think),
+      stat(t('🕰️ Mundo viejo'), c.age),
+      stat(t('💶 Coste'), c.cost),
     ),
   );
   c.view = new BoardView(c.canvas, COLORS[side]);
@@ -145,42 +142,42 @@ function buildCard(side, name, sub, caption) {
 
 function rivalSub() {
   const comp = comparisons().find((c) => c.id === ses.rivalId);
-  return comp?.label.split(' · ').slice(1).join(' · ') || 'Modelo generativo';
+  return comp?.label.split(' · ').slice(1).join(' · ') || t('Modelo generativo');
 }
 
 function buildUi(sc) {
   const d = S.config?.decision || {};
   const u = { sc, stateText: '' };
   u.cards = [
-    buildCard('d1', D1_NAME, `Modelo de decisión · ${skuLabel(d.sku, d.location)}`, 'Mapa de calor: probabilidad que da a cada carril'),
-    buildCard('rv', ses.rival.label, rivalSub(), 'Solo devuelve el carril: sin probabilidades'),
+    buildCard('d1', D1_NAME, t('Modelo de decisión · {sku}', { sku: skuLabel(d.sku, d.location) }), t('Mapa de calor: probabilidad que da a cada carril')),
+    buildCard('rv', ses.rival.label, rivalSub(), t('Solo devuelve el carril: sin probabilidades')),
   ];
 
-  u.play = h('button', { class: 'btn primary', onclick: () => arcadeAction('toggle'), title: 'Jugar o pausar (barra espaciadora)' });
-  u.reset = h('button', { class: 'btn ghost', onclick: () => arcadeAction('reset'), title: 'Volver a empezar la partida (R)' }, '↺ Reiniciar');
+  u.play = h('button', { class: 'btn primary', onclick: () => arcadeAction('toggle'), title: t('Jugar o pausar (barra espaciadora)') });
+  u.reset = h('button', { class: 'btn ghost', onclick: () => arcadeAction('reset'), title: t('Volver a empezar la partida (R)') }, t('↺ Reiniciar'));
   u.seed = h(
     'select',
-    { 'aria-label': 'Semilla de la partida', title: 'Misma semilla = misma partida para los dos modelos', onchange: (e) => onSeed(e) },
-    sc.game.seeds.map((s) => h('option', { value: String(s), selected: String(s) === ses.seedPick }, `Semilla ${s}`)),
-    h('option', { value: 'random', selected: ses.seedPick === 'random' }, '🎲 Aleatoria'),
+    { 'aria-label': t('Semilla de la partida'), title: t('Misma semilla = misma partida para los dos modelos'), onchange: (e) => onSeed(e) },
+    sc.game.seeds.map((s) => h('option', { value: String(s), selected: String(s) === ses.seedPick }, t('Semilla {n}', { n: s }))),
+    h('option', { value: 'random', selected: ses.seedPick === 'random' }, t('🎲 Aleatoria')),
   );
   u.speedBtns = sc.game.speeds.map((v) =>
-    h('button', { type: 'button', dataset: { speed: String(v) }, onclick: () => setSpeed(v), title: 'Acelera el mundo, no al modelo: cada decisión llega con más cambios por medio' }, speedText(v), ' ', h('small', null, SPEED_LABEL[v] || '')),
+    h('button', { type: 'button', dataset: { speed: String(v) }, onclick: () => setSpeed(v), title: t('Acelera el mundo, no al modelo: cada decisión llega con más cambios por medio') }, speedText(v), ' ', h('small', null, SPEED_LABEL[v] ? t(SPEED_LABEL[v]) : '')),
   );
   u.rivalSel = h(
     'select',
-    { 'aria-label': 'Modelo rival', onchange: (e) => onRival(e) },
+    { 'aria-label': t('Modelo rival'), onchange: (e) => onRival(e) },
     comparisons().map((c) => h('option', { value: c.id, selected: c.id === ses.rivalId, title: c.label }, `vs ${shortName(c.label)}`)),
   );
   u.tally = h('span', { class: 'pill arc-tally', hidden: true });
-  u.more = h('button', { class: 'btn ghost', hidden: true, onclick: () => u.result.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 'Comparativa ↓');
+  u.more = h('button', { class: 'btn ghost', hidden: true, onclick: () => u.result.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, t('Comparativa ↓'));
   const toolbar = h(
     'div',
     { class: 'toolbar' },
     u.play,
     u.reset,
     u.seed,
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'Velocidad del juego' }, u.speedBtns),
+    h('div', { class: 'seg', role: 'group', 'aria-label': t('Velocidad del juego') }, u.speedBtns),
     u.rivalSel,
     h('span', { class: 'grow' }),
     u.more,
@@ -190,8 +187,8 @@ function buildUi(sc) {
   const legend = h(
     'div',
     { class: 'arc-legend' },
-    h('span', null, h('i', { class: 'lg-ghost' }), 'Contorno hueco: el mundo que el modelo veía al pedir su decisión'),
-    h('span', null, h('i', { class: 'lg-caret' }), 'Triángulo: carril al que ha mandado la nave'),
+    h('span', null, h('i', { class: 'lg-ghost' }), t('Contorno hueco: el mundo que el modelo veía al pedir su decisión')),
+    h('span', null, h('i', { class: 'lg-caret' }), t('Triángulo: carril al que ha mandado la nave')),
     h('span', { class: 'grow' }),
     u.info,
   );
@@ -200,7 +197,7 @@ function buildUi(sc) {
   u.seen = h(
     'details',
     { class: 'arc-seen', ontoggle: () => paintState() },
-    h('summary', null, '👁️ Lo que ve el modelo ', h('small', null, '(el mismo texto para los dos, más dos preguntas: carril y peligro)')),
+    h('summary', null, t('👁️ Lo que ve el modelo'), ' ', h('small', null, t('(el mismo texto para los dos, más dos preguntas: carril y peligro)'))),
     u.state,
   );
 
@@ -208,8 +205,8 @@ function buildUi(sc) {
     'div',
     { class: 'case-head' },
     h('div', { class: 'case-icon' }, sc.icon),
-    h('div', null, h('div', { class: 'case-kicker' }, `Caso ${sc.order} · ${sc.sector}`), h('h1', { class: 'case-title' }, sc.title), h('div', { class: 'case-headline' }, sc.headline)),
-    h('div', { class: 'case-brand' }, 'Duelo en directo', h('b', null, sc.brand), u.tally),
+    h('div', null, h('div', { class: 'case-kicker' }, t('Caso {n} · {sector}', { n: sc.order, sector: sc.sector })), h('h1', { class: 'case-title' }, sc.title), h('div', { class: 'case-headline' }, sc.headline)),
+    h('div', { class: 'case-brand' }, t('Duelo en directo'), h('b', null, sc.brand), u.tally),
   );
   u.duel = h('div', { class: 'arc-duel' }, u.cards[0].root, u.cards[1].root);
   u.head = head;
@@ -224,7 +221,7 @@ function emptyState(sc, stage, notes) {
     'div',
     { class: 'case-head' },
     h('div', { class: 'case-icon' }, sc.icon),
-    h('div', null, h('div', { class: 'case-kicker' }, `Caso ${sc.order} · ${sc.sector}`), h('h1', { class: 'case-title' }, sc.title), h('div', { class: 'case-headline' }, sc.headline)),
+    h('div', null, h('div', { class: 'case-kicker' }, t('Caso {n} · {sector}', { n: sc.order, sector: sc.sector })), h('h1', { class: 'case-title' }, sc.title), h('div', { class: 'case-headline' }, sc.headline)),
   );
   stage.replaceChildren(
     h(
@@ -234,12 +231,12 @@ function emptyState(sc, stage, notes) {
       h(
         'div',
         { class: 'lab-empty' },
-        h('b', null, 'Falta el modelo rival'),
-        h('p', { class: 'muted' }, 'Este caso enfrenta a Decision-1 con un LLM. Añade ', h('code', null, sc.game.llm), ' a ', h('code', null, 'COMPARISON_DEPLOYMENTS'), ' y vuelve a arrancar la aplicación.'),
+        h('b', null, t('Falta el modelo rival')),
+        h('p', { class: 'muted' }, tx('Este caso enfrenta a Decision-1 con un LLM. Añade {llm} a {variable} y vuelve a arrancar la aplicación.', { llm: h('code', null, sc.game.llm), variable: h('code', null, 'COMPARISON_DEPLOYMENTS') })),
       ),
     ),
   );
-  notes.replaceChildren(h('div', { class: 'notes-case' }, h('div', { class: 'notes-kicker' }, `Caso ${sc.order} · notas para el presentador`)));
+  notes.replaceChildren(h('div', { class: 'notes-case' }, h('div', { class: 'notes-kicker' }, t('Caso {n} · notas para el presentador', { n: sc.order }))));
 }
 
 // ---------- Montaje ----------
@@ -399,10 +396,10 @@ function changed() {
 function finish() {
   ses.recorded = true;
   const res = ses.match.result;
-  const t = (ses.tally[ses.rivalId] ||= { d1: 0, rival: 0, ties: 0 });
-  if (res.winner === 0) t.d1++;
-  else if (res.winner === 1) t.rival++;
-  else t.ties++;
+  const tally = (ses.tally[ses.rivalId] ||= { d1: 0, rival: 0, ties: 0 });
+  if (res.winner === 0) tally.d1++;
+  else if (res.winner === 1) tally.rival++;
+  else tally.ties++;
   ses.history = [{ seed: res.seed, speed: ses.speed, rival: ses.rival.label, scores: res.rows.map((r) => r.score), winner: res.winner }, ...ses.history].slice(0, 10);
   showResult();
   changed();
@@ -425,12 +422,13 @@ function showResult() {
 }
 
 function paintTally() {
-  const t = ses.tally[ses.rivalId];
-  const n = t ? t.d1 + t.rival + t.ties : 0;
+  const tally = ses.tally[ses.rivalId];
+  const n = tally ? tally.d1 + tally.rival + tally.ties : 0;
   ui.tally.hidden = !n;
   if (!n) return;
-  ui.tally.title = `${n} ${n === 1 ? 'partida' : 'partidas'} contra ${ses.rival.label}${t.ties ? ` · ${t.ties} ${t.ties === 1 ? 'empate' : 'empates'}` : ''}`;
-  ui.tally.replaceChildren('🏆 ', h('span', { class: 'd1' }, D1_NAME, ' ', h('b', null, t.d1)), ' – ', h('span', { class: 'rv' }, h('b', null, t.rival), ' ', ses.rival.label));
+  const games = tn(n, '{n} partida contra {rival}', '{n} partidas contra {rival}', { rival: ses.rival.label });
+  ui.tally.title = tally.ties ? `${games} · ${tn(tally.ties, '{n} empate', '{n} empates')}` : games;
+  ui.tally.replaceChildren('🏆 ', h('span', { class: 'd1' }, D1_NAME, ' ', h('b', null, tally.d1)), ' – ', h('span', { class: 'rv' }, h('b', null, tally.rival), ' ', ses.rival.label));
 }
 
 // ---------- Controles ----------
@@ -439,8 +437,8 @@ function syncControls() {
   const m = ses.match;
   const st = m.status;
   const busy = st === 'running' || st === 'paused' || ses.warming;
-  const label = ses.warming ? [h('span', { class: 'spinner' }), ' Calentando…'] : st === 'running' ? '⏸ Pausa' : st === 'paused' ? '▶ Seguir' : st === 'finished' ? '↺ Otra partida' : '▶ Jugar';
-  ui.play.replaceChildren(...[label].flat(), ' ', h('kbd', null, 'Espacio'));
+  const label = ses.warming ? [h('span', { class: 'spinner' }), ' ', t('Calentando…')] : st === 'running' ? t('⏸ Pausa') : st === 'paused' ? t('▶ Seguir') : st === 'finished' ? t('↺ Otra partida') : t('▶ Jugar');
+  ui.play.replaceChildren(...[label].flat(), ' ', h('kbd', null, t('Espacio')));
   ui.play.disabled = ses.warming;
   ui.reset.disabled = st === 'idle' || ses.warming;
   ui.reset.hidden = st === 'finished';
@@ -451,7 +449,7 @@ function syncControls() {
     b.classList.toggle('on', Number(b.dataset.speed) === ses.speed);
   }
   ui.more.hidden = st !== 'finished';
-  ui.info.textContent = `Semilla ${ses.seed} · ${speedText(ses.speed)} · una decisión cada ~${fmt.num(cadenceMs() / 1000, 2)} s por modelo`;
+  ui.info.textContent = t('Semilla {seed} · {speed} · una decisión cada ~{s} s por modelo', { seed: ses.seed, speed: speedText(ses.speed), s: fmt.num(cadenceMs() / 1000, 2) });
 }
 
 // ---------- Bucle de fotogramas ----------
@@ -498,17 +496,17 @@ function paintCard(c, p, now) {
     c.over.hidden = !g.over;
     if (g.over) {
       c.over.className = `arc-over ${g.over}`;
-      c.overTitle.textContent = OVER_BANNER[g.over];
+      c.overTitle.textContent = t(OVER_BANNER[g.over]);
     }
   }
-  if (g.over) setText(c.overScore, `${fmt.int(g.score)} puntos`);
+  if (g.over) setText(c.overScore, t('{n} puntos', { n: fmt.int(g.score) }));
   paintLanes(c, p);
 
   const danger = last?.danger ?? null;
   if (c.danger !== danger) {
     c.danger = danger;
     c.meter.style.transform = `scaleX(${danger ?? 0})`;
-    c.dangerText.textContent = danger == null ? '—' : last.probs ? fmt.pct(danger) : danger >= 0.5 ? 'sí' : 'no';
+    c.dangerText.textContent = danger == null ? '—' : last.probs ? fmt.pct(danger) : danger >= 0.5 ? t('sí') : t('no');
   }
   const s = liveStats(p);
   if (p.inflight) setText(c.think, `⏳ ${fmt.ms(now - p.inflight.start)}`);
@@ -518,7 +516,14 @@ function paintCard(c, p, now) {
   setText(c.cost, s.decisions ? fmt.eur(eur(s.usd)) : '—');
   const e = p.error;
   c.err.hidden = !e;
-  if (e) setText(c.err, e.status === 429 ? `⏱ Límite de peticiones por minuto · ${s.skipped} saltadas` : `⚠️ ${e.message}`);
+  if (e) setText(c.err, e.status === 429 ? t('⏱ Límite de peticiones por minuto · {n} saltadas', { n: fmt.int(s.skipped) }) : `⚠️ ${errorMessage(e)}`);
+}
+
+/** Texto de un fallo al consultar al modelo: los del bucle traen código y parámetros; el resto es el error del backend. */
+function errorMessage(e) {
+  if (e.code === 'timeout') return t('Sin respuesta en {s} s', { s: fmt.num(e.params.s) });
+  if (e.code === 'no-lane') return t('Respuesta sin carril válido');
+  return errorText(e.cause ?? e);
 }
 
 function paintLanes(c, p) {

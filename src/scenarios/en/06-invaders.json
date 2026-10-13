@@ -1,0 +1,27 @@
+{
+  "title": "Space Invaders live",
+  "sector": "Real-time decisions",
+  "brand": "Decision-1 vs GPT-6 Luna",
+  "headline": "The world doesn't wait: the model that decides in time wins.",
+  "notes": {
+    "reto": "A video game waits for no one: if the model is slow, the world has already moved on by the time its answer arrives. Being late is as bad as being wrong. It is the same problem as a robot, an agent driving a screen or a system that reacts to events.",
+    "solucion": "Both models get **the same game state as text** and **the same two questions** (which lane do I go to? will I get hit?). Decision-1 answers in about **0.3 s** and also spreads probabilities across the 13 lanes (the heat map). GPT-6 Luna, without reasoning, needs about **0.8 s**. While they think, the game keeps running: the hollow outlines are the world they saw when they asked for the decision.",
+    "paradigma": "Not every decision an agent makes needs generative reasoning. Picking one option out of several with the state in front of you is classification, and for that a cheap, low-latency decision model on the critical path is enough. The large model is kept for planning. It is the “reflexes + brain” pattern.",
+    "aplica_a": [
+      "Computer-use agents (which button to press)",
+      "Robotics and automation",
+      "Inline checks for AI agents",
+      "Picking an agent's skill or tool",
+      "Live moderation and alerts",
+      "Process and energy control"
+    ],
+    "lectura": [
+      "**Same conditions**: same text, same questions, same game (seed) and both requests sent at the same time. Only who answers, and how long it takes, changes.",
+      "**Speed is the lever**: at normal pace (×1) both arrive in time and whoever decides better wins; in our tests, GPT-6 Luna won 4–2. When the world speeds up (×1.5 and ×2), Decision-1 won 10 out of 12.",
+      "**Similar quality per decision**: against an approximate oracle that can see the future, both score ≈0.7. Decision-1 doesn't play “better”: it arrives sooner, with a fresher world.",
+      "**A classic bot would do better**: what matters is that here the rule is written in natural language and works just as well for other environments.",
+      "**One game is not a benchmark**: repeat with another seed or change the speed. This is a demonstration, not an independent measurement.",
+      "**Data**: GPT-6 Luna is deployed as Global Standard (processing may leave the EU data zone). The game uses no personal data."
+    ]
+  }
+}

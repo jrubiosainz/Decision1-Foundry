@@ -10,6 +10,7 @@
   "item_label": "reseña",
   "item_label_plural": "reseñas",
   "item_ref": "la reseña",
+  "item_text_label": "Texto de la reseña",
   "batch_key": "reseñas",
   "state_fields": {
     "hotel": "hotel",

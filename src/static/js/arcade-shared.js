@@ -1,11 +1,13 @@
 // Piezas comunes del caso 6 (partida en directo): identificadores, textos y estadísticas por jugador.
 import { fmt } from './util.js';
+import { N_ } from './i18n.js';
 import { TICK_MS } from './game/engine.js';
 
 export const D1_ID = 'decision-1';
 export const D1_NAME = 'Decision-1';
-export const OVER_LABEL = { won: 'Victoria', lost: 'Sin vidas', invaded: 'Invadido', timeout: 'Tiempo agotado' };
-export const SPEED_LABEL = { 1: 'normal', 1.5: 'rápido', 2: 'turbo' };
+// Se traducen con t() al pintarlos.
+export const OVER_LABEL = { won: N_('Victoria'), lost: N_('Sin vidas'), invaded: N_('Invadido'), timeout: N_('Tiempo agotado') };
+export const SPEED_LABEL = { 1: N_('normal'), 1.5: N_('rápido'), 2: N_('turbo') };
 
 export const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 export const shortName = (label) => String(label || '').split(' · ')[0];

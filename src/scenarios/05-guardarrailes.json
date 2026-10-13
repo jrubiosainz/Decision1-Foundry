@@ -10,6 +10,7 @@
   "item_label": "acción",
   "item_label_plural": "acciones",
   "item_ref": "la acción",
+  "item_text_label": "Mensaje del cliente",
   "batch_key": "acciones",
   "state_fields": {
     "mensaje_cliente": "text",

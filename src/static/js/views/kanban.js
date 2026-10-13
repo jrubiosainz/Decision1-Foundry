@@ -1,13 +1,15 @@
 // Caso 1 · Triage de tickets: tablero kanban por colas, ordenado por urgencia.
 import { h } from '../util.js';
-import { ans, primary, processedItems, card, lane, inboxBlock, sevBadge, flagChip, suggestion, yes, level, expected } from './common.js';
+import { t } from '../i18n.js';
+import { ans, primary, processedItems, card, lane, inboxBlock, sevBadge, flagChip, suggestion, yes, level, expected, scoreLabel } from './common.js';
 
 const REVIEW = { color: '#d97706', icon: '👀' };
 
 function badges(ctx, it) {
   const { sc } = ctx;
   const p = primary(ctx, it.id);
-  const out = [sevBadge(ans(ctx, it.id, sc.severity))];
+  const sev = ans(ctx, it.id, sc.severity);
+  const out = [sevBadge(sev, 4, scoreLabel(sc, sc.severity, sev?.value, sev?.label))];
   for (const [k, f] of Object.entries(sc.flags || {})) {
     const a = ans(ctx, it.id, k);
     if (yes(a)) out.push(flagChip(f.icon, f.label, a));
@@ -48,11 +50,11 @@ export default {
     const done = processedItems(ctx);
     const low = done.filter((it) => primary(ctx, it.id).low).length;
     const urgent = done.filter((it) => (level(ans(ctx, it.id, sc.severity)) ?? 0) >= 2).length;
-    const rows = [{ icon: '🚨', label: 'Urgencia alta o crítica', value: urgent }];
+    const rows = [{ icon: '🚨', label: t('Urgencia alta o crítica'), value: urgent }];
     for (const [k, f] of Object.entries(sc.flags || {})) {
       rows.push({ icon: f.icon, label: f.label, value: done.filter((it) => yes(ans(ctx, it.id, k))).length });
     }
-    rows.push({ icon: '🌍', label: 'Idiomas, sin traducir ni configurar', value: new Set(done.map((it) => it.lang)).size });
+    rows.push({ icon: '🌍', label: t('Idiomas, sin traducir ni configurar'), value: new Set(done.map((it) => it.lang)).size });
     rows.push({ icon: '👀', label: sc.review_label, value: low });
     return { processed: done.length, automated: done.length - low, review: low, rows };
   },

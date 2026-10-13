@@ -1,0 +1,162 @@
+{
+  "title": "24/7 assistance",
+  "sector": "Travel and tour operations",
+  "headline": "The inbox sorts itself by SLA: the traveler stranded at the airport comes first.",
+  "item_label": "message",
+  "item_label_plural": "messages",
+  "item_ref": "the message",
+  "item_text_label": "Message text",
+  "batch_key": "messages",
+  "state_fields": {
+    "channel": "channel",
+    "customer": "customer",
+    "message": "text"
+  },
+  "review_label": "Human review",
+  "context": "Alisio Travel Group's 24/7 assistance center: tour operator, travel agencies, transfers and destination services. Individual travelers and partner agencies write in by WhatsApp, email and chat, in several languages.",
+  "questions": {
+    "equipo": {
+      "instructions": "Which team should handle this message?",
+      "criteria": {
+        "asistencia_destino": "Destination assistance: the traveler is already on their trip and has a problem with the hotel, an excursion, lost documents, a theft or a health issue.",
+        "traslados": "Transfers: airport or hotel pickups, a driver who doesn't show up, changes to the pickup time.",
+        "aereo": "Flights: delays, airline cancellations, flight changes, baggage, check-in, missed connections.",
+        "reservas": "Bookings and sales: quotes, new bookings, extensions or upgrades of a trip.",
+        "cancelaciones": "Cancellations and refunds requested by the customer, cancellation insurance.",
+        "agencias_b2b": "B2B agencies and partners: commissions, settlements, extranet, contracts, onboarding of new partners.",
+        "otros": "Other: compliments, suggestions or topics that don't fit any of the above."
+      }
+    },
+    "urgencia": {
+      "instructions": "How urgently should we respond?",
+      "criteria": [
+        "Low: inquiry with no upcoming date; respond within 24 h.",
+        "Medium: request with a deadline of several days; respond within 4 h.",
+        "High: affects the trip within the next few hours; respond within 30 min.",
+        "Critical: the traveler is in trouble right now: health, safety, or stranded without the service they booked (nobody picks them up, no accommodation); respond within 5 min."
+      ]
+    },
+    "en_destino": {
+      "instructions": "Is the traveler on their trip right now (at the destination, at the airport or in transit)? If they write before leaving or after returning, the answer is no."
+    },
+    "oportunidad_venta": {
+      "instructions": "Does the customer want to buy something new (another trip, extending their stay, upgrading or adding services)? Claiming something already paid for is not a sales opportunity."
+    }
+  },
+  "teams": {
+    "asistencia_destino": {
+      "label": "Destination assistance"
+    },
+    "traslados": {
+      "label": "Transfers"
+    },
+    "aereo": {
+      "label": "Flights"
+    },
+    "reservas": {
+      "label": "Bookings and sales"
+    },
+    "cancelaciones": {
+      "label": "Cancellations"
+    },
+    "agencias_b2b": {
+      "label": "B2B agencies"
+    },
+    "otros": {
+      "label": "Other"
+    }
+  },
+  "items": [
+    {
+      "id": "M-301",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "We're at Punta Cana airport and the transfer driver hasn't shown up. We've been waiting 40 minutes with two small kids."
+    },
+    {
+      "id": "M-302",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-303",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "I'd like a quote for 7 nights in Riviera Maya in July, 2 adults and 2 kids, all-inclusive."
+    },
+    {
+      "id": "M-304",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-305",
+      "customer": "Agency",
+      "lang": "en",
+      "text": "We are Viajes Sol y Mar. The commission for file 88123 doesn't show up in the September settlement."
+    },
+    {
+      "id": "M-306",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-307",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-308",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "We just got to the hotel in Cancún and they gave us a room with two twin beds. We had booked a suite with a jacuzzi for our honeymoon."
+    },
+    {
+      "id": "M-309",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-310",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "How much carry-on luggage is allowed on charter flights to Cuba?"
+    },
+    {
+      "id": "M-311",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-312",
+      "customer": "Agency"
+    },
+    {
+      "id": "M-313",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "I want to cancel the Tenerife booking for December and get my money back; a work trip came up."
+    },
+    {
+      "id": "M-314",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "Tomorrow we're getting picked up at 5:00 a.m. to go to Palma airport. Can you change the pickup to 4:00 a.m.? Our flight has been moved earlier."
+    },
+    {
+      "id": "M-315",
+      "customer": "Individual"
+    },
+    {
+      "id": "M-316",
+      "customer": "Individual",
+      "lang": "en",
+      "text": "I'd like to compliment your guide in Marrakech, Amina. She was incredible with the whole group."
+    }
+  ],
+  "notes": {
+    "reto": "A 24/7 center receives messages from travelers and agencies in 5 languages. In order of arrival, the traveler stranded at the airport waits behind a request for a July quote, and sales opportunities get lost in the inbox.",
+    "solucion": "Decision-1 decides the team, the urgency (and therefore the SLA), whether the traveler is at the destination and whether there is a sales opportunity. The inbox reorders itself with a continuous priority based on probabilities.",
+    "paradigma": "Prioritizing each message in milliseconds makes it possible to sort the queue in real time, before anyone has read it. It is impossible with humans and expensive with an LLM at this volume.",
+    "aplica_a": [
+      "24/7 destination assistance",
+      "B2B support for agencies",
+      "Cross-sell detection",
+      "Flight disruption management"
+    ]
+  }
+}

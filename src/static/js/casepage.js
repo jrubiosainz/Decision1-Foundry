@@ -1,6 +1,7 @@
 // Página de un caso: cabecera, barra de herramientas, KPI, carrera y la vista animada (FLIP).
 import { h, fmt, flip, toast } from './util.js';
 import { S, caseState, eur } from './core.js';
+import { t, tn } from './i18n.js';
 import { VIEWS } from './views/index.js';
 import { runCase, runRace, resetCase } from './run.js';
 import { renderRace, tickRace } from './race.js';
@@ -22,13 +23,13 @@ export function unmountCase() {
 export function mountCase(sc, stage, notes) {
   const view = VIEWS[sc.view];
   const els = {};
-  els.process = h('button', { class: 'btn primary', onclick: () => caseAction('process'), title: 'Procesar (barra espaciadora)' }, '▶ Procesar ', h('kbd', null, 'Espacio'));
-  els.modeBatch = h('button', { type: 'button', onclick: () => setMode('batch'), title: 'Todos los elementos en una sola llamada (B)' }, '📦 Lote ', h('small', null, '1 llamada'));
-  els.modeSingle = h('button', { type: 'button', onclick: () => setMode('single'), title: 'Una llamada por elemento, en paralelo (B)' }, '🔁 Uno a uno');
-  els.raceBtn = h('button', { class: 'btn race-btn', onclick: () => caseAction('race'), title: 'El mismo lote contra un LLM generativo (C)' }, '🏁 Carrera ', h('kbd', null, 'C'));
+  els.process = h('button', { class: 'btn primary', onclick: () => caseAction('process'), title: t('Procesar (barra espaciadora)') }, t('▶ Procesar'), ' ', h('kbd', null, t('Espacio')));
+  els.modeBatch = h('button', { type: 'button', onclick: () => setMode('batch'), title: t('Todos los elementos en una sola llamada (B)') }, t('📦 Lote'), ' ', h('small', null, t('1 llamada')));
+  els.modeSingle = h('button', { type: 'button', onclick: () => setMode('single'), title: t('Una llamada por elemento, en paralelo (B)') }, t('🔁 Uno a uno'));
+  els.raceBtn = h('button', { class: 'btn race-btn', onclick: () => caseAction('race'), title: t('El mismo lote contra un LLM generativo (C)') }, t('🏁 Carrera'), ' ', h('kbd', null, 'C'));
   els.raceSel = h(
     'select',
-    { 'aria-label': 'Modelo rival en la carrera', onchange: (e) => (S.raceModel = e.target.value) },
+    { 'aria-label': t('Modelo rival en la carrera'), onchange: (e) => (S.raceModel = e.target.value) },
     (S.config?.comparisons || []).map((c) => h('option', { value: c.id, selected: c.id === S.raceModel, title: c.label }, `vs ${c.label.split(' · ')[0]}`)),
   );
   els.thrVal = h('b', null, fmt.pct(S.threshold));
@@ -38,7 +39,7 @@ export function mountCase(sc, stage, notes) {
     max: 99,
     step: 1,
     value: Math.round(S.threshold * 100),
-    'aria-label': 'Umbral de confianza',
+    'aria-label': t('Umbral de confianza'),
     oninput: (e) => {
       S.threshold = Number(e.target.value) / 100;
       els.thrVal.textContent = fmt.pct(S.threshold);
@@ -46,7 +47,7 @@ export function mountCase(sc, stage, notes) {
     },
   });
   els.timer = h('span', { class: 'timer' });
-  els.reset = h('button', { class: 'btn ghost', onclick: () => caseAction('reset'), title: 'Reiniciar el caso (R)' }, '↺ Reiniciar');
+  els.reset = h('button', { class: 'btn ghost', onclick: () => caseAction('reset'), title: t('Reiniciar el caso (R)') }, t('↺ Reiniciar'));
   els.kpis = h('div', { class: 'kpis' });
   els.raceSlot = h('div', { class: 'race-slot' });
   els.view = h('div', { class: 'view-host' });
@@ -55,18 +56,18 @@ export function mountCase(sc, stage, notes) {
     'div',
     { class: 'case-head' },
     h('div', { class: 'case-icon' }, sc.icon),
-    h('div', null, h('div', { class: 'case-kicker' }, `Caso ${sc.order} · ${sc.sector}`), h('h1', { class: 'case-title' }, sc.title), h('div', { class: 'case-headline' }, sc.headline)),
-    h('div', { class: 'case-brand' }, 'Empresa ficticia', h('b', null, sc.brand)),
+    h('div', null, h('div', { class: 'case-kicker' }, t('Caso {n} · {sector}', { n: sc.order, sector: sc.sector })), h('h1', { class: 'case-title' }, sc.title), h('div', { class: 'case-headline' }, sc.headline)),
+    h('div', { class: 'case-brand' }, t('Empresa ficticia'), h('b', null, sc.brand)),
   );
   const toolbar = h(
     'div',
     { class: 'toolbar' },
     els.process,
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'Modo de llamada' }, els.modeBatch, els.modeSingle),
+    h('div', { class: 'seg', role: 'group', 'aria-label': t('Modo de llamada') }, els.modeBatch, els.modeSingle),
     els.raceBtn,
     S.config?.comparisons?.length ? els.raceSel : null,
     h('span', { class: 'grow' }),
-    h('label', { class: 'thr', title: 'Por debajo de esta confianza, la decisión pasa a revisión humana' }, 'Umbral', els.thr, els.thrVal),
+    h('label', { class: 'thr', title: t('Por debajo de esta confianza, la decisión pasa a revisión humana') }, t('Umbral'), els.thr, els.thrVal),
     els.timer,
     els.reset,
   );
@@ -110,22 +111,30 @@ function kpis(sc, st, sum) {
   const lat = single ? m.p50 : m.latency_ms;
   const wall = st.run?.t1 ? st.run.t1 - st.run.t0 : null;
   const acc = accuracy(sc, st);
+  const calls = m.calls || 0;
+  const callsSub = m.wait_ms
+    ? tn(calls, '{n} llamada · espera por RPM {ms}', '{n} llamadas · espera por RPM {ms}', { ms: fmt.ms(m.wait_ms) })
+    : tn(calls, '{n} llamada', '{n} llamadas');
+  const batchSub = m.decisions ? tn(m.decisions, '1 llamada · {n} decisión', '1 llamada · {n} decisiones') : t('tiempo en el modelo');
   return [
-    kpi('Procesados', `${done}/${n}`, st.busy ? 'procesando…' : wall != null ? `en ${fmt.ms(wall)} de reloj` : sc.item_label_plural, done === n ? 'good' : ''),
+    kpi(t('Procesados'), `${done}/${n}`, st.busy ? t('procesando…') : wall != null ? t('en {tiempo} de reloj', { tiempo: fmt.ms(wall) }) : sc.item_label_plural, done === n ? 'good' : ''),
+    kpi(single ? t('Latencia p50 por llamada') : t('Latencia de la llamada'), lat != null ? fmt.ms(lat) : '—', single ? callsSub : batchSub, 'accent'),
     kpi(
-      single ? 'Latencia p50 por llamada' : 'Latencia de la llamada',
-      lat != null ? fmt.ms(lat) : '—',
-      single ? `${m.calls || 0} llamadas${m.wait_ms ? ` · espera por RPM ${fmt.ms(m.wait_ms)}` : ''}` : m.decisions ? `1 llamada · ${fmt.int(m.decisions)} decisiones` : 'tiempo en el modelo',
-      'accent',
+      t('Coste Decision-1'),
+      done ? fmt.eur(st.cost.eur) : '—',
+      done
+        ? t('{coste} por 1.000 {items}', { coste: fmt.eur((st.cost.eur / done) * 1000), items: sc.item_label_plural })
+        : t('{precio} $/M tokens · salida gratis', { precio: fmt.num(0.042, 3) }),
     ),
-    kpi('Coste Decision-1', done ? fmt.eur(st.cost.eur) : '—', done ? `${fmt.eur((st.cost.eur / done) * 1000)} por 1.000 ${sc.item_label_plural}` : '0,042 $/M tokens · salida gratis'),
     kpi(
-      'Automatizado',
+      t('Automatizado'),
       done ? fmt.pct(sum.automated / done) : '—',
-      done ? `${sum.review} a ${sc.review_label.toLowerCase()} · umbral ${fmt.pct(S.threshold)}` : `umbral ${fmt.pct(S.threshold)}`,
+      done
+        ? t('{n} a {destino} · umbral {umbral}', { n: sum.review, destino: sc.review_label.toLowerCase(), umbral: fmt.pct(S.threshold) })
+        : t('umbral {umbral}', { umbral: fmt.pct(S.threshold) }),
       done ? 'good' : '',
     ),
-    kpi('Acierto vs referencia', acc.n ? `${acc.ok}/${acc.n}` : '—', acc.n ? `${fmt.pct(acc.ok / acc.n)} en la decisión principal` : 'etiquetas de referencia del caso'),
+    kpi(t('Acierto vs referencia'), acc.n ? `${acc.ok}/${acc.n}` : '—', acc.n ? t('{pct} en la decisión principal', { pct: fmt.pct(acc.ok / acc.n) }) : t('etiquetas de referencia del caso')),
   ];
 }
 
@@ -164,8 +173,8 @@ function paint() {
 
 function tickTimer() {
   const st = caseState(cur.sc.id);
-  const t = st.run?.t0 ? (st.run.t1 ?? performance.now()) - st.run.t0 : null;
-  cur.els.timer.textContent = t != null ? `⏱ ${fmt.num(t / 1000, 2)} s` : '';
+  const elapsed = st.run?.t0 ? (st.run.t1 ?? performance.now()) - st.run.t0 : null;
+  cur.els.timer.textContent = elapsed != null ? `⏱ ${fmt.num(elapsed / 1000, 2)} s` : '';
   cur.els.timer.classList.toggle('live', !!st.busy);
 }
 
@@ -195,9 +204,9 @@ export function caseAction(action) {
   } else if (action === 'race') {
     if (!st.busy && !st.race?.running) runRace(sc, S.raceModel);
   } else if (action === 'reset') {
-    if (!resetCase(sc.id)) toast('Espera a que termine la ejecución en curso.', 'info', 2500);
+    if (!resetCase(sc.id)) toast(t('Espera a que termine la ejecución en curso.'), 'info', 2500);
   } else if (action === 'mode') {
     setMode(S.mode === 'batch' ? 'single' : 'batch');
-    toast(S.mode === 'batch' ? '📦 Modo lote: todo en 1 llamada' : '🔁 Modo uno a uno: 1 llamada por elemento', 'info', 2000);
+    toast(S.mode === 'batch' ? t('📦 Modo lote: todo en 1 llamada') : t('🔁 Modo uno a uno: 1 llamada por elemento'), 'info', 2000);
   }
 }

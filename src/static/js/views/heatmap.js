@@ -1,5 +1,6 @@
 // Caso 2 · Voz del huésped: acciones, mapa de calor hotel × tema y reseñas ordenadas.
 import { h, fmt } from '../util.js';
+import { t } from '../i18n.js';
 import { ans, primary, processedItems, card, tile, sectionTitle, suggestion, yes, expected } from './common.js';
 
 const EMOJI = ['😡', '😕', '😐', '🙂', '😍'];
@@ -41,7 +42,11 @@ function heatTable(ctx, done) {
       if (!s.n) return h('td', { class: 'hm-cell empty' }, '·');
       return h(
         'td',
-        { class: `hm-cell${changed ? ' pulse' : ''}`, style: { '--h': hue(s.net) }, title: `${label} · ${short(hotel)}: ${s.pos} positivas, ${s.neg} negativas, ${s.neu} neutras` },
+        {
+          class: `hm-cell${changed ? ' pulse' : ''}`,
+          style: { '--h': hue(s.net) },
+          title: t('{label} · {hotel}: {pos} positivas, {neg} negativas, {neu} neutras', { label, hotel: short(hotel), pos: fmt.int(s.pos), neg: fmt.int(s.neg), neu: fmt.int(s.neu) }),
+        },
         s.pos ? h('span', null, `▲${s.pos}`) : null,
         s.neg ? h('span', null, `▼${s.neg}`) : null,
         !s.pos && !s.neg ? '=' : null,
@@ -61,13 +66,13 @@ function heatTable(ctx, done) {
   return h(
     'table',
     { class: 'heatmap' },
-    h('thead', null, h('tr', null, h('th', null, 'Hotel'), themes.map(([, l]) => h('th', null, l)), h('th', null, 'Media /5'))),
+    h('thead', null, h('tr', null, h('th', null, t('Hotel')), themes.map(([, l]) => h('th', null, l)), h('th', null, t('Media /5')))),
     h('tbody', null, rows),
   );
 }
 
 function list(ctx, title, items, icon, empty) {
-  const snippet = (t) => (t.length > 96 ? `${t.slice(0, 96)}…` : t);
+  const snippet = (text) => (text.length > 96 ? `${text.slice(0, 96)}…` : text);
   return h(
     'div',
     { class: 'hm-list' },
@@ -85,12 +90,12 @@ function badges(ctx, it) {
   const act = sc.actions[p.key];
   const out = [p.low || !act ? suggestion(ctx, p.a) : h('span', { class: 'act', style: { '--c': act.color } }, act.icon, ' ', act.label)];
   const s = sentiment(ctx, it.id);
-  if (s != null) out.push(h('span', { class: 'emoji', title: `Sentimiento ${fmt.num(s + 1, 1)} / 5` }, emojiOf(s)));
+  if (s != null) out.push(h('span', { class: 'emoji', title: t('Sentimiento {valor} / 5', { valor: fmt.num(s + 1, 1) }) }, emojiOf(s)));
   for (const [k, label] of Object.entries(sc.themes)) {
     const v = ans(ctx, it.id, k)?.value;
-    if (v && v !== 'sin_mencion') out.push(h('span', { class: `theme ${v}` }, v === 'positivo' ? '+' : v === 'negativo' ? '−' : '=', ' ', label));
+    if (v && v !== 'sin_mencion') out.push(h('span', { class: `theme ${v}` }, v === 'positivo' ? '+' : v === 'negativo' ? '−' : '=', ' ', label)); // i18n-ok
   }
-  if (yes(ans(ctx, it.id, 'elogia_empleado'))) out.push(h('span', { class: 'flag good' }, '👏 Elogio'));
+  if (yes(ans(ctx, it.id, 'elogia_empleado'))) out.push(h('span', { class: 'flag good' }, t('👏 Elogio')));
   return out;
 }
 
@@ -131,14 +136,19 @@ export default {
         { class: 'tiles' },
         ORDER.map((k) => tile(sc.actions[k].icon, sc.actions[k].label, counts[k], { color: sc.actions[k].color })),
         tile('👀', sc.review_label, review, { color: REVIEW_COLOR }),
-        tile('👏', 'Elogios a empleados', praise.length, { color: '#0ea5e9' }),
-        tile(emojiOf(avg), 'Sentimiento medio', avg == null ? '—' : `${fmt.num(avg + 1, 1)} / 5`, { color: '#6366f1' }),
+        tile('👏', t('Elogios a empleados'), praise.length, { color: '#0ea5e9' }),
+        tile(emojiOf(avg), t('Sentimiento medio'), avg == null ? '—' : `${fmt.num(avg + 1, 1)} / 5`, { color: '#6366f1' }),
       ),
       h(
         'div',
         { class: 'hm-wrap' },
-        h('div', { class: 'hm-table' }, sectionTitle('🗺️ Mapa de calor por hotel y tema'), heatTable(ctx, done)),
-        h('div', { class: 'hm-side' }, list(ctx, '🚨 Alertas para dirección', escalated, '🚨', 'Sin alertas'), list(ctx, '👏 Reconocimientos', praise, '👏', 'Sin elogios todavía')),
+        h('div', { class: 'hm-table' }, sectionTitle(t('🗺️ Mapa de calor por hotel y tema')), heatTable(ctx, done)),
+        h(
+          'div',
+          { class: 'hm-side' },
+          list(ctx, t('🚨 Alertas para dirección'), escalated, '🚨', t('Sin alertas')),
+          list(ctx, t('👏 Reconocimientos'), praise, '👏', t('Sin elogios todavía')),
+        ),
       ),
       sectionTitle(`📝 ${sc.item_label_plural[0].toUpperCase()}${sc.item_label_plural.slice(1)}`, h('span', { class: 'muted' }, `${done.length}/${sc.items.length}`)),
       h(
@@ -166,12 +176,12 @@ export default {
       }
     }
     const rows = [
-      { icon: '🚨', label: 'Escaladas a dirección', value: counts.escalar },
-      { icon: '💬', label: 'Respuestas a preparar', value: counts.responder },
-      { icon: '👏', label: 'Elogios a empleados', value: praise.length },
-      { icon: '🌍', label: 'Idiomas, sin traducir', value: new Set(done.map((it) => it.lang)).size },
+      { icon: '🚨', label: t('Escaladas a dirección'), value: counts.escalar },
+      { icon: '💬', label: t('Respuestas a preparar'), value: counts.responder },
+      { icon: '👏', label: t('Elogios a empleados'), value: praise.length },
+      { icon: '🌍', label: t('Idiomas, sin traducir'), value: new Set(done.map((it) => it.lang)).size },
     ];
-    if (worst) rows.push({ icon: '📉', label: 'Punto más débil', value: `${worst.label} · ${short(worst.hotel)}` });
+    if (worst) rows.push({ icon: '📉', label: t('Punto más débil'), value: `${worst.label} · ${short(worst.hotel)}` });
     rows.push({ icon: '👀', label: sc.review_label, value: review });
     return { processed: done.length, automated: done.length - review, review, rows };
   },

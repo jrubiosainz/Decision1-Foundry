@@ -10,6 +10,7 @@
   "item_label": "ticket",
   "item_label_plural": "tickets",
   "item_ref": "el ticket",
+  "item_text_label": "Texto del ticket",
   "batch_key": "tickets",
   "state_fields": {
     "canal": "channel",

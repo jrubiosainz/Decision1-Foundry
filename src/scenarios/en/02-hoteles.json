@@ -1,0 +1,178 @@
+{
+  "title": "Voice of the guest",
+  "sector": "Hotels and resorts",
+  "headline": "Every review, in every language, turned into actions and a heatmap by hotel.",
+  "item_label": "review",
+  "item_label_plural": "reviews",
+  "item_ref": "the review",
+  "item_text_label": "Review text",
+  "batch_key": "reviews",
+  "state_fields": {
+    "hotel": "hotel",
+    "platform": "source",
+    "review": "text"
+  },
+  "review_label": "Human review",
+  "context": "Quality team at Brisa Hotels & Resorts, a leisure and urban hotel chain with hotels in Spain and the Caribbean. Reviews come from Google, Booking, TripAdvisor and the post-stay survey, in several languages.",
+  "questions": {
+    "accion": {
+      "instructions": "What should the quality team do with this review?",
+      "criteria": {
+        "escalar": "Escalate to management now: risk to health, safety or reputation (food poisoning, bed bugs, accident, discrimination, threat of a formal complaint or of going public).",
+        "responder": "Respond: specific complaint or bad experience that requires a reply from the quality team.",
+        "agradecer": "Thank: positive or mostly positive review.",
+        "archivar": "Archive: neutral or generic review, nothing to handle."
+      }
+    },
+    "sentimiento": {
+      "instructions": "What is the guest's overall sentiment?",
+      "criteria": [
+        "Very negative",
+        "Negative",
+        "Neutral",
+        "Positive",
+        "Very positive"
+      ]
+    },
+    "limpieza": {
+      "instructions": "How does the guest rate the cleanliness?",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "habitacion": {
+      "instructions": "How does the guest rate the room (comfort, size, condition, noise, beds)?",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "comida": {
+      "instructions": "How does the guest rate the food and drink?",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "personal": {
+      "instructions": "How does the guest rate the staff and service (attitude, front desk and check-in, speed, attentiveness)?",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "instalaciones": {
+      "instructions": "How does the guest rate the facilities and shared amenities (pools, spa, lounge chairs, wifi, common areas)?",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "ubicacion": {
+      "instructions": "How does the guest rate the location and surroundings?",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "precio": {
+      "instructions": "How does the guest rate the value for money? If they don't talk about prices or about what they paid, the answer is sin_mencion.",
+      "criteria": {
+        "sin_mencion": "Does not mention this aspect.",
+        "negativo": "Criticizes it.",
+        "neutro": "Mentions it without clearly rating it.",
+        "positivo": "Praises it."
+      }
+    },
+    "elogia_empleado": {
+      "instructions": "Does the guest expressly praise any employee or team at the hotel (by name or by role)?"
+    }
+  },
+  "actions": {
+    "escalar": {
+      "label": "Escalate to management"
+    },
+    "responder": {
+      "label": "Respond"
+    },
+    "agradecer": {
+      "label": "Thank"
+    },
+    "archivar": {
+      "label": "Archive"
+    }
+  },
+  "themes": {
+    "limpieza": "Cleanliness",
+    "habitacion": "Room",
+    "comida": "Food",
+    "personal": "Staff",
+    "instalaciones": "Facilities",
+    "ubicacion": "Location",
+    "precio": "Value for money"
+  },
+  "items": [
+    {
+      "id": "R-201",
+      "lang": "en",
+      "text": "Spotless room with a sea view. Best of all, Lucía at the front desk: she got us a table at the restaurant on our anniversary. We'll be back."
+    },
+    {
+      "id": "R-204",
+      "source": "Survey",
+      "lang": "en",
+      "text": "Everything fine. Pool good, food average, nothing special."
+    },
+    {
+      "id": "R-207",
+      "source": "Survey",
+      "lang": "en",
+      "text": "The balcony railing in room 412 is loose. My 5-year-old son leaned on it and almost fell. We reported it and it was still the same when we left."
+    },
+    {
+      "id": "R-208",
+      "lang": "en",
+      "text": "I got food poisoning from the fish at the dinner buffet and ended up in the ER. Nobody from the hotel has checked on me. I'm going to file a complaint."
+    },
+    {
+      "id": "R-212",
+      "source": "Survey",
+      "lang": "en",
+      "text": "A security guard treated my husband in a racist way at the entrance to the beach club. Unacceptable. I want an explanation in writing."
+    },
+    {
+      "id": "R-214",
+      "lang": "en",
+      "text": "Sky-high price for what it offers: watered-down drinks, lounge chairs taken from 7 in the morning and a spa you have to pay extra for."
+    },
+    {
+      "id": "R-216",
+      "lang": "en",
+      "text": "Thanks to Andrés, our butler, the honeymoon was perfect. Every night there was a new special touch in the room. We'll be back!"
+    }
+  ],
+  "notes": {
+    "reto": "Thousands of reviews a month in 5 languages and 5 platforms. Today they are read late and by sampling: serious incidents (bed bugs, food poisoning, safety) are detected when they have already gone viral.",
+    "solucion": "A single call per review answers 10 questions: action, sentiment, rating of 7 aspects and whether it praises an employee. The result feeds a heatmap by hotel and an alert queue.",
+    "paradigma": "Decision-1 does the screening (System 1) and an LLM only drafts the replies that are needed (System 2). 100% of reviews are analyzed, not a sample, and LLM spend drops to a fraction.",
+    "aplica_a": [
+      "Reviews and NPS surveys",
+      "Social media",
+      "Employee recognition",
+      "Quality by hotel and by aspect"
+    ]
+  }
+}

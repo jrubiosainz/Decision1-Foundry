@@ -10,6 +10,7 @@
   "item_label": "petición",
   "item_label_plural": "peticiones",
   "item_ref": "la petición",
+  "item_text_label": "Texto de la petición",
   "batch_key": "peticiones",
   "state_fields": {
     "canal": "channel",

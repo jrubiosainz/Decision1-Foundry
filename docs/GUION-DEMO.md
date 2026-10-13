@@ -1,6 +1,6 @@
 # Guion de la demo · Microsoft-Decision-1
 
-Guía para presentar la demo en unos 25–35 minutos, según los casos que recorras. La web tiene tres paneles: a la izquierda eliges la página, en el centro corre la demo en directo y a la derecha están las notas que ve el público (reto, solución, resultado y ahorro). Este guion añade lo que no está en pantalla: qué pulsar, qué decir y cómo responder a las preguntas habituales.
+Guía para presentar la demo en unos 25–35 minutos, según los casos que recorras. La web tiene tres paneles: a la izquierda eliges la página, en el centro corre la demo en directo y a la derecha están las notas que ve el público (reto, solución, resultado y ahorro). Arriba a la derecha, un selector con banderas cambia toda la demo entre español e inglés. Este guion añade lo que no está en pantalla: qué pulsar, qué decir y cómo responder a las preguntas habituales.
 
 Las marcas que aparecen en pantalla son ficticias (Nexa Energía, Brisa Hotels & Resorts, Alisio Travel Group) para que la misma demo sirva para cualquier cliente del sector.
 
@@ -16,6 +16,7 @@ Las marcas que aparecen en pantalla son ficticias (Nexa Energía, Brisa Hotels &
 
 2. Ábrelo en el mismo equipo y navegador con los que vas a presentar. El código se guarda en el navegador y desaparece de la barra de direcciones, así que no se verá al proyectar.
 3. Recorre los seis casos (barra espaciadora en cada uno; en el 6, deja correr una partida corta a ×2) y lanza una carrera (tecla C) en un caso del 1 al 5 para comprobar que los modelos de comparación responden.
+4. Elige el idioma de la presentación con las banderas de la esquina superior derecha, o añade `&lang=en` al enlace. La web recuerda la elección. Cambiar de idioma mantiene los resultados de los casos 1 a 5 y deja en pausa la partida del caso 6 en curso (se reanuda con «Seguir»), aunque lo más cómodo es elegirlo antes de empezar. Si presentas en inglés, repasa los casos en ese idioma: los ejemplos en español se traducen y quedan los demás idiomas tal cual.
 
 **Diez minutos antes**
 
@@ -242,7 +243,9 @@ Las siete plantillas de agentes se inspiran en los casos de uso del vídeo de AI
 
 **¿Es estable?** Según el anuncio, solo un 1,3 % de las decisiones cambia ante perturbaciones del texto, y ninguna al reordenar o parafrasear las opciones.
 
-**¿Qué idiomas entiende?** La demo usa textos en 8 idiomas (español, inglés, portugués, catalán, euskera, francés, alemán e italiano) sin configurar nada por idioma.
+**¿Qué idiomas entiende?** La demo en español usa textos en 8 idiomas (español, inglés, portugués, catalán, euskera, francés, alemán e italiano) sin configurar nada por idioma. En la versión en inglés los ejemplos en español se traducen, así que verás 7 idiomas (4, 5 y 5 en los casos 1 a 3).
+
+**¿Se puede presentar en inglés?** Sí. Las banderas de la esquina superior derecha cambian al momento la interfaz, los ejemplos, las notas, las plantillas del laboratorio y lo que se envía a los modelos en los casos 1 a 5. Para abrir la demo ya en inglés, añade `?lang=en` al enlace. El caso 6 es la excepción: sus preguntas y el estado de la partida van siempre en español, para que el duelo sea idéntico en los dos idiomas. El acierto frente a la referencia es de 73 a 74 de 74 en inglés (74 de 74 en español). Si en el caso 3 ves 15/16 en lugar de 16/16, es M-315 («We loved the Cuba trip!…»): una felicitación que a la vez pide un viaje parecido. Su confianza queda en torno a 0,5, por debajo del umbral, y va a revisión humana; úsalo como ejemplo de que el sistema sabe cuándo no está seguro.
 
 **¿Cuánto tarda?** Entre 0,3 y 1 s por llamada en caliente, con un lote de 16 elementos incluido. La primera llamada tras unos minutos sin uso tarda unos 3 s.
 
@@ -270,6 +273,7 @@ Las siete plantillas de agentes se inspiran en los casos de uso del vídeo de AI
 | El caso 6 va a tirones o muestra «Límite de peticiones por minuto» | Faltan RPM de Decision-1 (necesita unas 60). Cierra otras copias de la demo o juega a ×1: el juego sigue y solo se salta esa decisión |
 | El caso 6 dice «Falta el modelo rival» | No hay ningún LLM de comparación desplegado. Revisa `GAME_MODEL` o `COMPARISON_MODELS` y ejecuta `azd provision` (README) |
 | La web tarda hasta 30 s en abrir | Plan gratuito F1: se duerme tras unos 20 minutos sin tráfico. Ábrela unos minutos antes de presentar |
+| La web sale en el idioma que no quieres | Pulsa la bandera de la esquina superior derecha, o abre el enlace con `?lang=es` o `?lang=en`. El navegador recuerda la última elección |
 | La web pide un código de acceso | Vuelve a abrir el enlace con `?code=` |
 | No hay conexión | Enseña las capturas de una ejecución real (lista debajo) |
 

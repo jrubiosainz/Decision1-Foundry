@@ -1,0 +1,390 @@
+{
+  "groups": {"negocio": "💼 Business processes", "agentes": "🤖 Inside an AI agent"},
+  "templates": [
+    {
+      "id": "qa-llamadas",
+      "title": "📞 Call quality",
+      "description": "Audit 100% of your contact center calls, not just a sample.",
+      "state": "Transcript of a call to the Nexa Energía customer service line.\nAgent: Good afternoon, this is Laura from Nexa Energía. How can I help you?\nCustomer: Hi. I've received a bill for 240 euros and I normally pay about 80.\nAgent: I understand your concern. Could you give me the account holder's DNI (national ID) so I can find the contract?\nCustomer: Yes, 12345678Z.\nAgent: Thank you. This month's reading is an estimate, which is why the amount is so high. I've requested an actual reading and we'll correct your bill within 5 business days.\nCustomer: Okay, thank you very much.\nAgent: You're welcome. Can I help you with anything else? Have a very good afternoon.",
+      "questions": {
+        "call_reason": {
+          "type": "choice",
+          "instructions": "What is the main reason for the call?",
+          "criteria": {
+            "billing": "Bills, charges or meter readings.",
+            "outage": "Faults or supply cuts.",
+            "contracts": "Sign-ups, cancellations, tariff changes or account-holder changes.",
+            "other": "Any other reason."
+          }
+        },
+        "resolved": {"type": "noul", "instructions": "Does the call end with a concrete solution or a committed deadline?"},
+        "verifies_identity": {"type": "noul", "instructions": "Does the agent verify the account holder's identity before giving out contract details?"},
+        "empathy": {"type": "score", "instructions": "How much empathy does the agent show?", "criteria": ["None", "Low", "Adequate", "High"]},
+        "churn_risk": {"type": "noul", "instructions": "Does the customer threaten to cancel or leave for another company?"}
+      }
+    },
+    {
+      "id": "pii",
+      "title": "🔒 Personal data (PII)",
+      "description": "Decide in milliseconds whether a text can be stored, sent to an LLM or published.",
+      "state": "Hi, I'm Juan Pérez. My national ID number is 50123456K and I'm writing because you entered my card incorrectly in the hotel booking, the 4111 1111 1111 1111. I'm also celiac, so I need a gluten-free menu. My mobile number is 600 123 456.",
+      "questions": {
+        "identity_document": {"type": "noul", "instructions": "Does it contain a national ID number (DNI/NIE) or a passport number?"},
+        "card_or_bank_account": {"type": "noul", "instructions": "Does it contain a card number or a bank account?"},
+        "health": {"type": "noul", "instructions": "Does it contain health information?"},
+        "contact": {"type": "noul", "instructions": "Does it contain a phone number or an email?"},
+        "privacy_risk": {"type": "score", "instructions": "How risky is the text for privacy?", "criteria": ["None", "Low", "Medium", "High"]},
+        "action": {
+          "type": "choice",
+          "instructions": "What should be done with the text before sending it to an external system?",
+          "criteria": {"send": "It can be sent as is.", "anonymize": "It must be anonymized first.", "block": "It must not leave the system."}
+        }
+      }
+    },
+    {
+      "id": "rag",
+      "title": "📚 RAG relevance",
+      "description": "Document re-ranking: score each passage before sending it to the LLM.",
+      "state": {
+        "query": "Can I cancel a non-refundable rate with no fees if I get sick?",
+        "documents": {
+          "D1": "Non-refundable rates do not allow changes or cancellations; the amount is charged at the time of booking.",
+          "D2": "Cancellation insurance covers cancellation due to serious illness of the insured person or a first-degree relative, with a medical certificate.",
+          "D3": "The spa is open every day from 9:00 to 21:00. Access is not allowed for children under 16.",
+          "D4": "Flexible rate: free cancellation up to 48 hours before arrival.",
+          "D5": "Dogs of up to 10 kg are allowed with a surcharge of €15 per night."
+        }
+      },
+      "questions": {
+        "D1": {
+          "type": "score",
+          "instructions": "How much does document D1 help answer the query?",
+          "criteria": ["Irrelevant", "Tangential", "Relevant", "Directly answers"]
+        },
+        "D2": {
+          "type": "score",
+          "instructions": "How much does document D2 help answer the query?",
+          "criteria": ["Irrelevant", "Tangential", "Relevant", "Directly answers"]
+        },
+        "D3": {
+          "type": "score",
+          "instructions": "How much does document D3 help answer the query?",
+          "criteria": ["Irrelevant", "Tangential", "Relevant", "Directly answers"]
+        },
+        "D4": {
+          "type": "score",
+          "instructions": "How much does document D4 help answer the query?",
+          "criteria": ["Irrelevant", "Tangential", "Relevant", "Directly answers"]
+        },
+        "D5": {
+          "type": "score",
+          "instructions": "How much does document D5 help answer the query?",
+          "criteria": ["Irrelevant", "Tangential", "Relevant", "Directly answers"]
+        },
+        "answerable": {"type": "noul", "instructions": "Is there enough information in the documents to answer the query?"}
+      }
+    },
+    {
+      "id": "moderacion",
+      "title": "📣 Social media moderation",
+      "description": "Classify social media mentions and decide whether to reply in public.",
+      "state": "@BrisaHotels you're a bunch of scammers: you've charged me for parking twice and nobody answers. If you don't refund me today, I'm going to trash you all over social media 😡",
+      "questions": {
+        "mention_type": {
+          "type": "choice",
+          "instructions": "What type of mention is it?",
+          "criteria": {
+            "complaint": "Complaint or claim.",
+            "question": "Question or request for information.",
+            "praise": "Positive comment.",
+            "spam": "Advertising or irrelevant content."
+          }
+        },
+        "toxicity": {"type": "score", "instructions": "How toxic is the language?", "criteria": ["None", "Mild", "Moderate", "Severe"]},
+        "insults": {"type": "noul", "instructions": "Does it contain insults?"},
+        "physical_threat": {"type": "noul", "instructions": "Does it contain a threat of physical violence?"},
+        "reply_in_public": {"type": "noul", "instructions": "Is it advisable to reply in public as well as in private?"}
+      }
+    },
+    {
+      "id": "vacia",
+      "title": "✍️ From scratch",
+      "description": "Template with an example of each question type.",
+      "state": "Write the text (or a JSON) you want to decide on here.",
+      "questions": {
+        "category": {
+          "type": "choice",
+          "instructions": "Which category does it belong to?",
+          "criteria": {"a": "Description of option A.", "b": "Description of option B.", "c": "Description of option C."}
+        },
+        "priority": {"type": "score", "instructions": "What priority does it have?", "criteria": ["Low", "Medium", "High"]},
+        "needs_human_review": {"type": "noul", "instructions": "Does it need to be reviewed by a person?"}
+      }
+    },
+    {
+      "id": "agente-skill",
+      "title": "🧭 Skill picker",
+      "description": "Pick the skill (or none) and the model before the agent starts working.",
+      "state": "Repository reservas-web: booking portal for a hotel chain (React frontend + FastAPI API).\n\nUser request to the coding agent:\n“The Pay button in the checkout does nothing in Safari on iPhone. It works in Chrome. Can you check it and fix it?”",
+      "questions": {
+        "skill": {
+          "type": "choice",
+          "instructions": "Which skill should the agent run to handle the request?",
+          "criteria": {
+            "debug_frontend": "Diagnose and fix user interface errors in the browser: JavaScript, CSS and cross-browser compatibility.",
+            "debug_backend": "Diagnose errors in the API, the database or the server logic.",
+            "write_tests": "Add or improve automated tests.",
+            "deploy": "Build and deploy the application to Azure.",
+            "write_docs": "Write or update documentation.",
+            "none": "No skill applies: answer directly, without tools."
+          }
+        },
+        "model": {
+          "type": "choice",
+          "instructions": "Which model should run the task?",
+          "criteria": {
+            "fast": "Fast, cheap model: small, well-scoped tasks with no ambiguity.",
+            "powerful": "Reasoning model: hard debugging, several files or an unknown cause."
+          }
+        },
+        "clarify": {
+          "type": "noul",
+          "instructions": "Is essential information missing to get started, so the user has to be asked before acting?"
+        },
+        "complexity": {"type": "score", "instructions": "How complex is the task?", "criteria": ["Trivial", "Small", "Medium", "Large"]}
+      },
+      "labels": {
+        "questions": {"skill": "Skill", "model": "Model", "clarify": "Ask for clarification", "complexity": "Complexity"},
+        "values": {"model": {"fast": "Fast", "powerful": "Powerful"}}
+      }
+    },
+    {
+      "id": "agente-archivos",
+      "title": "📂 Relevant files",
+      "description": "Rank the candidates from a search so the agent opens only the ones it needs.",
+      "state": "Repository reservas-web: booking portal for a hotel chain (React frontend + FastAPI API).\n\nRequest: “The Pay button in the checkout does nothing in Safari on iPhone. It works in Chrome.”\n\nKeyword search candidates (path: content):\n- web/src/pages/Checkout.tsx: checkout page: booking summary and “Pay” button.\n- web/src/components/PayButton.tsx: payment button: onClick and Payment Request API.\n- web/src/hooks/usePayment.ts: hook that calls POST /api/payments and manages the states.\n- web/src/styles/checkout.css: checkout styles: overlay, z-index and pointer-events.\n- web/src/utils/browser.ts: browser detection and polyfills for Safari and iOS.\n- web/src/i18n/es.json: interface texts in Spanish.\n- web/src/pages/Search.tsx: hotel search and filters.\n- api/routes/payments.py: POST /api/payments endpoint.\n- api/models/booking.py: booking data model.\n- docs/CHANGELOG.md: version history.\n- infra/main.bicep: Azure infrastructure.\n- web/package.json: frontend dependencies.",
+      "questions": {
+        "checkout_tsx": {"type": "noul", "instructions": "Should the agent open web/src/pages/Checkout.tsx to solve the request?"},
+        "paybutton_tsx": {"type": "noul", "instructions": "Should the agent open web/src/components/PayButton.tsx to solve the request?"},
+        "usepayment_ts": {"type": "noul", "instructions": "Should the agent open web/src/hooks/usePayment.ts to solve the request?"},
+        "checkout_css": {"type": "noul", "instructions": "Should the agent open web/src/styles/checkout.css to solve the request?"},
+        "browser_ts": {"type": "noul", "instructions": "Should the agent open web/src/utils/browser.ts to solve the request?"},
+        "es_json": {"type": "noul", "instructions": "Should the agent open web/src/i18n/es.json to solve the request?"},
+        "search_tsx": {"type": "noul", "instructions": "Should the agent open web/src/pages/Search.tsx to solve the request?"},
+        "payments_py": {"type": "noul", "instructions": "Should the agent open api/routes/payments.py to solve the request?"},
+        "booking_py": {"type": "noul", "instructions": "Should the agent open api/models/booking.py to solve the request?"},
+        "changelog_md": {"type": "noul", "instructions": "Should the agent open docs/CHANGELOG.md to solve the request?"},
+        "main_bicep": {"type": "noul", "instructions": "Should the agent open infra/main.bicep to solve the request?"},
+        "package_json": {"type": "noul", "instructions": "Should the agent open web/package.json to solve the request?"}
+      },
+      "rank": {"title": "📂 Files to open", "yes": "Open", "no": "Skip"}
+    },
+    {
+      "id": "agente-compactacion",
+      "title": "🗜️ Context compaction",
+      "description": "Decide which messages to keep when the agent's context fills up.",
+      "state": "History of a coding agent session that needs to be compacted to free up context:\nM1 [user]: I want cancellation to be free up to 24 hours before check-in.\nM2 [agent]: I'll look for where the penalty is calculated.\nM3 [tool]: grep “penalty”: 14 results in 6 files (full listing of 180 lines).\nM4 [agent]: The logic is in api/services/cancellation.py, in the cancellation_fee function.\nM5 [user]: Careful: non-refundable rates don't change, they still get no refund.\nM6 [tool]: pytest: 212 passed, 0 failed (1,200-line output).\nM7 [agent]: Change implemented in api/services/cancellation.py (cancellation_fee) and 3 new tests.\nM8 [user]: Perfect. By the way, how was your weekend?\nM9 [agent]: Very good, thanks! Shall we keep going?\nM10 [user]: Yes. The time zone is missing: check-in is at 15:00, hotel local time.",
+      "questions": {
+        "m1": {
+          "type": "noul",
+          "instructions": "Should M1 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m2": {
+          "type": "noul",
+          "instructions": "Should M2 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m3": {
+          "type": "noul",
+          "instructions": "Should M3 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m4": {
+          "type": "noul",
+          "instructions": "Should M4 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m5": {
+          "type": "noul",
+          "instructions": "Should M5 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m6": {
+          "type": "noul",
+          "instructions": "Should M6 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m7": {
+          "type": "noul",
+          "instructions": "Should M7 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m8": {
+          "type": "noul",
+          "instructions": "Should M8 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m9": {
+          "type": "noul",
+          "instructions": "Should M9 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        },
+        "m10": {
+          "type": "noul",
+          "instructions": "Should M10 be kept when compacting? Keep user requirements, decisions, findings and the state of the work; discard small talk and tool outputs already summarized in other messages."
+        }
+      },
+      "labels": {
+        "questions": {
+          "m1": "M1 · user: free cancellation up to 24 h",
+          "m2": "M2 · agent: I'll look for the penalty",
+          "m3": "M3 · tool: grep, 14 results",
+          "m4": "M4 · agent: the logic is in cancellation_fee",
+          "m5": "M5 · user: non-refundable, no changes",
+          "m6": "M6 · tool: pytest, 212 passed",
+          "m7": "M7 · agent: change done and 3 tests",
+          "m8": "M8 · user: how was the weekend?",
+          "m9": "M9 · agent: good, thanks!",
+          "m10": "M10 · user: check-in at 15:00 local time"
+        }
+      },
+      "rank": {"title": "🗜️ Messages to keep", "yes": "Keep", "no": "Discard"}
+    },
+    {
+      "id": "agente-reglas",
+      "title": "🛡️ Project rules",
+      "description": "Check every change against the rules and block clear violations (≥ 80%).",
+      "state": "Project rules (AGENTS.md):\nR1. No secrets, keys or connection strings are written in the code: Key Vault or managed identities are used.\nR2. Every SQL query uses parameters; strings containing user data are never concatenated.\nR3. Every new endpoint requires authentication.\nR4. Amounts are calculated with Decimal, never with float.\nR5. No personal data (email, phone, national ID or card) is written to the logs.\nR6. Every business logic change includes tests.\n\nChange proposed by the agent:\n+ # api/routes/loyalty.py\n+ PAYMENTS_API_KEY = \"prod-7f3a9c…e21\"\n+\n+ @router.get(\"/loyalty/points\", dependencies=[Depends(require_user)])\n+ async def points(email: str):\n+     log.info(f\"Fetching points for {email}\")\n+     rows = db.execute(f\"SELECT points FROM loyalty WHERE email = '{email}'\")\n+     return {\"balance_eur\": Decimal(rows[0].points) * Decimal(\"0.01\")}\n+\n+ # api/tests/test_loyalty.py\n+ def test_points_returns_balance(client, user):\n+     assert client.get(\"/loyalty/points\", params={\"email\": user.email}).json()[\"balance_eur\"] == Decimal(\"12.50\")",
+      "questions": {
+        "r1": {
+          "type": "noul",
+          "instructions": "Does the proposed change violate rule R1: “No secrets, keys or connection strings are written in the code: Key Vault or managed identities are used.”?"
+        },
+        "r2": {
+          "type": "noul",
+          "instructions": "Does the proposed change violate rule R2: “Every SQL query uses parameters; strings containing user data are never concatenated.”?"
+        },
+        "r3": {"type": "noul", "instructions": "Does the proposed change violate rule R3: “Every new endpoint requires authentication.”?"},
+        "r4": {"type": "noul", "instructions": "Does the proposed change violate rule R4: “Amounts are calculated with Decimal, never with float.”?"},
+        "r5": {
+          "type": "noul",
+          "instructions": "Does the proposed change violate rule R5: “No personal data (email, phone, national ID or card) is written to the logs.”?"
+        },
+        "r6": {"type": "noul", "instructions": "Does the proposed change violate rule R6: “Every business logic change includes tests.”?"}
+      },
+      "labels": {
+        "questions": {
+          "r1": "R1 · Secrets",
+          "r2": "R2 · SQL",
+          "r3": "R3 · Authentication",
+          "r4": "R4 · Amounts",
+          "r5": "R5 · Personal data",
+          "r6": "R6 · Tests"
+        }
+      },
+      "rank": {"title": "🛡️ Violations", "yes": "Block", "no": "Compliant"}
+    },
+    {
+      "id": "agente-revision",
+      "title": "🔍 Adaptive review",
+      "description": "Seven risk questions decide whether a change needs a quick or a thorough review.",
+      "state": "Pull request #482 · “Free cancellation up to 24 h before check-in”\nFiles: api/services/cancellation.py (+38 −12), api/routes/bookings.py (+1 −1), api/tests/test_cancellation.py (+41 −0)\n\n--- api/services/cancellation.py\n+def cancellation_fee(booking, now):\n+    hours_left = (booking.check_in - now).total_seconds() / 3600\n+    if hours_left >= 24:\n+        return Decimal(\"0\")\n+    return booking.total * booking.rate.penalty_pct\n\n--- api/routes/bookings.py\n-@router.post(\"/bookings/{id}/cancel\", dependencies=[Depends(require_owner_or_admin)])\n+@router.post(\"/bookings/{id}/cancel\")\n\n--- api/tests/test_cancellation.py\n+def test_free_cancellation_more_than_24h(): ...\n+def test_fee_less_than_24h(): ...\n+def test_non_refundable_keeps_fee(): ...",
+      "questions": {
+        "money": {"type": "noul", "instructions": "Does the change affect charges, refunds, prices or penalties?"},
+        "security": {"type": "noul", "instructions": "Does the change weaken authentication, authorization or permissions?"},
+        "data": {"type": "noul", "instructions": "Does the change modify the database schema or migrate data?"},
+        "public_api": {"type": "noul", "instructions": "Does it change the contract of a public API: routes, parameters or response format?"},
+        "missing_tests": {"type": "noul", "instructions": "Is there new or modified logic that no test covers?"},
+        "dates": {"type": "noul", "instructions": "Are there calculations with dates, times or time zones that could fail in edge cases?"},
+        "size": {"type": "noul", "instructions": "Is it a large change: more than 300 lines or more than 10 files?"},
+        "review_level": {
+          "type": "choice",
+          "instructions": "What level of review does this pull request need before it is merged?",
+          "criteria": {
+            "quick": "Quick and automatic: small change with no risks.",
+            "standard": "Standard: one person on the team reviews it.",
+            "thorough": "Thorough: two people and an expert, because it touches security, money or data."
+          }
+        }
+      },
+      "labels": {
+        "questions": {
+          "money": "Money",
+          "security": "Security",
+          "data": "Data",
+          "public_api": "Public API",
+          "missing_tests": "Missing tests",
+          "dates": "Dates and time zones",
+          "size": "Size",
+          "review_level": "Review level"
+        },
+        "values": {"review_level": {"quick": "Quick", "standard": "Standard", "thorough": "Thorough"}}
+      },
+      "rank": {"title": "🔍 Risks detected", "yes": "Risk", "no": "No risk"}
+    },
+    {
+      "id": "agente-navegador",
+      "title": "🌐 Browser testing",
+      "description": "Pick the next click of a functional test based on the state of the page.",
+      "state": {
+        "test_goal": "Search for a double room in Barcelona from November 12 to 14 for 2 adults and reach the payment screen.",
+        "steps_done": ["Open the home page", "Type “Barcelona” in Destination", "Choose the dates Nov 12-14"],
+        "current_page": "Home. Search box with Destination = Barcelona, Dates = Nov 12-14 and Guests = 1 adult.",
+        "visible_elements": {
+          "log_in": "“Log in” link",
+          "guests": "“Guests: 1 adult” selector",
+          "search": "“Search” button",
+          "deals": "“Last-minute deals” link",
+          "language": "Language selector “EN”",
+          "help": "“Help” link"
+        }
+      },
+      "questions": {
+        "next_action": {
+          "type": "choice",
+          "instructions": "Which element should the agent act on now to move toward the test goal?",
+          "criteria": {
+            "log_in": "“Log in” link",
+            "guests": "“Guests: 1 adult” selector",
+            "search": "“Search” button",
+            "deals": "“Last-minute deals” link",
+            "language": "Language selector “EN”",
+            "help": "“Help” link"
+          }
+        },
+        "goal_reached": {"type": "noul", "instructions": "Has the test goal already been reached?"},
+        "page_error": {"type": "noul", "instructions": "Is there a visible error or a blocker that prevents continuing?"}
+      },
+      "labels": {
+        "questions": {"next_action": "Next action", "goal_reached": "Goal reached", "page_error": "Error on the page"},
+        "values": {
+          "next_action": {
+            "log_in": "Log in",
+            "guests": "Guests",
+            "search": "Search",
+            "deals": "Deals",
+            "language": "Language",
+            "help": "Help"
+          }
+        }
+      }
+    },
+    {
+      "id": "agente-cobertura",
+      "title": "📋 Requirements without tests",
+      "description": "Cross-check the functional documentation against the tests and find what nobody is testing.",
+      "state": "Functional requirements (docs/cancelaciones.md):\nFR1. Cancellation is free up to 24 h before check-in.\nFR2. With less than 24 h left, the rate's penalty percentage is charged.\nFR3. Non-refundable rates never refund any amount.\nFR4. The 24 h are counted in the hotel's local time.\nFR5. The customer receives a confirmation email when canceling.\nFR6. An administrator can cancel any booking without a penalty.\n\nExisting tests (api/tests/test_cancellation.py):\n- test_free_cancellation_more_than_24h\n- test_fee_less_than_24h\n- test_non_refundable_keeps_fee\n- test_admin_cancels_without_fee\n- test_booking_list_pagination",
+      "questions": {
+        "fr1": {"type": "noul", "instructions": "Is a test missing for FR1, meaning no existing test checks it?"},
+        "fr2": {"type": "noul", "instructions": "Is a test missing for FR2, meaning no existing test checks it?"},
+        "fr3": {"type": "noul", "instructions": "Is a test missing for FR3, meaning no existing test checks it?"},
+        "fr4": {"type": "noul", "instructions": "Is a test missing for FR4, meaning no existing test checks it?"},
+        "fr5": {"type": "noul", "instructions": "Is a test missing for FR5, meaning no existing test checks it?"},
+        "fr6": {"type": "noul", "instructions": "Is a test missing for FR6, meaning no existing test checks it?"}
+      },
+      "labels": {
+        "questions": {
+          "fr1": "FR1 · Cancellation is free up to 24 h before check-in.",
+          "fr2": "FR2 · With less than 24 h left, the rate's penalty percentage is charged.",
+          "fr3": "FR3 · Non-refundable rates never refund any amount.",
+          "fr4": "FR4 · The 24 h are counted in the hotel's local time.",
+          "fr5": "FR5 · The customer receives a confirmation email when canceling.",
+          "fr6": "FR6 · An administrator can cancel any booking without a penalty."
+        }
+      },
+      "rank": {"title": "📋 Requirements without tests", "yes": "Missing test", "no": "Covered"}
+    }
+  ]
+}

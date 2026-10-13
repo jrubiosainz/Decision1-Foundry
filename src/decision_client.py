@@ -202,10 +202,11 @@ class FoundryClient:
         reasoning_effort: str | None = None,
         max_tokens: int = 4000,
         max_wait_s: float | None = None,
+        lang: str = "es",
     ) -> dict:
         user = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
         res = await self.chat_json(
-            deployment, llm_system_prompt(context, questions), user, llm_schema(questions), reasoning_effort, max_tokens, max_wait_s
+            deployment, llm_system_prompt(context, questions, lang), user, llm_schema(questions), reasoning_effort, max_tokens, max_wait_s
         )
         parsed = res.pop("parsed")
         return {**res, "answers": normalize_llm(parsed, questions), "raw": parsed}
@@ -256,24 +257,44 @@ def normalize_answers(answers: dict[str, dict], questions: dict[str, dict]) -> d
     return out
 
 
-def llm_system_prompt(context: str, questions: dict[str, dict]) -> str:
+PROMPT_TEXTS = {
+    "es": {
+        "intro": (
+            "Eres un sistema de decisión. Lee el mensaje del usuario y responde a cada pregunta eligiendo "
+            "exactamente una de las opciones permitidas. Devuelve solo el JSON pedido."
+        ),
+        "noul": "(true/false)",
+        "choice": "(elige una clave)",
+        "score": "(elige un nivel numérico, de menor a mayor)",
+    },
+    "en": {
+        "intro": (
+            "You are a decision system. Read the user's message and answer each question by choosing "
+            "exactly one of the allowed options. Return only the requested JSON."
+        ),
+        "noul": "(true/false)",
+        "choice": "(choose a key)",
+        "score": "(choose a numeric level, from lowest to highest)",
+    },
+}
+
+
+def llm_system_prompt(context: str, questions: dict[str, dict], lang: str = "es") -> str:
+    txt = PROMPT_TEXTS.get(lang) or PROMPT_TEXTS["es"]
     lines = []
     if context:
         lines += [context.strip(), ""]
-    lines.append(
-        "Eres un sistema de decisión. Lee el mensaje del usuario y responde a cada pregunta eligiendo "
-        "exactamente una de las opciones permitidas. Devuelve solo el JSON pedido."
-    )
+    lines.append(txt["intro"])
     for name, q in questions.items():
         instr = q.get("instructions")
         instr = instr if isinstance(instr, str) else json.dumps(instr, ensure_ascii=False)
         if q["type"] == "noul":
-            lines.append(f"- {name} (true/false): {instr}")
+            lines.append(f"- {name} {txt['noul']}: {instr}")
         elif q["type"] == "choice":
-            lines.append(f"- {name} (elige una clave): {instr}")
+            lines.append(f"- {name} {txt['choice']}: {instr}")
             lines += [f"    · {k}: {v or ''}" for k, v in (q.get("criteria") or {}).items()]
         elif q["type"] == "score":
-            lines.append(f"- {name} (elige un nivel numérico, de menor a mayor): {instr}")
+            lines.append(f"- {name} {txt['score']}: {instr}")
             lines += [f"    · {i}: {c or ''}" for i, c in enumerate(q.get("criteria") or [])]
     return "\n".join(lines)
 

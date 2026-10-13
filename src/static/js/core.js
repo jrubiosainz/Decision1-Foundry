@@ -1,5 +1,6 @@
 // Estado global, llamadas al backend y código de acceso.
 import { h, toast, openModal, closeModal } from './util.js';
+import { t, getLang } from './i18n.js';
 
 export const S = {
   config: null,
@@ -56,7 +57,7 @@ const EU = new Set(['spaincentral', 'swedencentral', 'westeurope', 'francecentra
 export const regionLabel = (code) => REGIONS[String(code || '').toLowerCase()] || code || '—';
 export function skuLabel(sku, location) {
   if (sku === 'GlobalStandard') return 'Global Standard';
-  if (sku === 'DataZoneStandard') return EU.has(String(location || '').toLowerCase()) ? 'DataZone UE' : 'DataZone EE. UU.';
+  if (sku === 'DataZoneStandard') return EU.has(String(location || '').toLowerCase()) ? t('DataZone UE') : t('DataZone EE. UU.');
   return sku || '—';
 }
 
@@ -80,7 +81,7 @@ let codePrompt = null;
 function askCode(message) {
   codePrompt ||= new Promise((resolve) => {
     let ok = false;
-    const input = h('input', { type: 'password', class: 'code-input', placeholder: 'Código de acceso', autocomplete: 'off', 'aria-label': 'Código de acceso' });
+    const input = h('input', { type: 'password', class: 'code-input', placeholder: t('Código de acceso'), autocomplete: 'off', 'aria-label': t('Código de acceso') });
     const form = h(
       'form',
       {
@@ -93,10 +94,10 @@ function askCode(message) {
           closeModal();
         },
       },
-      h('h2', null, '🔐 Código de acceso'),
-      h('p', { class: 'muted' }, message || 'Esta demo llama a un modelo real en Azure y está protegida. Introduce el código que te han compartido.'),
+      h('h2', null, t('🔐 Código de acceso')),
+      h('p', { class: 'muted' }, message || t('Esta demo llama a un modelo real en Azure y está protegida. Introduce el código que te han compartido.')),
       input,
-      h('button', { class: 'btn primary', type: 'submit' }, 'Entrar'),
+      h('button', { class: 'btn primary', type: 'submit' }, t('Entrar')),
     );
     openModal(form, {
       onClose: () => {
@@ -119,8 +120,9 @@ export class ApiError extends Error {
   }
 }
 
-export async function api(path, body, { retry = true } = {}) {
-  const opts = { method: body ? 'POST' : 'GET', headers: { 'X-Demo-Code': getCode() } };
+// `lang` fuerza el idioma de esta llamada (el selector pide el contenido nuevo antes de cambiar el idioma de la interfaz).
+export async function api(path, body, { retry = true, lang } = {}) {
+  const opts = { method: body ? 'POST' : 'GET', headers: { 'X-Demo-Code': getCode(), 'X-Demo-Lang': lang || getLang() } };
   if (body) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
@@ -129,12 +131,12 @@ export async function api(path, body, { retry = true } = {}) {
   try {
     res = await fetch(path, opts);
   } catch {
-    throw new ApiError(0, { detail: 'Sin conexión con el servidor' });
+    throw new ApiError(0, { detail: t('Sin conexión con el servidor') });
   }
   const data = await res.json().catch(() => ({}));
   if (res.status === 401 && retry) {
-    const ok = await askCode(getCode() ? 'Ese código no es correcto. Prueba otra vez.' : null);
-    if (ok) return api(path, body, { retry });
+    const ok = await askCode(getCode() ? t('Ese código no es correcto. Prueba otra vez.') : null);
+    if (ok) return api(path, body, { retry, lang });
     throw new ApiError(401, data);
   }
   if (!res.ok) throw new ApiError(res.status, data);
@@ -156,15 +158,15 @@ export function errorText(e) {
   const detail = detailText(e.body?.detail ?? e.body);
   switch (e.status) {
     case 0:
-      return 'Sin conexión con el servidor.';
+      return t('Sin conexión con el servidor.');
     case 401:
-      return 'Hace falta el código de acceso.';
+      return t('Hace falta el código de acceso.');
     case 429:
-      return `Límite de peticiones por minuto alcanzado (${S.quota?.limit ?? S.config?.decision?.rpm ?? 60} RPM). Espera unos segundos o usa el modo lote.`;
+      return t('Límite de peticiones por minuto alcanzado ({rpm} RPM). Espera unos segundos o usa el modo lote.', { rpm: S.quota?.limit ?? S.config?.decision?.rpm ?? 60 });
     case 503:
-      return detail || 'El servicio no está configurado.';
+      return detail || t('El servicio no está configurado.');
     default:
-      return `Error ${e.status}${detail ? `: ${detail}` : ''}`;
+      return `${t('Error {status}', { status: e.status })}${detail ? `: ${detail}` : ''}`;
   }
 }
 

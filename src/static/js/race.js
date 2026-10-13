@@ -1,9 +1,14 @@
 // Carrera: Decision-1 contra un LLM generativo con el mismo lote y las mismas preguntas.
 import { h, fmt } from './util.js';
+import { S, errorText } from './core.js';
+import { t, tx } from './i18n.js';
 import { valid } from './views/common.js';
 
 const D1_COLOR = '#0f6cbd';
 const LLM_COLOR = '#7c3aed';
+
+/** Nombre del rival en el idioma activo: el estado guarda solo el id y /api/config lo sirve ya traducido. */
+export const rivalLabel = (model) => S.config?.comparisons?.find((c) => c.id === model)?.label ?? model;
 
 export function raceStats(sc, st) {
   const r = st.race;
@@ -45,7 +50,7 @@ function bar(key, name, sub, color) {
     'div',
     { class: 'race-row running', dataset: { race: key }, style: { '--c': color } },
     h('div', { class: 'race-name' }, name, h('small', null, sub)),
-    h('div', { class: 'race-track' }, h('i'), h('span', { class: 'race-time' }, '0,00 s')),
+    h('div', { class: 'race-track' }, h('i'), h('span', { class: 'race-time' }, secs(0))),
     h('div', { class: 'race-stats' }, '…'),
   );
 }
@@ -60,11 +65,11 @@ export function renderRace(sc, st) {
     h(
       'div',
       { class: 'race-title' },
-      '🏁 Carrera con el mismo lote y las mismas preguntas',
-      h('span', { class: 'muted small' }, `${sc.items.length} ${sc.item_label_plural} × ${nq} preguntas · 1 llamada por modelo`),
+      t('🏁 Carrera con el mismo lote y las mismas preguntas'),
+      h('span', { class: 'muted small' }, t('{n} {items} × {nq} preguntas · 1 llamada por modelo', { n: sc.items.length, items: sc.item_label_plural, nq })),
     ),
-    bar('d1', 'Microsoft-Decision-1', 'Sistema 1 · una sola pasada', D1_COLOR),
-    bar('llm', r.label, 'LLM generativo · salida JSON', LLM_COLOR),
+    bar('d1', 'Microsoft-Decision-1', t('Sistema 1 · una sola pasada'), D1_COLOR),
+    bar('llm', rivalLabel(r.model), t('LLM generativo · salida JSON'), LLM_COLOR),
     h('div', { class: 'race-foot' }),
   );
   tickRace(box, sc, st);
@@ -75,12 +80,15 @@ const secs = (ms) => `${fmt.num(ms / 1000, ms < 10000 ? 2 : 1)} s`;
 
 function statsText(side, sc, st) {
   if (!side) return '…';
-  if (side.failed) return '✗ error';
+  if (side.failed) return t('✗ error');
   const parts = [];
-  if (side.latency_ms != null) parts.push(h('span', null, 'modelo ', h('b', null, fmt.ms(side.latency_ms))));
+  if (side.latency_ms != null) parts.push(h('span', null, tx('modelo {tiempo}', { tiempo: h('b', null, fmt.ms(side.latency_ms)) })));
   if (side.cost?.eur != null) parts.push(h('span', null, ' · ', h('b', null, fmt.eur(side.cost.eur))));
   return parts.length ? parts : '✓';
 }
+
+const progressText = (r) =>
+  r.d1 ? t('⏳ Decision-1 ya ha terminado; {modelo} sigue generando…', { modelo: rivalLabel(r.model) }) : t('⏳ Las dos llamadas salen a la vez…');
 
 /** Actualiza barras y tiempos sin rehacer el DOM (se llama en cada frame mientras corre). */
 export function tickRace(box, sc, st) {
@@ -98,7 +106,7 @@ export function tickRace(box, sc, st) {
     if (!row) continue;
     row.classList.toggle('running', !side);
     row.querySelector('.race-track i').style.transform = `scaleX(${Math.max(0.004, ms / max)})`;
-    row.querySelector('.race-time').textContent = side?.failed ? 'error' : secs(ms);
+    row.querySelector('.race-time').textContent = side?.failed ? t('error') : secs(ms);
     const stats = row.querySelector('.race-stats');
     if (side && !stats.dataset.done) {
       stats.replaceChildren(...[statsText(side, sc, st)].flat());
@@ -108,14 +116,17 @@ export function tickRace(box, sc, st) {
   const foot = box.querySelector('.race-foot');
   const s = raceStats(sc, st);
   if (!s || foot.dataset.done) {
-    if (!s && !foot.dataset.done) foot.textContent = r.running ? `⏳ ${r.d1 ? `Decision-1 ya ha terminado; ${r.label} sigue generando…` : 'Las dos llamadas salen a la vez…'}` : r.error || '';
+    if (!s && !foot.dataset.done) foot.textContent = r.running ? progressText(r) : r.error ? errorText(r.error) : '';
     return;
   }
   foot.dataset.done = '1';
+  const rival = rivalLabel(r.model);
   foot.replaceChildren(
-    h('span', null, '⚡ ', h('b', null, fmt.times(s.speed)), ' más rápido'),
-    s.cost ? h('span', null, '💶 ', h('b', null, fmt.times(s.cost)), ' más barato') : null,
-    h('span', null, '🤝 coinciden ', h('b', null, `${s.agree}/${s.both}`), ' en la decisión principal'),
-    s.ref ? h('span', { class: 'muted small' }, `🎯 frente a la referencia: Decision-1 ${s.d1ok}/${s.ref} · ${r.label} ${s.llmok}/${s.ref}`) : null,
+    h('span', null, tx('⚡ {veces} más rápido', { veces: h('b', null, fmt.times(s.speed)) })),
+    s.cost ? h('span', null, tx('💶 {veces} más barato', { veces: h('b', null, fmt.times(s.cost)) })) : null,
+    h('span', null, tx('🤝 coinciden {n} en la decisión principal', { n: h('b', null, `${s.agree}/${s.both}`) })),
+    s.ref
+      ? h('span', { class: 'muted small' }, t('🎯 frente a la referencia: Decision-1 {d1} · {modelo} {llm}', { d1: `${s.d1ok}/${s.ref}`, modelo: rival, llm: `${s.llmok}/${s.ref}` }))
+      : null,
   );
 }

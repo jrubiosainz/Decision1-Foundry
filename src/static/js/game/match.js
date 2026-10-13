@@ -22,6 +22,15 @@ export function readAnswer(answers) {
   return { lane, confidence: c.confidence ?? null, probs, danger: answers.peligro?.p ?? null };
 }
 
+/** Fallo propio del bucle (`timeout`, `no-lane`): lleva un código estable y sus parámetros; la interfaz lo traduce al pintarlo. */
+export class PlayError extends Error {
+  constructor(code, params = null) {
+    super(code);
+    this.code = code;
+    this.params = params;
+  }
+}
+
 /** Un jugador: su partida y el bucle con el que consulta al modelo (sin solapar peticiones y con una cadencia mínima). */
 export class Player {
   /** `decide(texto)` devuelve la respuesta de /api/game/decide: { answers, latency_ms, usage, cost }. */
@@ -62,7 +71,7 @@ export class Player {
     this.inflight = req;
     let timer;
     const timeout = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error(`Sin respuesta en ${this.timeoutMs / 1000} s`)), this.timeoutMs);
+      timer = setTimeout(() => reject(new PlayError('timeout', { s: this.timeoutMs / 1000 })), this.timeoutMs);
     });
     Promise.race([this.decide(req.text), timeout])
       .then(
@@ -79,7 +88,7 @@ export class Player {
   #arrived(req, r) {
     if (!this.#current(req)) return;
     const a = readAnswer(r.answers);
-    if (!a) return this.#failed(req, new Error('Respuesta sin carril válido'));
+    if (!a) return this.#failed(req, new PlayError('no-lane'));
     this.inflight = null;
     if (this.g.over) return;
     const age = this.g.t - req.tick;
@@ -104,7 +113,8 @@ export class Player {
     if (!this.#current(req)) return;
     this.inflight = null;
     this.stats.skipped++;
-    this.error = { status: e?.status ?? null, message: e?.message || String(e), at: performance.now() };
+    const own = e instanceof PlayError;
+    this.error = { status: e?.status ?? null, code: own ? e.code : null, params: own ? e.params : null, message: e?.message || String(e), cause: e, at: performance.now() };
   }
 
   /** Resumen para la tabla final. */

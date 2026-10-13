@@ -1,9 +1,11 @@
 // Detalle de un elemento: texto original y cada respuesta de Decision-1 con sus probabilidades.
 import { h, fmt, jsonHtml, openModal } from './util.js';
 import { S } from './core.js';
+import { t, tn } from './i18n.js';
 import { answerViz } from './views/answer.js';
 import { metaChips, primary } from './views/common.js';
 import { showJson } from './notes.js';
+import { rivalLabel } from './race.js';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -28,12 +30,13 @@ export function openItem(sc, st, id) {
   const m = st.meta?.items?.[id];
   const p = res ? primary({ sc, st, threshold: S.threshold }, id) : null;
 
+  const conf = { conf: fmt.pct(p?.a?.confidence), thr: fmt.pct(S.threshold) };
   const verdict = p
     ? h(
         'div',
         { class: `im-verdict${p.low ? ' low' : ''}` },
-        p.low ? `👀 ${sc.review_label}` : '✅ Automatizado',
-        h('small', null, `confianza ${fmt.pct(p.a?.confidence)} ${p.low ? '<' : '≥'} umbral ${fmt.pct(S.threshold)}`),
+        p.low ? `👀 ${sc.review_label}` : t('✅ Automatizado'),
+        h('small', null, p.low ? t('confianza {conf} < umbral {thr}', conf) : t('confianza {conf} ≥ umbral {thr}', conf)),
       )
     : null;
 
@@ -52,7 +55,7 @@ export function openItem(sc, st, id) {
   );
 
   const action = it.action
-    ? h('div', { class: 'im-action' }, h('div', { class: 'im-label' }, 'Acción que propone el agente'), h('span', { class: 'tool' }, '🔧 ', h('b', null, it.action.herramienta)), h('pre', { class: 'json', html: jsonHtml(it.action.argumentos) }))
+    ? h('div', { class: 'im-action' }, h('div', { class: 'im-label' }, t('Acción que propone el agente')), h('span', { class: 'tool' }, '🔧 ', h('b', null, it.action.herramienta)), h('pre', { class: 'json', html: jsonHtml(it.action.argumentos) }))
     : null;
 
   const grid = res
@@ -63,20 +66,21 @@ export function openItem(sc, st, id) {
           answerViz(sc, q, res[q], {
             thr: S.threshold,
             compare: llm?.[q],
-            compareLabel: st.llm?.label,
+            compareLabel: rivalLabel(st.llm?.model),
             reference: q === sc.primary ? it.expected?.[sc.primary] : undefined,
           }),
         ),
       )
-    : h('p', { class: 'muted' }, st.pending.has(id) ? '⏳ Decision-1 está evaluando…' : 'Todavía sin decisión: pulsa ▶ Procesar.');
+    : h('p', { class: 'muted' }, st.pending.has(id) ? t('⏳ Decision-1 está evaluando…') : t('Todavía sin decisión: pulsa ▶ Procesar.'));
 
   const req = m?.request || (st.last?.request && pickItem(st.last.request, id));
   const raw = m?.raw || (st.last?.raw && pickItem(st.last.raw, id));
+  const nq = Object.keys(sc.questions).length;
   const latency =
     m?.latency_ms != null
-      ? `⚡ ${fmt.ms(m.latency_ms)} en Decision-1 para ${Object.keys(sc.questions).length} preguntas`
+      ? tn(nq, '⚡ {ms} en Decision-1 para {n} pregunta', '⚡ {ms} en Decision-1 para {n} preguntas', { ms: fmt.ms(m.latency_ms) })
       : st.meta?.latency_ms != null
-        ? `⚡ decidido dentro de un lote de ${sc.items.length} en ${fmt.ms(st.meta.latency_ms)}`
+        ? t('⚡ decidido dentro de un lote de {n} en {ms}', { n: sc.items.length, ms: fmt.ms(st.meta.latency_ms) })
         : null;
   const foot = res
     ? h(
@@ -84,8 +88,8 @@ export function openItem(sc, st, id) {
         { class: 'im-foot' },
         latency ? h('span', { class: 'lat' }, latency) : null,
         h('span', { class: 'grow' }),
-        req ? h('button', { class: 'btn', onclick: () => showJson(`📤 Petición · ${id}`, req) }, '📤 Petición') : null,
-        raw ? h('button', { class: 'btn', onclick: () => showJson(`📥 Respuesta · ${id}`, raw) }, '📥 Respuesta') : null,
+        req ? h('button', { class: 'btn', onclick: () => showJson(t('📤 Petición · {label}', { label: id }), req) }, t('📤 Petición')) : null,
+        raw ? h('button', { class: 'btn', onclick: () => showJson(t('📥 Respuesta · {label}', { label: id }), raw) }, t('📥 Respuesta')) : null,
       )
     : null;
 
@@ -94,10 +98,10 @@ export function openItem(sc, st, id) {
       'div',
       { class: 'item-modal' },
       head,
-      h('div', { class: 'im-label' }, it.action ? 'Mensaje del cliente' : `Texto ${sc.item_ref.replace(/^el /, 'del ').replace(/^la /, 'de la ')}`),
+      h('div', { class: 'im-label' }, sc.item_text_label || t('Texto')),
       h('blockquote', { class: 'im-text' }, it.text),
       action,
-      h('div', { class: 'im-label' }, `Respuestas de Decision-1${st.llm ? ` · comparadas con ${st.llm.label}` : ''}`),
+      h('div', { class: 'im-label' }, st.llm ? t('Respuestas de Decision-1 · comparadas con {modelo}', { modelo: rivalLabel(st.llm.model) }) : t('Respuestas de Decision-1')),
       grid,
       foot,
     ),

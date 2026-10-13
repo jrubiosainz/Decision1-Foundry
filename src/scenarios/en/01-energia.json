@@ -1,0 +1,151 @@
+{
+  "title": "Ticket triage",
+  "sector": "Energy and utilities",
+  "headline": "Every ticket in the right queue in milliseconds, and the urgent ones first.",
+  "item_label": "ticket",
+  "item_label_plural": "tickets",
+  "item_ref": "the ticket",
+  "item_text_label": "Ticket text",
+  "batch_key": "tickets",
+  "state_fields": {
+    "channel": "channel",
+    "message": "text"
+  },
+  "review_label": "Human review",
+  "context": "Customer service center of Nexa Energía, an electricity and gas retailer. Tickets arrive by email, web, WhatsApp, social media and transcribed calls, in several languages.",
+  "questions": {
+    "cola": {
+      "instructions": "Which team should handle the main issue in this ticket?",
+      "criteria": {
+        "averias": "Faults and emergencies: no power or no gas, service interruptions, gas smell, downed cables, sparks, faulty meter.",
+        "facturacion": "Billing and payments: amounts, duplicate charges, meter readings, non-payment, installment plans, bono social (social discount), refunds.",
+        "contratacion": "Contracts: new sign-ups, cancellations, change of account holder, moves, change of rate plan or contracted power.",
+        "autoconsumo": "Solar self-consumption: panels, inverter, batteries, surplus compensation.",
+        "movilidad": "Electric mobility: charging stations, home charger, charging app or card.",
+        "reclamaciones": "Formal complaints: escalated complaint, threat to report the company, consumer protection agency, lawyer or going public.",
+        "otros": "Any other inquiry: sponsorships, employment, press, topics unrelated to the energy supply."
+      }
+    },
+    "urgencia": {
+      "instructions": "How urgently does this ticket need to be handled?",
+      "criteria": [
+        "Low: informational inquiry or administrative procedure with no immediate impact.",
+        "Medium: real problem that can wait a few days.",
+        "High: significant impact today, such as being without supply or a major incorrect charge.",
+        "Critical: risk to people or property, or a dependent person affected right now."
+      ]
+    },
+    "riesgo_seguridad": {
+      "instructions": "Does the message describe an immediate physical danger in the installation or on the grid (gas smell, downed cables, sparks, smoke, fire, electric shocks)?"
+    },
+    "cliente_vulnerable": {
+      "instructions": "Does the customer mention a vulnerable situation (an elderly or dependent person, electrical medical equipment at home, children at risk or serious financial hardship)?"
+    },
+    "riesgo_baja": {
+      "instructions": "Does the customer threaten or hint at canceling their service or leaving for another company?"
+    }
+  },
+  "lanes": {
+    "averias": {
+      "label": "Faults"
+    },
+    "facturacion": {
+      "label": "Billing"
+    },
+    "contratacion": {
+      "label": "Contracts"
+    },
+    "autoconsumo": {
+      "label": "Self-consumption"
+    },
+    "movilidad": {
+      "label": "E-mobility"
+    },
+    "reclamaciones": {
+      "label": "Complaints"
+    },
+    "otros": {
+      "label": "Other"
+    }
+  },
+  "flags": {
+    "riesgo_seguridad": {
+      "label": "Safety"
+    },
+    "cliente_vulnerable": {
+      "label": "Vulnerable"
+    },
+    "riesgo_baja": {
+      "label": "Churn risk"
+    }
+  },
+  "items": [
+    {
+      "id": "T-1041",
+      "lang": "en",
+      "text": "Good morning, on the September bill you charged me twice for the same amount (€84.32). I'm attaching the bank statement. Can you refund the duplicate charge?"
+    },
+    {
+      "id": "T-1042",
+      "lang": "en",
+      "text": "There's a really strong smell of gas in the lobby and on the stairs, the neighbors are going down to the street. What should we do?"
+    },
+    {
+      "id": "T-1043",
+      "lang": "en",
+      "text": "My mother is 87 and uses an oxygen concentrator. She's had no power since 6 in the morning at Calle Mayor 12 in Valladolid. Please, it's urgent."
+    },
+    {
+      "id": "T-1047",
+      "lang": "en",
+      "text": "Third time I've called about the same bill and nobody fixes it. If it's not resolved by Monday I'm switching to a competitor and filing a complaint with the consumer protection office. @NexaEnergia"
+    },
+    {
+      "id": "T-1048",
+      "lang": "en",
+      "text": "I want to lower my contracted power from 5.75 kW to 4.6 kW to save money. Is there any cost for the change?"
+    },
+    {
+      "id": "T-1049",
+      "lang": "en",
+      "text": "There's a power cable hanging from a pole and throwing sparks right next to the school on Calle Olmo."
+    },
+    {
+      "id": "T-1050",
+      "lang": "en",
+      "text": "I'm out of work and can't pay the last two bills. Can I split the debt into installments or apply for the bono social (social discount)? I have two small kids."
+    },
+    {
+      "id": "T-1052",
+      "channel": "Call",
+      "lang": "en",
+      "text": "Transcript: the customer asks what the difference is between the time-of-use rate plan and the fixed rate plan, and which one suits them better if they work from home."
+    },
+    {
+      "id": "T-1053",
+      "lang": "en",
+      "text": "The battery in my solar installation hasn't charged since last week's inverter update."
+    },
+    {
+      "id": "T-1055",
+      "lang": "en",
+      "text": "Do you sponsor the city marathon? I'd like to send you a collaboration proposal for the 2027 edition."
+    },
+    {
+      "id": "T-1056",
+      "lang": "en",
+      "text": "I've received a shutoff notice for non-payment, but all my bills are paid. I need you to stop it right now: my father lives in the house and he's dependent on care."
+    }
+  ],
+  "notes": {
+    "reto": "Hundreds of thousands of contacts a month by email, web, WhatsApp and social media, in several languages. Sorting and prioritizing by hand takes minutes per ticket and delays precisely the critical cases (gas smell, vulnerable customers).",
+    "solucion": "Decision-1 reads each ticket and answers 5 closed questions in a single call: queue, urgency and 3 alerts (safety, vulnerable customer, churn risk), each with calibrated probabilities.",
+    "paradigma": "It doesn't write, it decides. That's why it fits inline with every incoming event at a fraction of the cost of an LLM. Calibrated confidence sets the cutoff: above the threshold it is automated; below it, human review.",
+    "aplica_a": [
+      "Multichannel customer service",
+      "Faults and emergencies",
+      "Detection of vulnerable customers",
+      "Churn prevention"
+    ]
+  }
+}

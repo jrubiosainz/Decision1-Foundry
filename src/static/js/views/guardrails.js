@@ -1,8 +1,9 @@
 // Caso 5 · Guardarraíles: cada acción del agente se valida contra la política antes de ejecutarse.
 import { h, fmt } from '../util.js';
+import { t, tn } from '../i18n.js';
 import { ans, primary, processedItems, tile, confPill, latencyChip, choiceLabel, valid, yes } from './common.js';
 
-const HUMAN = 'aprobacion_humana';
+const HUMAN = 'aprobacion_humana'; // i18n-ok
 
 export function verdict(ctx, id) {
   const p = primary(ctx, id);
@@ -11,16 +12,24 @@ export function verdict(ctx, id) {
   return { key: p.key, low: false, a: p.a };
 }
 
+// El contexto es «introducción. Política: (1) regla (2) regla…» (en inglés, «Policy:»); las reglas arrancan en «(1)».
+function splitPolicy(text) {
+  const first = text.search(/\(\s*1\s*\)/);
+  if (first >= 0) return [text.slice(0, first).replace(/(?:Política|Policy)\s*:\s*$/i, ''), text.slice(first)];
+  const mark = /(?:Política|Policy)\s*:/i.exec(text);
+  return mark ? [text.slice(0, mark.index), text.slice(mark.index + mark[0].length)] : [text, ''];
+}
+
 function policy(sc) {
-  const [intro, rest = ''] = sc.context.split(/Política:/i);
+  const [intro, rest] = splitPolicy(String(sc.context ?? ''));
   const rules = rest
-    .split(/\(\d+\)/)
+    .split(/\(\s*\d+\s*\)/)
     .map((s) => s.trim())
     .filter(Boolean);
   return h(
     'details',
     { class: 'policy', open: true },
-    h('summary', null, '📜 Política del agente · ', String(rules.length), ' reglas'),
+    h('summary', null, tn(rules.length, '📜 Política del agente · {n} regla', '📜 Política del agente · {n} reglas')),
     h('p', { class: 'muted small' }, intro.trim()),
     h('ol', null, rules.map((r) => h('li', null, r))),
   );
@@ -37,7 +46,7 @@ function checkChips(ctx, it) {
     if (!valid(a)) return null;
     const bad = a.value === c.bad_when;
     const pBad = c.bad_when ? a.p : 1 - a.p;
-    return h('span', { class: `check ${bad ? 'bad' : 'ok'}`, title: `${c.label}: probabilidad de problema ${fmt.pct(pBad, 1)}` }, bad ? '⚠ ' : '✓ ', c.label, bad ? ` ${fmt.pct(pBad)}` : '');
+    return h('span', { class: `check ${bad ? 'bad' : 'ok'}`, title: t('{label}: probabilidad de problema {p}', { label: c.label, p: fmt.pct(pBad, 1) }) }, bad ? '⚠ ' : '✓ ', c.label, bad ? ` ${fmt.pct(pBad)}` : '');
   });
 }
 
@@ -54,15 +63,19 @@ function row(ctx, it) {
       dataset: { flip: it.id },
       style: { '--c': d?.color || '#cbd5e1' },
       onclick: () => ctx.onItem(it.id),
-      title: 'Ver la decisión en detalle',
+      title: t('Ver la decisión en detalle'),
     },
     h('div', { class: 'gr-msg' }, h('b', { class: 'gr-id' }, it.id), h('span', { class: 'gr-quote' }, it.text)),
     h('div', { class: 'gr-tool' }, h('span', { class: 'tool' }, '🔧 ', h('b', null, it.action.herramienta)), h('span', { class: 'gr-args' }, argsText(it.action.argumentos))),
     h(
       'div',
       { class: 'gr-verdict' },
-      v ? h('span', { class: 'verdict', style: { '--c': d.color } }, d.icon, ' ', d.label) : h('span', { class: 'verdict wait' }, pending ? '⏳ Evaluando…' : '⏸ En espera'),
-      v?.low ? h('small', { class: 'muted' }, `confianza ${fmt.pct(v.a?.confidence)} · ¿${choiceLabel(sc, sc.primary, v.a?.value)}?`) : v ? confPill(v.a, ctx.threshold) : null,
+      v ? h('span', { class: 'verdict', style: { '--c': d.color } }, d.icon, ' ', d.label) : h('span', { class: 'verdict wait' }, pending ? t('⏳ Evaluando…') : t('⏸ En espera')),
+      v?.low
+        ? h('small', { class: 'muted' }, t('confianza {conf} · ¿{label}?', { conf: fmt.pct(v.a?.confidence), label: choiceLabel(sc, sc.primary, v.a?.value) }))
+        : v
+          ? confPill(v.a, ctx.threshold)
+          : null,
       latencyChip(ctx, it.id),
     ),
     h('div', { class: 'gr-checks' }, v ? checkChips(ctx, it) : null),
@@ -76,7 +89,7 @@ function tally(ctx) {
   return { done, counts };
 }
 
-const latencyLabel = (st) => (st.meta?.p50 != null ? ['Latencia p50 por acción', st.meta.p50] : ['Latencia de la llamada', st.meta?.latency_ms]);
+const latencyLabel = (st) => (st.meta?.p50 != null ? [t('Latencia p50 por acción'), st.meta.p50] : [t('Latencia de la llamada'), st.meta?.latency_ms]);
 
 export default {
   render(ctx) {
@@ -93,7 +106,7 @@ export default {
         Object.entries(sc.decisions).map(([k, d]) => tile(d.icon, d.label, counts[k] ?? 0, { color: d.color })),
         tile('⚡', latLabel, lat != null ? fmt.ms(lat) : '—', { color: '#6366f1' }),
       ),
-      h('div', { class: 'gr-head' }, h('span', null, 'Mensaje del cliente'), h('span', null, 'Acción que propone el agente'), h('span', null, 'Veredicto'), h('span', null, 'Comprobaciones')),
+      h('div', { class: 'gr-head' }, h('span', null, t('Mensaje del cliente')), h('span', null, t('Acción que propone el agente')), h('span', null, t('Veredicto')), h('span', null, t('Comprobaciones'))),
       h('div', { class: 'gr-rows' }, sc.items.map((it) => row(ctx, it))),
     );
   },
@@ -103,9 +116,9 @@ export default {
     const { done, counts } = tally(ctx);
     const reason = (k, bad) => done.filter((it) => valid(ans(ctx, it.id, k)) && ans(ctx, it.id, k).value === bad).length;
     const rows = Object.entries(sc.decisions).map(([k, d]) => ({ icon: d.icon, label: d.label, value: counts[k] ?? 0 }));
-    rows.push({ icon: '🕵️', label: 'Intentos de inyección detectados', value: done.filter((it) => yes(ans(ctx, it.id, 'prompt_injection'))).length });
-    rows.push({ icon: '🔐', label: 'Exposición de datos sensibles', value: reason('datos_sensibles', true) });
-    rows.push({ icon: '📏', label: 'Acciones que superan límites', value: reason('supera_limites', true) });
+    rows.push({ icon: '🕵️', label: t('Intentos de inyección detectados'), value: done.filter((it) => yes(ans(ctx, it.id, 'prompt_injection'))).length });
+    rows.push({ icon: '🔐', label: t('Exposición de datos sensibles'), value: reason('datos_sensibles', true) });
+    rows.push({ icon: '📏', label: t('Acciones que superan límites'), value: reason('supera_limites', true) });
     const [latLabel, lat] = latencyLabel(st);
     if (lat != null) rows.push({ icon: '⚡', label: latLabel, value: fmt.ms(lat) });
     const review = counts[HUMAN] ?? 0;

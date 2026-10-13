@@ -1,8 +1,9 @@
 // Caso 4 · Router de modelos GenAI: cada petición al destino más barato que la resuelve bien.
 import { h, fmt } from '../util.js';
-import { ans, primary, processedItems, card, lane, inboxBlock, sevBadge, flagChip, yes, sectionTitle } from './common.js';
+import { t, tx, tn } from '../i18n.js';
+import { ans, primary, processedItems, card, lane, inboxBlock, sevBadge, flagChip, yes, sectionTitle, scoreLabel } from './common.js';
 
-const FALLBACK = 'modelo_grande';
+const FALLBACK = 'modelo_grande'; // i18n-ok
 
 export function routeOf(ctx, id) {
   const p = primary(ctx, id);
@@ -22,7 +23,7 @@ export function economics(ctx) {
   for (const it of done) {
     const key = routeOf(ctx, it.id).key;
     routed += sc.routes[key].cost_usd;
-    if (key !== 'humano') {
+    if (key !== 'humano') { // i18n-ok
       latSum += sc.routes[key].latency_ms;
       latN++;
     }
@@ -47,17 +48,18 @@ export function economics(ctx) {
 
 function badges(ctx, it) {
   const { sc } = ctx;
-  const out = [sevBadge(ans(ctx, it.id, sc.severity))];
+  const sev = ans(ctx, it.id, sc.severity);
+  const out = [sevBadge(sev, 4, scoreLabel(sc, sc.severity, sev?.value, sev?.label))];
   const internal = ans(ctx, it.id, 'datos_internos');
   const personal = ans(ctx, it.id, 'datos_personales');
-  if (yes(internal)) out.push(flagChip('🔒', 'Datos internos', internal));
-  if (yes(personal)) out.push(flagChip('🪪', 'Datos personales', personal));
-  if (routeOf(ctx, it.id)?.fallback) out.push(h('span', { class: 'chip warn', title: 'Confianza baja: por prudencia va al modelo grande' }, '↩ fallback'));
+  if (yes(internal)) out.push(flagChip('🔒', t('Datos internos'), internal));
+  if (yes(personal)) out.push(flagChip('🪪', t('Datos personales'), personal));
+  if (routeOf(ctx, it.id)?.fallback) out.push(h('span', { class: 'chip warn', title: t('Confianza baja: por prudencia va al modelo grande') }, '↩ fallback'));
   return out;
 }
 
 function meter(ctx, e) {
-  if (!e) return h('div', { class: 'meter empty' }, 'Procesa las peticiones para comparar el coste con enviarlo todo al modelo grande.');
+  if (!e) return h('div', { class: 'meter empty' }, t('Procesa las peticiones para comparar el coste con enviarlo todo al modelo grande.'));
   const w = Math.max(1.5, Math.min(100, (e.withRouter / e.base) * 100));
   return h(
     'div',
@@ -65,24 +67,28 @@ function meter(ctx, e) {
     h(
       'div',
       { class: 'meter-row' },
-      h('span', { class: 'meter-label' }, '🧠 Todo al modelo grande'),
+      h('span', { class: 'meter-label' }, t('🧠 Todo al modelo grande')),
       h('span', { class: 'meter-bar base' }, h('i', { style: { width: '100%' } })),
-      h('span', { class: 'meter-val' }, fmt.eur(ctx.eur(e.base)), h('small', null, ` · ${fmt.ms(e.latBase)} de media`)),
+      h('span', { class: 'meter-val' }, fmt.eur(ctx.eur(e.base)), h('small', null, ' · ', t('{latencia} de media', { latencia: fmt.ms(e.latBase) }))),
     ),
     h(
       'div',
       { class: 'meter-row' },
-      h('span', { class: 'meter-label' }, '🔀 Con router Decision-1'),
+      h('span', { class: 'meter-label' }, t('🔀 Con router Decision-1')),
       h('span', { class: 'meter-bar router' }, h('i', { style: { width: `${w}%` } })),
-      h('span', { class: 'meter-val' }, fmt.eur(ctx.eur(e.withRouter)), h('small', null, e.latRouter != null ? ` · ${fmt.ms(e.latRouter)} de media` : '')),
+      h('span', { class: 'meter-val' }, fmt.eur(ctx.eur(e.withRouter)), h('small', null, e.latRouter != null ? [' · ', t('{latencia} de media', { latencia: fmt.ms(e.latRouter) })] : '')),
     ),
     h(
       'div',
       { class: 'meter-saving' },
-      h('b', null, `−${fmt.pct(e.saving)}`),
-      ' de coste',
-      e.latRouter ? [' · ', h('b', null, fmt.times(e.latBase / e.latRouter)), ' más rápido de media'] : null,
-      h('small', { class: 'muted' }, ` · incluye ${fmt.eur(ctx.eur(e.d1Usd))} de Decision-1 por enrutar ${e.n} peticiones`),
+      tx('{ahorro} de coste', { ahorro: h('b', null, `−${fmt.pct(e.saving)}`) }),
+      e.latRouter ? [' · ', tx('{veces} más rápido de media', { veces: h('b', null, fmt.times(e.latBase / e.latRouter)) })] : null,
+      h(
+        'small',
+        { class: 'muted' },
+        ' · ',
+        tn(e.n, 'incluye {coste} de Decision-1 por enrutar {n} petición', 'incluye {coste} de Decision-1 por enrutar {n} peticiones', { coste: fmt.eur(ctx.eur(e.d1Usd)) }),
+      ),
     ),
   );
 }
@@ -106,13 +112,16 @@ export default {
               label: r.label,
               color: r.color,
               icon: r.icon,
-              sub: `${fmt.eur(ctx.eur(r.cost_usd))} / petición · ${r.latency_ms ? `≈ ${fmt.ms(r.latency_ms)}` : 'cola humana'}`,
+              sub: t('{coste} / petición · {latencia}', {
+                coste: fmt.eur(ctx.eur(r.cost_usd)),
+                latencia: r.latency_ms ? `≈ ${fmt.ms(r.latency_ms)}` : t('cola humana'),
+              }),
             },
             groups[k].map((it) => card(ctx, it, { color: r.color, badges: badges(ctx, it) })),
           ),
         ),
       ),
-      sectionTitle('💶 Coste de atender estas peticiones'),
+      sectionTitle(t('💶 Coste de atender estas peticiones')),
       meter(ctx, economics(ctx)),
     );
   },
@@ -129,7 +138,7 @@ export default {
     }
     const rows = Object.entries(sc.routes).map(([k, r]) => ({ icon: r.icon, label: r.label, value: counts[k] || 0 }));
     const e = economics(ctx);
-    if (e) rows.push({ icon: '💶', label: 'Ahorro frente a todo al modelo grande', value: fmt.pct(e.saving) });
+    if (e) rows.push({ icon: '💶', label: t('Ahorro frente a todo al modelo grande'), value: fmt.pct(e.saving) });
     rows.push({ icon: '↩', label: sc.review_label, value: fallback });
     return { processed: done.length, automated: done.length - fallback, review: fallback, rows, economics: e };
   },

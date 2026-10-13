@@ -1,6 +1,8 @@
 // Arranque, navegación, barra superior, panel lateral y atajos de teclado.
 import { h, $, $$, fmt, median, toast, openModal, closeModal, modalOpen } from './util.js';
 import { S, caseState, api, errorText, takeCodeFromUrl, regionLabel, skuLabel } from './core.js';
+import { t, tx, getLang, setLang } from './i18n.js';
+import { renderLangSwitch } from './langswitch.js';
 import { fmtCountdown } from './views/common.js';
 import { mountCase, unmountCase, currentCase, refresh, caseAction } from './casepage.js';
 import { mountIntro } from './intro.js';
@@ -34,9 +36,9 @@ function sessionBox() {
   return h(
     'div',
     { class: 'session' },
-    h('div', { class: 'session-title' }, 'Esta sesión'),
-    h('div', { class: 'session-grid' }, kv('calls', 'llamadas'), kv('decisions', 'decisiones'), kv('eur', 'coste total'), kv('p50', 'latencia p50')),
-    h('button', { class: 'shortcuts-hint', onclick: showHelp }, '⌨️ Atajos de teclado: pulsa ', h('kbd', null, '?')),
+    h('div', { class: 'session-title' }, t('Esta sesión')),
+    h('div', { class: 'session-grid' }, kv('calls', t('llamadas')), kv('decisions', t('decisiones')), kv('eur', t('coste total')), kv('p50', t('latencia p50'))),
+    h('button', { class: 'shortcuts-hint', onclick: showHelp }, tx('⌨️ Atajos de teclado: pulsa {key}', { key: h('kbd', null, '?') })),
   );
 }
 
@@ -51,12 +53,12 @@ function updateSession() {
 
 function buildSidebar() {
   $('#sidebar').replaceChildren(
-    h('div', { class: 'nav-section' }, 'Presentación'),
-    navItem('intro', '🏠', 'Introducción', 'Qué es Decision-1 y por qué importa'),
-    h('div', { class: 'nav-section' }, 'Casos de uso'),
+    h('div', { class: 'nav-section' }, t('Presentación')),
+    navItem('intro', '🏠', t('Introducción'), t('Qué es Decision-1 y por qué importa')),
+    h('div', { class: 'nav-section' }, t('Casos de uso')),
     ...S.scenarios.map((sc) => navItem(sc.id, sc.icon, sc.title, `${sc.sector} · ${sc.brand}`, sc.order)),
-    h('div', { class: 'nav-section' }, 'Pruébalo'),
-    navItem('lab', '🧪', 'Laboratorio', 'Tus datos, tus preguntas'),
+    h('div', { class: 'nav-section' }, t('Pruébalo')),
+    navItem('lab', '🧪', t('Laboratorio'), t('Tus datos, tus preguntas')),
     sessionBox(),
   );
   updateSession();
@@ -81,14 +83,14 @@ function buildStatus() {
   const d = S.config?.decision || {};
   const ok = !!S.config?.configured;
   status.region = h('b', null, '—');
-  status.regionPill = h('span', { class: 'pill', title: 'Región donde se ejecutó la última inferencia (cabecera de la respuesta)', hidden: true }, '🧠 Inferencia: ', status.region);
+  status.regionPill = h('span', { class: 'pill', title: t('Región donde se ejecutó la última inferencia (cabecera de la respuesta)'), hidden: true }, t('🧠 Inferencia: '), status.region);
   status.gauge = h('i');
   status.q = h('b', null, '—');
-  status.quota = h('span', { class: 'pill quota', title: 'Peticiones por minuto disponibles para Decision-1 (estimación)' }, '⏱ ', h('span', { class: 'gauge' }, status.gauge), status.q);
-  status.notesBtn = h('button', { class: 'btn ghost notes-btn', onclick: () => toggleNotes(), title: 'Mostrar u ocultar las notas (N)' }, '📝 Notas');
+  status.quota = h('span', { class: 'pill quota', title: t('Peticiones por minuto disponibles para Decision-1 (estimación)') }, '⏱ ', h('span', { class: 'gauge' }, status.gauge), status.q);
+  status.notesBtn = h('button', { class: 'btn ghost notes-btn', onclick: () => toggleNotes(), title: t('Mostrar u ocultar las notas (N)') }, t('📝 Notas'));
   $('#status').replaceChildren(
-    h('span', { class: 'pill', title: 'Región del recurso de Microsoft Foundry' }, h('span', { class: `dot${ok ? '' : ' off'}` }), ok ? 'Foundry · ' : 'Sin configurar · ', h('b', null, regionLabel(d.location))),
-    h('span', { class: 'pill', title: 'Tipo de despliegue de Decision-1' }, '🛡️ ', h('b', null, skuLabel(d.sku, d.location))),
+    h('span', { class: 'pill', title: t('Región del recurso de Microsoft Foundry') }, h('span', { class: `dot${ok ? '' : ' off'}` }), ok ? t('Foundry · ') : t('Sin configurar · '), h('b', null, regionLabel(d.location))),
+    h('span', { class: 'pill', title: t('Tipo de despliegue de Decision-1') }, '🛡️ ', h('b', null, skuLabel(d.sku, d.location))),
     status.regionPill,
     status.quota,
     status.notesBtn,
@@ -134,7 +136,7 @@ function show(page) {
   else mountIntro(stage, notes);
   stage.scrollTop = 0;
   notes.scrollTop = 0;
-  document.title = `${sc ? `${sc.order}. ${sc.title}` : page === 'lab' ? 'Laboratorio' : 'Introducción'} · Microsoft-Decision-1`;
+  document.title = `${sc ? `${sc.order}. ${sc.title}` : page === 'lab' ? t('Laboratorio') : t('Introducción')} · Microsoft-Decision-1`;
   updateNav();
   warm();
 }
@@ -160,22 +162,22 @@ function step(delta) {
 
 // ---------- Atajos ----------
 
-const KEYS = [
-  ['← →', 'Página anterior / siguiente'],
-  ['0', 'Introducción'],
-  ['1 – 6', 'Ir a un caso'],
-  ['L', 'Laboratorio'],
-  ['Espacio', 'Procesar el caso · jugar o pausar (caso 6)'],
-  ['C', 'Carrera contra un LLM'],
-  ['B', 'Cambiar entre lote y uno a uno'],
-  ['R', 'Reiniciar el caso o la partida'],
-  ['N', 'Mostrar u ocultar las notas'],
-  ['Ctrl + Enter', 'Decidir en el laboratorio'],
-  ['Esc', 'Cerrar la ventana'],
+const keys = () => [
+  ['← →', t('Página anterior / siguiente')],
+  ['0', t('Introducción')],
+  ['1 – 6', t('Ir a un caso')],
+  ['L', t('Laboratorio')],
+  [t('Espacio'), t('Procesar el caso · jugar o pausar (caso 6)')],
+  ['C', t('Carrera contra un LLM')],
+  ['B', t('Cambiar entre lote y uno a uno')],
+  ['R', t('Reiniciar el caso o la partida')],
+  ['N', t('Mostrar u ocultar las notas')],
+  ['Ctrl + Enter', t('Decidir en el laboratorio')],
+  ['Esc', t('Cerrar la ventana')],
 ];
 
 function showHelp() {
-  openModal(h('div', { class: 'help' }, h('h2', null, '⌨️ Atajos de teclado'), h('div', { class: 'help-grid' }, KEYS.map(([k, t]) => [h('kbd', null, k), h('span', null, t)]))));
+  openModal(h('div', { class: 'help' }, h('h2', null, t('⌨️ Atajos de teclado')), h('div', { class: 'help-grid' }, keys().map(([k, label]) => [h('kbd', null, k), h('span', null, label)]))));
 }
 
 const typing = (el) => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
@@ -239,6 +241,56 @@ async function pollQuota() {
 }
 setInterval(pollQuota, 5000);
 
+// ---------- Idioma ----------
+
+// Textos que ya vienen en el HTML; el resto de la interfaz se construye con t() al montar cada vista.
+function applyStaticTexts() {
+  $('meta[name="description"]')?.setAttribute('content', t('Demo de Microsoft-Decision-1 en Microsoft Foundry: seis casos de uso de decisiones rápidas, baratas y calibradas.'));
+  $('#sidebar').setAttribute('aria-label', t('Casos de uso'));
+  $('#notes').setAttribute('aria-label', t('Notas para el presentador'));
+  const bootText = $('#boot-text');
+  if (bootText) bootText.textContent = t('Cargando la demo…');
+}
+
+function applyContent(data) {
+  S.scenarios = [...data.scenarios].sort((a, b) => a.order - b.order);
+  S.byId = Object.fromEntries(S.scenarios.map((s) => [s.id, s]));
+  S.lab = data.lab || { templates: [] };
+}
+
+let switching = false;
+
+// El servidor devuelve escenarios, laboratorio y comparativas ya traducidos: se piden primero y solo entonces cambia la interfaz.
+async function switchLang(code) {
+  if (switching || code === getLang()) return;
+  if (!S.scenarios.length) {
+    // Todavía sin contenido (código de acceso o error de arranque): basta con recargar en el idioma nuevo.
+    setLang(code);
+    location.reload();
+    return;
+  }
+  switching = true;
+  $('#lang')?.classList.add('busy');
+  try {
+    const config = await api('/api/config', null, { lang: code });
+    const data = await api('/api/scenarios', null, { lang: code });
+    setLang(code);
+    S.config = config;
+    applyContent(data);
+    closeModal();
+    applyStaticTexts();
+    buildStatus();
+    buildSidebar();
+    show(S.page);
+  } catch (e) {
+    toast(errorText(e), 'error', 7000);
+  } finally {
+    switching = false;
+    $('#lang')?.classList.remove('busy');
+    renderLangSwitch(switchLang);
+  }
+}
+
 // ---------- Arranque ----------
 
 function bootError(title, e, label) {
@@ -247,26 +299,25 @@ function bootError(title, e, label) {
 
 async function boot() {
   takeCodeFromUrl();
+  applyStaticTexts();
+  renderLangSwitch(switchLang);
   S.showNotes = localStorage.getItem('d1-notes') !== '0';
   layout.classList.toggle('no-notes', !S.showNotes);
   try {
     S.config = await api('/api/config');
   } catch (e) {
-    return bootError('No se pudo conectar con el servidor', e, 'Reintentar');
+    return bootError(t('No se pudo conectar con el servidor'), e, t('Reintentar'));
   }
   buildStatus();
   try {
-    const data = await api('/api/scenarios');
-    S.scenarios = [...data.scenarios].sort((a, b) => a.order - b.order);
-    S.byId = Object.fromEntries(S.scenarios.map((s) => [s.id, s]));
-    S.lab = data.lab || { templates: [] };
+    applyContent(await api('/api/scenarios'));
   } catch (e) {
-    return bootError('🔐 Demo protegida', e, 'Introducir el código');
+    return bootError(t('🔐 Demo protegida'), e, t('Introducir el código'));
   }
   const cmps = S.config.comparisons || [];
   S.raceModel = (cmps.find((c) => c.id === 'gpt-6-sol') || cmps[0])?.id || null;
   buildSidebar();
-  if (!S.config.configured) toast('Falta AZURE_AI_ENDPOINT: la interfaz funciona, pero no puede llamar al modelo.', 'warn', 10000);
+  if (!S.config.configured) toast(t('Falta AZURE_AI_ENDPOINT: la interfaz funciona, pero no puede llamar al modelo.'), 'warn', 10000);
   show(location.hash.slice(1) || 'intro');
   pollQuota();
 }

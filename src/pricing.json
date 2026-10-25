@@ -8,6 +8,7 @@
     "gpt-6-sol": { "label": "GPT-6 Sol", "input": 2.4, "cached_input": 0.24, "output": 12.0 },
     "gpt-6-luna": { "label": "GPT-6 Luna", "input": 0.1, "cached_input": 0.01, "output": 0.5 }
   },
+  "decisions_api": { "label": "OpenAI Decisions API · GPT-6 Luna", "input": 0.1, "cached_input": 0.01, "cache_write": 0.125 },
   "comparisons": [
     { "id": "gpt-5.4-mini", "deployment": "gpt-5.4-mini", "label": "GPT-5.4 mini · sin razonamiento", "label_en": "GPT-5.4 mini · no reasoning", "reasoning_effort": "none" },
     { "id": "gpt-6-sol", "deployment": "gpt-6-sol", "label": "GPT-6 Sol · razonamiento por defecto", "label_en": "GPT-6 Sol · default reasoning", "reasoning_effort": null },

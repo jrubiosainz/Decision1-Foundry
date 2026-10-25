@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import demo
+import dx
 from decision_client import FoundryClient, FoundryError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -30,6 +31,7 @@ LOCATION = os.environ.get("AZURE_LOCATION", "")
 ACCESS_CODE = os.environ.get("DEMO_ACCESS_CODE", "").strip()
 ALLOWED_LLMS = [d.strip() for d in os.environ.get("COMPARISON_DEPLOYMENTS", "").split(",") if d.strip()]
 DEFAULT_RPM = int(os.environ.get("DECISION_RPM", "60"))
+DX_DEPLOYMENT = os.environ.get("DX_DEPLOYMENT", "gpt-6-luna")
 
 LAB_MAX_STATE_CHARS = 20_000
 LAB_MAX_QUESTIONS = 32
@@ -42,6 +44,8 @@ D1_PRICE_KEY = "Microsoft-Decision-1"
 SCENARIOS_BY_LANG = {lang: demo.load_scenarios(lang=lang) for lang in demo.LANGS}
 LABS = {lang: demo.load_lab(lang) for lang in demo.LANGS}
 PRICING = demo.Pricing(demo.load_json("pricing.json"))
+DX_BY_LANG = {lang: dx.load_cases(lang) for lang in demo.LANGS}
+DX_PRICE = PRICING.data["decisions_api"]
 
 # Los juegos mandan al modelo siempre el mismo texto en español: no dependen del idioma de la interfaz.
 GAMES = SCENARIOS_BY_LANG[demo.DEFAULT_LANG]
@@ -62,6 +66,12 @@ MESSAGES = {
         "lab_question_type": "La pregunta '{name}' debe tener type 'choice', 'score' o 'noul'.",
         "game_state": "El estado debe tener entre 1 y {max} caracteres.",
         "game_incomplete": "El modelo no devolvió una respuesta completa.",
+        "unknown_dx_case": "Caso desconocido: {id}",
+        "unknown_dx_item": "Elemento desconocido: {id}",
+        "unknown_dx_step": "Paso desconocido: {id}",
+        "unknown_dx_checklist": "Lista de comprobación desconocida: {id}",
+        "dx_upload_type": "La foto debe ser una imagen JPEG, PNG o WebP.",
+        "dx_upload_size": "La foto admite hasta {max} MB.",
     },
     "en": {
         "bad_code": "Wrong access code",
@@ -77,6 +87,12 @@ MESSAGES = {
         "lab_question_type": "Question '{name}' must have type 'choice', 'score' or 'noul'.",
         "game_state": "The state must be between 1 and {max} characters.",
         "game_incomplete": "The model did not return a complete answer.",
+        "unknown_dx_case": "Unknown case: {id}",
+        "unknown_dx_item": "Unknown item: {id}",
+        "unknown_dx_step": "Unknown step: {id}",
+        "unknown_dx_checklist": "Unknown checklist: {id}",
+        "dx_upload_type": "The photo must be a JPEG, PNG or WebP image.",
+        "dx_upload_size": "The photo accepts up to {max} MB.",
     },
 }
 
@@ -124,6 +140,7 @@ async def lifespan(app: FastAPI):
     app.state.prime_task = None
     app.state.d1_sem = asyncio.Semaphore(6)
     app.state.llm_sem = asyncio.Semaphore(8)
+    app.state.dx_sem = asyncio.Semaphore(6)
     if client:
         try:
             await client.warmup()
@@ -257,6 +274,15 @@ class GameIn(BaseModel):
     state: str
 
 
+class DxIn(BaseModel):
+    case: str
+    item: str
+    step: str | None = None
+    checklist: str | None = None
+    prior: dict[str, dict] | None = None
+    image: str | None = None
+
+
 @app.get("/healthz")
 async def healthz() -> dict:
     return {"ok": True}
@@ -280,6 +306,7 @@ async def config(request: Request) -> dict:
         },
         # Cadencia de decisión de los juegos: el límite de Decision-1 con un 5 % de margen. Los dos modelos usan la misma.
         "game": {"cadence_ms": max(1000, math.ceil(60_000 / max(1, DEFAULT_RPM) * 1.05))},
+        "dx": {"model": DX_DEPLOYMENT},
         "comparisons": [{"id": c["id"], "label": loc_label(c, lang), "deployment": c["deployment"]} for c in COMPARISONS.values()],
         "pricing": pricing,
         "access_required": bool(ACCESS_CODE),
@@ -396,6 +423,72 @@ async def compare_batch(body: CompareIn, request: Request) -> dict:
     async with request.app.state.llm_sem:
         res = await demo.llm_batch(client, sc, items, cmp)
     return {**res, "label": loc_label(cmp, lang), "cost": PRICING.cost(cmp["deployment"], res["usage"])}
+
+
+# ---------- OpenAI Decisions API (segunda pestaña) ----------
+
+
+def dx_case(case_id: str, lang: str) -> dict:
+    case = DX_BY_LANG[lang].get(case_id)
+    if not case:
+        raise fail(404, lang, "unknown_dx_case", id=case_id)
+    return case
+
+
+@app.get("/api/dx", dependencies=[Depends(require_code)])
+async def dx_cases(request: Request) -> dict:
+    lang = lang_of(request)
+    return {
+        "lang": lang,
+        "model": DX_DEPLOYMENT,
+        "configured": bool(ENDPOINT),
+        "pricing": {**DX_PRICE, "usd_to_eur": PRICING.usd_to_eur},
+        "cases": [dx.public(c, lang) for c in DX_BY_LANG[lang].values()],
+    }
+
+
+@app.post("/api/dx/decide", dependencies=[Depends(require_code)])
+async def dx_decide(body: DxIn, request: Request) -> dict:
+    """Una llamada a la OpenAI Decisions API: un elemento de un caso, un paso de la cascada o una lista de un contrato."""
+    client = client_of(request)
+    lang = lang_of(request)
+    case = dx_case(body.case, lang)
+    try:
+        item = dx.find_item(case, body.item)
+        plan = dx.plan(case, item, lang, body.step, body.checklist, body.prior, body.image)
+    except dx.DxError as exc:
+        raise fail(exc.status, lang, exc.key, **exc.params) from exc
+    out: dict[str, Any] = {"case": case["id"], "item": item["id"], "model": DX_DEPLOYMENT}
+    if "step" in plan:
+        out["step"] = plan["step"]["id"]
+    if "checklist" in plan:
+        out["checklist"] = plan["checklist"]["id"]
+    if "skip" in plan:
+        usage = {"input_tokens": 0, "cached_input_tokens": 0, "cache_write_tokens": 0, "output_tokens": 0}
+        return {**out, "skipped": True, "route": plan["skip"], "answers": {}, "usage": usage, "cost": dx.cost(usage, DX_PRICE, PRICING.usd_to_eur), "latency_ms": 0, "total_ms": 0, "wait_ms": 0, "attempts": 0}
+    async with request.app.state.dx_sem:
+        res = await client.decisions(DX_DEPLOYMENT, plan["input"], plan["questions"])
+    answers = res["answers"]
+    out.update(
+        {
+            "answers": answers,
+            "usage": res["usage"],
+            "cost": dx.cost(res["usage"], DX_PRICE, PRICING.usd_to_eur),
+            "latency_ms": res["latency_ms"],
+            "total_ms": res["total_ms"],
+            "wait_ms": res["wait_ms"],
+            "attempts": res["attempts"],
+            "request": dx.view({"model": DX_DEPLOYMENT, "input": plan["input"], "questions": plan["questions"]}, lang),
+            "response": dx.view(res["raw"], lang),
+        }
+    )
+    if case["kind"] == "cascade":
+        out["route"] = dx.route(case, plan["step"], item, answers, lang)
+    elif case["kind"] == "contracts":
+        out["review"] = dx.review(case, plan, answers)
+    else:
+        out["assessment"] = dx.assess(case, item, answers, lang)
+    return out
 
 
 app.mount("/", StaticFiles(directory=demo.BASE / "static", html=True), name="static")

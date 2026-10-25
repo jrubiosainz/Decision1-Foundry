@@ -1,0 +1,86 @@
+{
+  "title": "Expense claims from a photo",
+  "sector": "Finance · any company",
+  "headline": "Receipt photo, declared data and expense policy: approved, review or rejected in a second.",
+  "item_label": "receipt",
+  "item_label_plural": "receipts",
+  "developer": "You are the automatic expense auditor of Fabrikam, S.A. (tax ID A00000001). You receive the photo of a receipt or invoice and the data the employee declared in the expenses app. Apply the expense policy below strictly. If something cannot be read in the image, reflect it in the probabilities.",
+  "context_label": "Expense policy",
+  "image_text": "Photo of the receipt or invoice:",
+  "json_text": "Data declared by the employee:",
+  "questions": {
+    "legible": {
+      "label": "Legible",
+      "instructions": "Can the issuer (merchant, company or transport operator), the date and the total amount of the receipt be read clearly in the image?",
+      "flag": "🔍 Illegible"
+    },
+    "categoria": {
+      "label": "Actual category",
+      "instructions": "Based on what was bought, which expense category does the receipt belong to?",
+      "flag": "🏷️ Category differs from the declared one",
+      "choices": {
+        "transporte": { "label": "Transport", "description": "Taxi, ride-hailing, train, plane, bus, fuel or tolls." },
+        "comida": { "label": "Meals", "description": "Restaurants, cafés and per diems." },
+        "alojamiento": { "label": "Accommodation", "description": "Hotels and apartments." },
+        "parking": { "label": "Parking", "description": "Car parks." },
+        "material": { "label": "Supplies", "description": "Office or IT supplies for work." },
+        "otros": { "label": "Other", "description": "Anything else, including personal items." }
+      }
+    },
+    "importe_ok": {
+      "label": "Amount = declared",
+      "instructions": "Does the total amount on the receipt match the amount declared by the employee?",
+      "flag": "💶 Amount differs from the declared one"
+    },
+    "fecha_ok": {
+      "label": "Date = declared",
+      "instructions": "Does the date on the receipt match the date declared by the employee?",
+      "flag": "📅 Date differs from the declared one"
+    },
+    "alcohol": {
+      "label": "Includes alcohol",
+      "instructions": "Does the receipt include any alcoholic drink (wine, beer, spirits or cocktails)?",
+      "flag": "🍷 Includes alcohol"
+    },
+    "factura_nif": {
+      "label": "Invoice addressed to Fabrikam",
+      "instructions": "Is it a full invoice addressed to Fabrikam, S.A. with its tax ID (A00000001), so the VAT can be recovered? A receipt or simplified invoice without Fabrikam's details is not.",
+      "info": "🧾 VAT recoverable"
+    },
+    "personal": {
+      "label": "Personal expense",
+      "instructions": "Is it a personal expense, unrelated to work (clothing, consumer electronics, leisure or personal gifts)?",
+      "flag": "🛍️ Personal expense"
+    }
+  },
+  "rules": [
+    { "id": "ilegible", "reason": "The receipt cannot be read: the original is requested (policy, 2.2)." },
+    { "id": "personal", "reason": "Personal expense, not reimbursable (policy, 7.1)." },
+    { "id": "no_cuadra", "reason": "Something doesn't match the declaration or there is alcohol: manual review (policy, 3.1, 3.2 and 5.4)." },
+    { "id": "cumple", "reason": "Complies with the policy and matches the declaration." }
+  ],
+  "outcomes": {
+    "aprobar": { "stamp": "APPROVED" },
+    "revisar": { "stamp": "REVIEW" },
+    "rechazar": { "stamp": "REJECTED" },
+    "pedir_original": { "stamp": "NEED ORIGINAL" }
+  },
+  "items": [
+    { "id": "r1", "declared": { "concepto": "Taxi from Atocha station to the client's office" } },
+    { "id": "r2", "declared": { "concepto": "Business lunch with a client (2 people)" } },
+    { "id": "r3", "declared": { "concepto": "Hotel in Bilbao, client visit" } },
+    { "id": "r4", "declared": { "concepto": "Parking for a meeting downtown" } },
+    { "id": "r5", "declared": { "concepto": "Working breakfast" } },
+    { "id": "r6", "declared": { "concepto": "Office supplies" } },
+    { "id": "r7", "declared": { "concepto": "Train Madrid–Barcelona" } },
+    { "id": "r8", "declared": { "concepto": "Lunch with a supplier" } },
+    { "id": "r9", "declared": { "concepto": "Set menu while travelling" } }
+  ],
+  "notes": {
+    "reto": "Checking expense claims is manual work in every company: someone compares each receipt with what was declared and with the policy. That is about **4 minutes per receipt**, and inflated amounts, alcohol or personal expenses still slip through.",
+    "solucion": "One call per receipt to the OpenAI Decisions API with the **photo**, the **declared data as JSON** and the **full policy** as context. Seven closed questions (legibility, category, amount, date, alcohol, invoice and personal expense) return calibrated probabilities, and **the policy, written as code, decides**: every outcome can be audited.",
+    "paradigma": "The policy goes in as a fixed prefix and the API **caches it**: from the second receipt on, almost all tokens are billed at a tenth of the price. Auditing 100 % of expenses, not a sample, costs cents.",
+    "aplica_a": ["Travel expenses in any company", "Internal audit", "Accounts payable", "Insurance: claim receipts", "Grants and subsidies", "Retail: returns with a receipt"],
+    "capacidades": ["🖼️ Receipt photo as input", "{ } Declared data as JSON", "💾 Policy cached as a prefix", "⚖️ Image checked against the declaration"]
+  }
+}

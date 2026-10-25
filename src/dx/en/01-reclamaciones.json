@@ -1,0 +1,195 @@
+{
+  "title": "Claims cascade",
+  "sector": "Retail and e-commerce",
+  "headline": "Each answer picks the next question: photo, catalogue, delivery, manual and history, in seconds.",
+  "item_label": "claim",
+  "item_label_plural": "claims",
+  "developer": "You are the after-sales claims triage system of Northwind Hogar, an online store for furniture, homeware and home electronics. Answer only from what the images and data show; if the evidence is unclear, reflect it in the probabilities.",
+  "prompts": {
+    "foto": "Photo sent by the customer:",
+    "texto": "Customer's account:",
+    "entrega": "Photo taken by the carrier when delivering the order:",
+    "manual": "Product technical manual:",
+    "json": "Order, customer history and previous decisions for this claim:"
+  },
+  "inputs": {
+    "foto": { "label": "Customer photo" },
+    "catalogo": { "label": "Catalogue photo" },
+    "texto": { "label": "Customer's account" },
+    "entrega": { "label": "Delivery photo" },
+    "manual": { "label": "Technical manual" },
+    "json": { "label": "Order, history and previous steps" },
+    "regla": { "label": "Business rule" }
+  },
+  "products": {
+    "P1": { "name": "Barista espresso machine" },
+    "P2": { "name": "Set of 6 crystal glasses" },
+    "P3": { "name": "Nordic floor lamp" },
+    "P4": { "name": "Round oak side table" },
+    "P5": { "name": "32\" curved monitor" },
+    "P6": { "name": "RV-300 robot vacuum" }
+  },
+  "outcomes": {
+    "nueva_foto": { "label": "Ask for a new photo", "desc": "The customer is asked for a sharp photo of the product, with no human involved." },
+    "fraude": { "label": "Fraud review", "desc": "The product in the photo is not the one that was sold: it goes to the fraud team." },
+    "revision": { "label": "Human review", "desc": "Something doesn't add up or confidence is low: a person decides." },
+    "autoservicio": { "label": "Guided fix", "desc": "The customer receives the steps from the manual. No return, no technician." },
+    "tecnico": { "label": "Technician visit", "desc": "A technician visit is scheduled." },
+    "transportista": { "label": "Replacement, charged to the carrier", "desc": "The product is replaced today and the cost is claimed from the carrier." },
+    "reposicion": { "label": "Immediate replacement", "desc": "A new product is shipped today." }
+  },
+  "steps": [
+    {
+      "id": "A",
+      "title": "Is the photo usable?",
+      "questions": {
+        "foto_valida": {
+          "label": "Shows a product",
+          "instructions": "Does the photo show a physical product (furniture, homeware or an appliance) that could be the subject of a claim? Answer no if it is a screenshot, a document, a person, a landscape or an image with no product."
+        },
+        "nitidez": {
+          "label": "Sharpness",
+          "instructions": "Does the photo make it possible to assess the condition of the product?",
+          "levels": [
+            { "label": "Blurry", "description": "Shaken, out of focus or too dark: the product is barely recognisable and no details can be seen." },
+            { "label": "Acceptable", "description": "The product and its general condition can be recognised, although with little detail." },
+            { "label": "Sharp", "description": "In focus and well lit: the product's details can be seen." }
+          ]
+        }
+      },
+      "route": [
+        { "reason": "The photo does not show any product." },
+        { "reason": "The photo is too blurry to assess the damage." },
+        { "reason": "Usable photo." }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Is it the product we sold?",
+      "questions": {
+        "otro_producto": {
+          "label": "Different product from the catalogue",
+          "instructions": "Compare the product in the customer's photo with this catalogue photo of the item they were sold. Is it a different model: another kind of object or a clearly different design in shape, materials or colour? Damage, angle, lighting and background do not count as differences."
+        }
+      },
+      "route": [
+        { "reason": "The product in the photo is not the one that was sold." },
+        { "reason": "Matches the catalogue." }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "What damage is there?",
+      "questions": {
+        "danio_visible": {
+          "label": "Visible physical damage",
+          "instructions": "Does the photo show physical damage to the product: breakage, a crack, a scratch, a dent or a detached part? A light or an indicator that is on is not physical damage."
+        },
+        "tipo": {
+          "label": "Type of damage",
+          "instructions": "What type of physical damage can be seen on the product?",
+          "choices": {
+            "rotura": { "label": "Breakage", "description": "Broken parts, fragments or shattered glass." },
+            "grieta": { "label": "Crack", "description": "A fissure or crack, including a cracked screen." },
+            "aranazo": { "label": "Scratch", "description": "Scratches or scuffs on the surface." },
+            "abolladura": { "label": "Dent", "description": "A knock, dent or deformation." },
+            "ninguno": { "label": "None", "description": "No physical damage can be seen." }
+          }
+        },
+        "gravedad": {
+          "label": "Severity",
+          "instructions": "How does the damage affect the use of the product?",
+          "levels": [
+            { "label": "Minor", "description": "Cosmetic damage: the product works normally." },
+            { "label": "Moderate", "description": "Affects appearance or use, but the product still works." },
+            { "label": "Unusable", "description": "The product cannot be used or is dangerous to use." }
+          ]
+        },
+        "relato_cuadra": {
+          "label": "Account matches the photo",
+          "instructions": "Is what the customer says consistent with what the photo shows? A functional fault does not always show in a photo: it is enough that the photo does not contradict the account. Answer no if the customer describes damage or a product that does not appear in the photo."
+        }
+      },
+      "route": [
+        { "reason": "The customer's account does not match the photo." },
+        { "reason": "No visible physical damage: possible functional fault." },
+        { "reason": "Physical damage confirmed." }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Did it arrive damaged?",
+      "questions": {
+        "embalaje_danado": {
+          "label": "Packaging damaged on delivery",
+          "instructions": "This is the photo the carrier took when delivering the order. Is the box or packaging crushed, torn, open, wet or dented?"
+        }
+      },
+      "route": [
+        { "reason": "The parcel arrived damaged: the carrier is liable." },
+        { "reason": "The parcel arrived intact." }
+      ]
+    },
+    {
+      "id": "D2",
+      "title": "Can the customer fix it?",
+      "questions": {
+        "averia": {
+          "label": "Fault according to the manual",
+          "instructions": "Based on the technical manual and what the customer says, what is the most likely fault?",
+          "choices": {
+            "cepillo_atascado": { "label": "Jammed brush", "description": "Hair or threads tangled in the main brush or the side brushes." },
+            "bateria": { "label": "Battery", "description": "The battery does not charge or runs out very quickly." },
+            "sensores_sucios": { "label": "Dirty sensors", "description": "Cliff or obstacle sensors are dirty or covered." },
+            "base_carga": { "label": "Charging dock", "description": "The robot cannot find the dock or does not charge on it." },
+            "motor": { "label": "Motor", "description": "Abnormal noise, burning smell or the motor does not turn." },
+            "desconocida": { "label": "Unknown", "description": "The symptoms do not match any fault in the manual." }
+          }
+        },
+        "autoservicio": {
+          "label": "Customer can fix it",
+          "instructions": "According to the manual, can the customer fix this fault by following the maintenance steps, without special tools and without opening the device?"
+        }
+      },
+      "route": [
+        { "reason": "The manual has the fix: the steps are sent to the customer." },
+        { "reason": "The fault needs a technician." }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Replace without review?",
+      "questions": {
+        "riesgo": {
+          "label": "Abuse risk",
+          "instructions": "Given the order data, the customer's history and the previous decisions on this claim, what is the risk of abuse or fraud in approving the replacement without human review?",
+          "levels": [
+            { "label": "Low", "description": "Good history and a consistent, on-time claim." },
+            { "label": "Medium", "description": "An isolated warning sign, such as a recent previous claim." },
+            { "label": "High", "description": "Abuse pattern: several recent claims or returns, a late claim or data that doesn't add up." }
+          ]
+        }
+      },
+      "route": [
+        { "label": "Claim window: 30 days", "reason": "More than 30 days after delivery." },
+        { "reason": "High abuse risk." },
+        { "reason": "Damage confirmed, intact delivery and a reliable customer." }
+      ]
+    }
+  ],
+  "items": [
+    { "id": "c1", "text": "Three of the six glasses arrived broken. The box was crushed on one side and the courier was in a big hurry." },
+    { "id": "c2", "text": "When I unpacked the table I found a long scratch on the top. The box was perfect, so it must have left the warehouse like that." },
+    { "id": "c3", "text": "Since yesterday the robot stops a few minutes after starting and a red light blinks. I have a very hairy dog, not sure if that matters." },
+    { "id": "c4", "text": "The coffee machine leaks water from the bottom every time I use it. Here's a photo." },
+    { "id": "c5", "text": "The lamp arrived broken: the shade is bent and the bulb is shattered. I want a full refund." },
+    { "id": "c6", "text": "The monitor has a huge crack in the screen from the moment I took it out of the box. I want a new one." }
+  ],
+  "notes": {
+    "reto": "Every after-sales claim with a photo needs someone to look at the image, check it is the product sold, assess the damage and review the delivery and the customer's history. That is about **8 minutes per case**, and the customer waits for days.",
+    "solucion": "A **decision cascade**: each step is a call to the OpenAI Decisions API with closed questions, and its answers pick the next step. Image steps (customer photo, catalogue, delivery) alternate with text-only steps (technical manual, history as JSON), plus a deterministic business rule.",
+    "paradigma": "You don't need a generative agent to \"reason\" through each case: an **explicit, auditable decision tree** whose nodes return calibrated probabilities is enough. Whatever falls below the confidence threshold goes to a person; the rest is resolved automatically, in seconds and for cents.",
+    "aplica_a": ["Retail and e-commerce", "Insurance: claims with photos", "Logistics and parcels", "Manufacturer warranties", "Vehicle and equipment rental", "Maintenance with photos"],
+    "capacidades": ["🖼️ Images as input", "🖼️ An image inside the question (catalogue)", "🔗 One step's answer picks the next", "{ } Order, history and previous steps as JSON", "⚙️ Deterministic rules inside the cascade"]
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "id": "gastos",
+  "order": 2,
+  "icon": "🧾",
+  "kind": "receipts",
+  "title": "Notas de gastos con foto",
+  "sector": "Finanzas · cualquier empresa",
+  "brand": "Fabrikam",
+  "headline": "Foto del tique, datos declarados y política de gastos: aprobado, revisar o rechazado en un segundo.",
+  "item_label": "tique",
+  "item_label_plural": "tiques",
+  "threshold": 0.7,
+  "developer": "Eres el auditor automático de notas de gastos de Fabrikam, S.A. (NIF A00000001). Recibes la foto de un tique o factura y los datos que el empleado ha declarado en la aplicación de gastos. Aplica con rigor la política de gastos que sigue. Si algo no se lee en la imagen, refléjalo en las probabilidades.",
+  "context_file": "politica-gastos.md",
+  "context_label": "Política de gastos",
+  "image_text": "Foto del tique o factura:",
+  "json_text": "Datos declarados por el empleado:",
+  "submitted": "2026-10-24",
+  "low_outcome": "revisar",
+  "rules": [
+    { "id": "ilegible", "any": ["legible"], "outcome": "pedir_original", "reason": "El justificante no se lee: se pide el original (política, 2.2)." },
+    { "id": "personal", "any": ["personal"], "outcome": "rechazar", "reason": "Gasto personal, no reembolsable (política, 7.1)." },
+    { "id": "no_cuadra", "any": ["categoria", "importe_ok", "fecha_ok", "alcohol"], "outcome": "revisar", "reason": "Algo no cuadra con lo declarado o hay alcohol: revisión manual (política, 3.1, 3.2 y 5.4)." },
+    { "id": "cumple", "outcome": "aprobar", "reason": "Cumple la política y coincide con lo declarado." }
+  ],
+  "questions": {
+    "legible": {
+      "type": "predicate",
+      "label": "Legible",
+      "instructions": "¿Se leen con claridad en la imagen el emisor (comercio, empresa o compañía de transporte), la fecha y el importe total del justificante?",
+      "good": true,
+      "flag": "🔍 Ilegible"
+    },
+    "categoria": {
+      "type": "choice",
+      "label": "Categoría real",
+      "instructions": "Según lo que se compró, ¿a qué categoría de gasto corresponde el tique?",
+      "compare": "categoria",
+      "flag": "🏷️ Categoría distinta de la declarada",
+      "choices": {
+        "transporte": { "label": "Transporte", "description": "Taxi, VTC, tren, avión, autobús, combustible o peajes." },
+        "comida": { "label": "Comida", "description": "Restaurantes, cafeterías y dietas." },
+        "alojamiento": { "label": "Alojamiento", "description": "Hoteles y apartamentos." },
+        "parking": { "label": "Parking", "description": "Aparcamientos." },
+        "material": { "label": "Material", "description": "Material de oficina o informático para el trabajo." },
+        "otros": { "label": "Otros", "description": "Cualquier otra cosa, incluidos artículos de uso personal." }
+      }
+    },
+    "importe_ok": {
+      "type": "predicate",
+      "label": "Importe = declarado",
+      "instructions": "¿El importe total del tique coincide con el importe declarado por el empleado?",
+      "good": true,
+      "flag": "💶 Importe distinto del declarado"
+    },
+    "fecha_ok": {
+      "type": "predicate",
+      "label": "Fecha = declarada",
+      "instructions": "¿La fecha del tique coincide con la fecha declarada por el empleado?",
+      "good": true,
+      "flag": "📅 Fecha distinta de la declarada"
+    },
+    "alcohol": {
+      "type": "predicate",
+      "label": "Incluye alcohol",
+      "instructions": "¿Incluye el tique alguna bebida alcohólica (vino, cerveza, licores o cócteles)?",
+      "good": false,
+      "flag": "🍷 Incluye alcohol"
+    },
+    "factura_nif": {
+      "type": "predicate",
+      "label": "Factura a nombre de Fabrikam",
+      "instructions": "¿Es una factura completa a nombre de Fabrikam, S.A. con su NIF (A00000001), que permite deducir el IVA? Un tique o factura simplificada sin los datos de Fabrikam no lo es.",
+      "info": "🧾 IVA deducible"
+    },
+    "personal": {
+      "type": "predicate",
+      "label": "Gasto personal",
+      "instructions": "¿Es un gasto de carácter personal, no relacionado con el trabajo (ropa, electrónica de consumo, ocio o regalos personales)?",
+      "good": false,
+      "flag": "🛍️ Gasto personal"
+    }
+  },
+  "outcomes": {
+    "aprobar": { "icon": "✅", "stamp": "APROBADO", "tone": "ok", "auto": true },
+    "revisar": { "icon": "👤", "stamp": "REVISAR", "tone": "warn", "auto": false },
+    "rechazar": { "icon": "⛔", "stamp": "RECHAZADO", "tone": "bad", "auto": true },
+    "pedir_original": { "icon": "📷", "stamp": "PEDIR ORIGINAL", "tone": "info", "auto": true }
+  },
+  "items": [
+    {
+      "id": "r1",
+      "image": "gastos/r1.jpg",
+      "declared": { "empleado": "Laura Gómez", "categoria": "transporte", "importe": 23.5, "fecha": "2026-10-08", "concepto": "Taxi de Atocha a la oficina del cliente", "proyecto": "Contoso Retail" },
+      "expected": "aprobar"
+    },
+    {
+      "id": "r2",
+      "image": "gastos/r2.jpg",
+      "declared": { "empleado": "Javier Ruiz", "categoria": "comida", "importe": 86.4, "fecha": "2026-10-07", "concepto": "Comida de trabajo con cliente (2 personas)", "proyecto": "Contoso Retail" },
+      "expected": "revisar"
+    },
+    {
+      "id": "r3",
+      "image": "gastos/r3.jpg",
+      "declared": { "empleado": "Laura Gómez", "categoria": "alojamiento", "importe": 120.0, "fecha": "2026-10-07", "concepto": "Hotel en Bilbao, visita a cliente", "proyecto": "Litware" },
+      "expected": "aprobar"
+    },
+    {
+      "id": "r4",
+      "image": "gastos/r4.jpg",
+      "declared": { "empleado": "Javier Ruiz", "categoria": "parking", "importe": 21.0, "fecha": "2026-10-09", "concepto": "Parking reunión en el centro", "proyecto": "Litware" },
+      "expected": "revisar"
+    },
+    {
+      "id": "r5",
+      "image": "gastos/r5.jpg",
+      "declared": { "empleado": "Laura Gómez", "categoria": "comida", "importe": 4.8, "fecha": "2026-10-14", "concepto": "Desayuno de trabajo", "proyecto": "Interno" },
+      "expected": "aprobar"
+    },
+    {
+      "id": "r6",
+      "image": "gastos/r6.jpg",
+      "declared": { "empleado": "Javier Ruiz", "categoria": "material", "importe": 149.99, "fecha": "2026-10-15", "concepto": "Material de oficina", "proyecto": "Interno" },
+      "expected": "rechazar"
+    },
+    {
+      "id": "r7",
+      "image": "gastos/r7.jpg",
+      "declared": { "empleado": "Javier Ruiz", "categoria": "transporte", "importe": 68.9, "fecha": "2026-10-10", "concepto": "Tren Madrid–Barcelona", "proyecto": "Proseware" },
+      "expected": "aprobar"
+    },
+    {
+      "id": "r8",
+      "image": "gastos/r8.jpg",
+      "declared": { "empleado": "Laura Gómez", "categoria": "comida", "importe": 32.0, "fecha": "2026-10-11", "concepto": "Comida con proveedor", "proyecto": "Proseware" },
+      "expected": "pedir_original"
+    },
+    {
+      "id": "r9",
+      "image": "gastos/r9.jpg",
+      "declared": { "empleado": "Laura Gómez", "categoria": "comida", "importe": 20.0, "fecha": "2026-10-13", "concepto": "Menú del día en viaje", "proyecto": "Contoso Retail" },
+      "expected": "revisar"
+    }
+  ],
+  "notes": {
+    "reto": "Revisar notas de gastos es trabajo manual en cualquier empresa: alguien compara cada tique con lo declarado y con la política. Son unos **4 minutos por tique**, y aun así se escapan importes inflados, alcohol o gastos personales.",
+    "solucion": "Una llamada por tique a la OpenAI Decisions API con la **foto**, los **datos declarados en JSON** y la **política completa** como contexto. Siete preguntas cerradas (legibilidad, categoría, importe, fecha, alcohol, factura y gasto personal) devuelven probabilidades calibradas, y **la política, escrita en código, decide**: cada resultado se puede auditar.",
+    "paradigma": "La política va como prefijo fijo y la API **la guarda en caché**: desde el segundo tique, casi todos los tokens se cobran a una décima parte. Revisar el 100 % de los gastos, y no una muestra, cuesta céntimos.",
+    "aplica_a": ["Gastos de viaje de cualquier empresa", "Auditoría interna", "Cuentas a pagar", "Seguros: justificantes de siniestros", "Subvenciones y ayudas", "Retail: devoluciones con tique"],
+    "capacidades": ["🖼️ Foto del tique como entrada", "{ } Datos declarados en JSON", "💾 Política en caché como prefijo", "⚖️ Imagen contrastada con lo declarado"],
+    "savings": { "volume_month": 15000, "minutes_per_item": 4, "eur_hour": 35 }
+  }
+}

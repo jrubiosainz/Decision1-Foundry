@@ -1,0 +1,520 @@
+{
+  "id": "contratos",
+  "order": 5,
+  "icon": "📑",
+  "kind": "contracts",
+  "title": "Revisión de contratos",
+  "sector": "Legal y compras",
+  "brand": "Fabrikam",
+  "item_label": "contrato",
+  "item_label_plural": "contratos",
+  "headline": "60 comprobaciones por contrato en segundos; la 2.ª y la 3.ª revisión leen el contrato de la caché.",
+  "developer": "Eres el analista de contratos de Fabrikam, S.A. Fabrikam es siempre la parte cliente. Responde cada pregunta solo con lo que dice el texto del contrato adjunto, sin suponer cláusulas que no aparecen. Si el contrato no dice nada sobre el punto preguntado, responde «no» o «no indicado», según indique cada pregunta. Calcula los importes totales a partir de las cuotas mensuales o anuales cuando haga falta.",
+  "contracts": [
+    {
+      "id": "litware",
+      "title": "Suscripción SaaS de CRM",
+      "counterparty": "Litware Cloud, S.L.",
+      "summary": "36 meses · 84.000 €",
+      "file": "contrato-litware.md",
+      "expected": {
+        "legal": { "alcance_definido": true, "salida": "permanencia_bloqueada", "resolucion_asimetrica": false, "resolucion_incumplim": true, "limite_resp_12m": false, "excluye_dolo": true, "pi_entregables": true, "indemnidad_pi": true, "confidencialidad": true, "exclusividad": false, "no_captacion": false, "cesion_consentimiento": true, "fuerza_mayor": true, "seguro_rc": true, "cambios_unilaterales": false, "interlocutor": true, "cumplimiento_normativo": true, "notificaciones": true, "ley_aplicable": "fuera_ue", "riesgo_legal": 2 },
+        "privacidad": { "encargo_art28": true, "tipo_datos": "clientes", "instrucciones": true, "confid_personal": true, "transferencias": "sin_garantias", "subencargados": false, "notif_brechas": "sin_horas", "medidas_seguridad": true, "certificacion": true, "cifrado": true, "control_acceso": true, "asistencia_derechos": true, "asistencia_eipd": true, "uso_propio_datos": false, "auditoria": true, "dpd_contacto": true, "formacion_personal": true, "devolucion_datos": false, "supresion_plazo": true, "riesgo_privacidad": 2 },
+        "finanzas": { "importe_total": true, "precio_determinado": true, "revision_precio": "subidas_libres", "condiciones_pago": "anticipado", "niveles_servicio": "sin_penalizaciones", "comision_terceros": false, "compromiso_minimo": false, "reembolso_anticipos": true, "gastos_aprobados": true, "extras_presupuesto": true, "tarifas_ampliacion": true, "costes_arranque": true, "moneda_eur": true, "iva_indicado": true, "numero_pedido": true, "factura_detallada": true, "pago_transferencia": true, "intereses_excesivos": false, "avales_cliente": false, "riesgo_financiero": 2 }
+      }
+    },
+    {
+      "id": "proseware",
+      "title": "Limpieza y mantenimiento de oficinas",
+      "counterparty": "Proseware Servicios Integrales, S.L.",
+      "summary": "24 meses · 4.500 €/mes",
+      "file": "contrato-proseware.md",
+      "expected": {
+        "legal": { "alcance_definido": true, "salida": "desistimiento_libre", "resolucion_asimetrica": false, "resolucion_incumplim": true, "limite_resp_12m": true, "excluye_dolo": true, "pi_entregables": true, "indemnidad_pi": true, "confidencialidad": true, "exclusividad": false, "no_captacion": true, "cesion_consentimiento": true, "fuerza_mayor": true, "seguro_rc": true, "cambios_unilaterales": false, "interlocutor": true, "cumplimiento_normativo": true, "notificaciones": true, "ley_aplicable": "espanola", "riesgo_legal": 0 },
+        "privacidad": { "encargo_art28": true, "tipo_datos": "basicos", "instrucciones": true, "confid_personal": true, "transferencias": "sin_transferencias", "subencargados": true, "notif_brechas": "hasta_72h", "medidas_seguridad": true, "certificacion": true, "cifrado": true, "control_acceso": true, "asistencia_derechos": true, "asistencia_eipd": true, "uso_propio_datos": false, "auditoria": true, "dpd_contacto": true, "formacion_personal": true, "devolucion_datos": true, "supresion_plazo": true, "riesgo_privacidad": 0 },
+        "finanzas": { "importe_total": false, "precio_determinado": true, "revision_precio": "ipc_limitado", "condiciones_pago": "vencido_60", "niveles_servicio": "con_penalizaciones", "comision_terceros": false, "compromiso_minimo": false, "reembolso_anticipos": true, "gastos_aprobados": true, "extras_presupuesto": true, "tarifas_ampliacion": true, "costes_arranque": true, "moneda_eur": true, "iva_indicado": true, "numero_pedido": true, "factura_detallada": true, "pago_transferencia": true, "intereses_excesivos": false, "avales_cliente": false, "riesgo_financiero": 0 }
+      }
+    },
+    {
+      "id": "lucerne",
+      "title": "Agencia de marketing y creatividad",
+      "counterparty": "Lucerne Media, S.L.",
+      "summary": "12 meses · 150.000 €",
+      "file": "contrato-lucerne.md",
+      "expected": {
+        "legal": { "alcance_definido": true, "salida": "al_vencimiento", "resolucion_asimetrica": true, "resolucion_incumplim": true, "limite_resp_12m": true, "excluye_dolo": true, "pi_entregables": false, "indemnidad_pi": true, "confidencialidad": true, "exclusividad": true, "no_captacion": false, "cesion_consentimiento": true, "fuerza_mayor": true, "seguro_rc": true, "cambios_unilaterales": false, "interlocutor": true, "cumplimiento_normativo": true, "notificaciones": true, "ley_aplicable": "espanola", "riesgo_legal": 1 },
+        "privacidad": { "encargo_art28": true, "tipo_datos": "clientes", "instrucciones": true, "confid_personal": true, "transferencias": "adecuacion", "subencargados": true, "notif_brechas": "hasta_72h", "medidas_seguridad": true, "certificacion": true, "cifrado": true, "control_acceso": true, "asistencia_derechos": true, "asistencia_eipd": true, "uso_propio_datos": false, "auditoria": true, "dpd_contacto": true, "formacion_personal": true, "devolucion_datos": true, "supresion_plazo": true, "riesgo_privacidad": 0 },
+        "finanzas": { "importe_total": false, "precio_determinado": true, "revision_precio": "fijo", "condiciones_pago": "anticipado", "niveles_servicio": "no_aplica", "comision_terceros": true, "compromiso_minimo": false, "reembolso_anticipos": true, "gastos_aprobados": true, "extras_presupuesto": true, "tarifas_ampliacion": true, "costes_arranque": true, "moneda_eur": true, "iva_indicado": true, "numero_pedido": true, "factura_detallada": true, "pago_transferencia": true, "intereses_excesivos": false, "avales_cliente": false, "riesgo_financiero": 2 }
+      }
+    }
+  ],
+  "checklists": [
+    {
+      "id": "legal",
+      "icon": "⚖️",
+      "title": "Legal",
+      "questions": {
+        "alcance_definido": {
+          "type": "predicate",
+          "label": "Objeto y alcance definidos",
+          "instructions": "¿Describe el contrato con precisión el objeto y el alcance de los servicios (qué incluye y en qué cantidades, sedes o frecuencias)?",
+          "good": true
+        },
+        "salida": {
+          "type": "choice",
+          "label": "Duración, renovación y salida",
+          "instructions": "¿Qué margen tiene Fabrikam, la parte cliente, para dejar el contrato sin alegar causa? Ten en cuenta la duración, la renovación y el preaviso, y solo los derechos de Fabrikam, no los del proveedor.",
+          "choices": {
+            "desistimiento_libre": { "label": "Desistimiento libre", "description": "Fabrikam puede resolver el contrato sin causa en cualquier momento, con un preaviso de 90 días o menos y sin penalización." },
+            "al_vencimiento": { "label": "Solo al vencimiento", "description": "Fabrikam no puede resolver sin causa antes del vencimiento, pero el contrato se extingue al vencer o se renueva por periodos de 12 meses o menos que Fabrikam puede evitar con un preaviso de 90 días o menos." },
+            "permanencia_bloqueada": { "label": "Permanencia bloqueada", "description": "Fabrikam no puede resolver sin causa y el contrato se renueva automáticamente por periodos de más de 12 meses, o evitar la renovación exige un preaviso de más de 90 días." },
+            "no_indicado": { "label": "No indicado", "description": "El contrato no regula la duración ni la terminación." }
+          },
+          "good": ["desistimiento_libre"]
+        },
+        "resolucion_asimetrica": {
+          "type": "predicate",
+          "label": "Solo el proveedor puede desistir",
+          "instructions": "¿Puede el proveedor resolver el contrato sin alegar causa mientras que Fabrikam no puede hacerlo?",
+          "good": false
+        },
+        "resolucion_incumplim": {
+          "type": "predicate",
+          "label": "Resolución por incumplimiento",
+          "instructions": "¿Puede Fabrikam resolver el contrato si el proveedor incumple gravemente sus obligaciones y no lo subsana tras un requerimiento?",
+          "good": true
+        },
+        "limite_resp_12m": {
+          "type": "predicate",
+          "label": "Límite de responsabilidad ≥ 12 meses",
+          "instructions": "Si el contrato limita la responsabilidad del proveedor, ¿es el límite igual o superior a lo que Fabrikam paga en 12 meses de servicio? Si no hay límite de responsabilidad, responde sí.",
+          "good": true
+        },
+        "excluye_dolo": {
+          "type": "predicate",
+          "label": "Límite sin dolo ni culpa grave",
+          "instructions": "Si el contrato limita la responsabilidad del proveedor, ¿quedan fuera de ese límite los daños causados con dolo o negligencia grave? Si no hay límite de responsabilidad, responde sí.",
+          "good": true
+        },
+        "pi_entregables": {
+          "type": "predicate",
+          "label": "Entregables propiedad de Fabrikam",
+          "instructions": "¿Pertenecen a Fabrikam los entregables creados específicamente para ella (informes, configuraciones, documentación o piezas creativas)? Si el contrato no menciona entregables a medida, responde sí.",
+          "good": true
+        },
+        "indemnidad_pi": {
+          "type": "predicate",
+          "label": "Indemnidad por propiedad intelectual",
+          "instructions": "¿Se compromete el proveedor a defender o mantener indemne a Fabrikam frente a reclamaciones de terceros por infracción de derechos de propiedad intelectual o industrial?",
+          "good": true
+        },
+        "confidencialidad": {
+          "type": "predicate",
+          "label": "Confidencialidad tras el contrato",
+          "instructions": "¿Incluye el contrato una obligación de confidencialidad que se mantiene después de su terminación?",
+          "good": true
+        },
+        "exclusividad": {
+          "type": "predicate",
+          "label": "Exclusividad para el proveedor",
+          "instructions": "¿Impide el contrato a Fabrikam contratar servicios similares con otros proveedores durante algún periodo (exclusividad)?",
+          "good": false
+        },
+        "no_captacion": {
+          "type": "predicate",
+          "label": "No captación de personal",
+          "instructions": "¿Prohíbe el contrato a Fabrikam contratar a trabajadores del proveedor (cláusula de no captación de personal)?",
+          "good": false
+        },
+        "cesion_consentimiento": {
+          "type": "predicate",
+          "label": "Cesión solo con consentimiento",
+          "instructions": "¿Necesita el proveedor el consentimiento previo y por escrito de Fabrikam para ceder el contrato a un tercero?",
+          "good": true
+        },
+        "fuerza_mayor": {
+          "type": "predicate",
+          "label": "Fuerza mayor regulada",
+          "instructions": "¿Regula el contrato los incumplimientos causados por fuerza mayor?",
+          "good": true
+        },
+        "seguro_rc": {
+          "type": "predicate",
+          "label": "Seguro de responsabilidad civil",
+          "instructions": "¿Obliga el contrato al proveedor a mantener un seguro de responsabilidad civil con una cobertura mínima expresada en euros?",
+          "good": true
+        },
+        "cambios_unilaterales": {
+          "type": "predicate",
+          "label": "Cambios unilaterales del proveedor",
+          "instructions": "Sin contar el precio, ¿puede el proveedor modificar el servicio o las condiciones del contrato sin el acuerdo escrito de Fabrikam?",
+          "good": false
+        },
+        "interlocutor": {
+          "type": "predicate",
+          "label": "Interlocutor designado",
+          "instructions": "¿Designa el proveedor a una persona concreta como responsable del servicio o interlocutora de Fabrikam?",
+          "good": true
+        },
+        "cumplimiento_normativo": {
+          "type": "predicate",
+          "label": "Normativa y anticorrupción",
+          "instructions": "¿Se compromete el proveedor expresamente a cumplir la normativa aplicable, incluidas las normas anticorrupción?",
+          "good": true
+        },
+        "notificaciones": {
+          "type": "predicate",
+          "label": "Canal de notificaciones",
+          "instructions": "¿Establece el contrato cómo y a qué direcciones deben enviarse las notificaciones entre las partes?",
+          "good": true
+        },
+        "ley_aplicable": {
+          "type": "choice",
+          "label": "Ley aplicable y jurisdicción",
+          "instructions": "¿Qué ley rige el contrato y qué tribunales resuelven las controversias?",
+          "choices": {
+            "espanola": { "label": "Española", "description": "Ley española y juzgados o tribunales de España." },
+            "otra_ue": { "label": "Otro país de la UE", "description": "Ley o tribunales de otro país de la Unión Europea." },
+            "fuera_ue": { "label": "Fuera de la UE", "description": "Ley o tribunales de un país de fuera de la Unión Europea." },
+            "no_indicada": { "label": "No indicada", "description": "El contrato no indica la ley aplicable ni los tribunales competentes." }
+          },
+          "good": ["espanola"]
+        },
+        "riesgo_legal": {
+          "type": "score",
+          "label": "Riesgo legal global",
+          "instructions": "Valora el riesgo legal global del contrato para Fabrikam. Los niveles van de menor a mayor riesgo.",
+          "levels": [
+            { "label": "Bajo", "description": "Contrato equilibrado que se puede firmar tal cual; como mucho, alguna cláusula menor, como la no captación de personal." },
+            { "label": "Medio", "description": "Cláusulas desfavorables pero negociables, como exclusividad, propiedad intelectual para el proveedor o terminación sin causa solo para el proveedor. El contrato dura un año o menos, se rige por la ley española y limita la responsabilidad del proveedor a un importe razonable." },
+            { "label": "Alto", "description": "Fabrikam queda atrapada o desprotegida: permanencia de varios años con renovación automática, responsabilidad del proveedor limitada a un importe simbólico o ley y tribunales extranjeros." }
+          ],
+          "good": [0, 1]
+        }
+      }
+    },
+    {
+      "id": "privacidad",
+      "icon": "🔐",
+      "title": "Privacidad y seguridad",
+      "questions": {
+        "encargo_art28": {
+          "type": "predicate",
+          "label": "Encargo del tratamiento (art. 28)",
+          "instructions": "Si el proveedor trata datos personales por cuenta de Fabrikam, ¿incluye el contrato un encargo del tratamiento conforme al artículo 28 del RGPD? Si no trata datos personales, responde sí.",
+          "good": true
+        },
+        "tipo_datos": {
+          "type": "choice",
+          "label": "Datos personales tratados",
+          "instructions": "¿Qué datos personales trata el proveedor por cuenta de Fabrikam? Elige la categoría más sensible que aparezca.",
+          "choices": {
+            "ninguno": { "label": "Ninguno", "description": "El proveedor no trata datos personales por cuenta de Fabrikam." },
+            "basicos": { "label": "Empleados o visitantes", "description": "Solo datos identificativos, de contacto o de acceso de empleados o visitantes de Fabrikam." },
+            "clientes": { "label": "Clientes", "description": "Datos de clientes o clientes potenciales de Fabrikam, como el contacto, el historial comercial, las compras o las preferencias." },
+            "sensibles": { "label": "Datos sensibles", "description": "Categorías especiales del artículo 9 del RGPD (salud, biometría y otras), datos de menores o datos de tarjetas o cuentas bancarias." }
+          },
+          "good": ["ninguno", "basicos", "clientes"]
+        },
+        "instrucciones": {
+          "type": "predicate",
+          "label": "Solo con instrucciones de Fabrikam",
+          "instructions": "¿Se compromete el proveedor a tratar los datos personales solo siguiendo las instrucciones documentadas de Fabrikam?",
+          "good": true
+        },
+        "confid_personal": {
+          "type": "predicate",
+          "label": "Confidencialidad del personal",
+          "instructions": "¿Ha asumido el personal del proveedor que accede a los datos un compromiso de confidencialidad?",
+          "good": true
+        },
+        "transferencias": {
+          "type": "choice",
+          "label": "Ubicación y transferencias",
+          "instructions": "¿Dónde se tratan los datos y, si salen del Espacio Económico Europeo (EEE), con qué garantía? Ten en cuenta también a los subencargados.",
+          "choices": {
+            "sin_transferencias": { "label": "Solo UE/EEE", "description": "Los datos se tratan solo en la UE o el EEE, sin transferencias internacionales." },
+            "adecuacion": { "label": "Decisión de adecuación", "description": "Hay transferencias a un país con decisión de adecuación de la Comisión Europea, como el Reino Unido, o a empresas de EE. UU. adheridas al Marco de Privacidad de Datos UE-EE. UU." },
+            "clausulas_tipo": { "label": "Cláusulas tipo", "description": "Hay transferencias amparadas en cláusulas contractuales tipo u otra garantía del artículo 46 del RGPD." },
+            "sin_garantias": { "label": "Sin garantías", "description": "Hay transferencias fuera del EEE sin decisión de adecuación ni cláusulas tipo u otra garantía válida." },
+            "no_indicado": { "label": "No indicado", "description": "El contrato no indica dónde se tratan los datos." }
+          },
+          "good": ["sin_transferencias", "adecuacion", "clausulas_tipo"]
+        },
+        "subencargados": {
+          "type": "predicate",
+          "label": "Control de subencargados",
+          "instructions": "¿Necesita el proveedor la autorización previa de Fabrikam para recurrir a nuevos subencargados o, al menos, debe avisarla con antelación para que pueda oponerse?",
+          "good": true
+        },
+        "notif_brechas": {
+          "type": "choice",
+          "label": "Plazo de aviso de brechas",
+          "instructions": "¿En qué plazo debe el proveedor notificar a Fabrikam una violación de la seguridad de los datos personales?",
+          "choices": {
+            "hasta_24h": { "label": "≤ 24 h", "description": "En 24 horas o menos." },
+            "hasta_72h": { "label": "Entre 24 y 72 h", "description": "En más de 24 horas y hasta 72 horas." },
+            "sin_horas": { "label": "Sin plazo en horas", "description": "Sin un plazo en horas (por ejemplo, «sin dilación indebida») o en más de 72 horas." },
+            "no_indicado": { "label": "No indicado", "description": "El contrato no regula la notificación de violaciones de seguridad." }
+          },
+          "good": ["hasta_24h", "hasta_72h"]
+        },
+        "medidas_seguridad": {
+          "type": "predicate",
+          "label": "Medidas de seguridad (art. 32)",
+          "instructions": "¿Describe el contrato medidas técnicas y organizativas de seguridad concretas (artículo 32 del RGPD)?",
+          "good": true
+        },
+        "certificacion": {
+          "type": "predicate",
+          "label": "Certificación ISO 27001 o ENS",
+          "instructions": "¿Acredita el proveedor una certificación de seguridad de la información, como ISO/IEC 27001 o el Esquema Nacional de Seguridad (ENS)?",
+          "good": true
+        },
+        "cifrado": {
+          "type": "predicate",
+          "label": "Cifrado en tránsito y en reposo",
+          "instructions": "¿Se cifran los datos tanto en tránsito como en reposo?",
+          "good": true
+        },
+        "control_acceso": {
+          "type": "predicate",
+          "label": "Control de accesos",
+          "instructions": "¿Limita el contrato el acceso a los datos al personal autorizado mediante usuarios, roles o perfiles?",
+          "good": true
+        },
+        "asistencia_derechos": {
+          "type": "predicate",
+          "label": "Ayuda con derechos de interesados",
+          "instructions": "¿Ayudará el proveedor a Fabrikam a atender los derechos de los interesados (acceso, rectificación, supresión, etc.)?",
+          "good": true
+        },
+        "asistencia_eipd": {
+          "type": "predicate",
+          "label": "Ayuda con EIPD y consultas",
+          "instructions": "¿Ayudará el proveedor a Fabrikam en las evaluaciones de impacto y en las consultas a la autoridad de control?",
+          "good": true
+        },
+        "uso_propio_datos": {
+          "type": "predicate",
+          "label": "Uso de datos para fines propios",
+          "instructions": "¿Permite el contrato al proveedor usar los datos de Fabrikam para fines propios, como mejorar sus productos, elaborar estadísticas, hacer publicidad o entrenar modelos?",
+          "good": false
+        },
+        "auditoria": {
+          "type": "predicate",
+          "label": "Auditoría o informes de seguridad",
+          "instructions": "¿Puede Fabrikam auditar al proveedor o recibe de él periódicamente certificados o informes de auditoría de seguridad?",
+          "good": true
+        },
+        "dpd_contacto": {
+          "type": "predicate",
+          "label": "Delegado de protección de datos",
+          "instructions": "¿Indica el contrato cómo contactar con el delegado de protección de datos del proveedor?",
+          "good": true
+        },
+        "formacion_personal": {
+          "type": "predicate",
+          "label": "Formación del personal",
+          "instructions": "¿Recibe el personal del proveedor formación en protección de datos y seguridad?",
+          "good": true
+        },
+        "devolucion_datos": {
+          "type": "predicate",
+          "label": "Devolución de datos al terminar",
+          "instructions": "Al terminar el contrato, ¿devolverá el proveedor los datos a Fabrikam o le permitirá exportarlos antes de suprimirlos?",
+          "good": true
+        },
+        "supresion_plazo": {
+          "type": "predicate",
+          "label": "Plazo de supresión de datos",
+          "instructions": "¿Fija el contrato un plazo concreto para suprimir los datos tras la terminación?",
+          "good": true
+        },
+        "riesgo_privacidad": {
+          "type": "score",
+          "label": "Riesgo de privacidad global",
+          "instructions": "Valora el riesgo global de privacidad y seguridad de los datos para Fabrikam. Los niveles van de menor a mayor riesgo.",
+          "levels": [
+            { "label": "Bajo", "description": "Encargo del artículo 28 completo, datos en el EEE o transferencias con garantías, plazo de aviso de brechas en horas y devolución de los datos al terminar." },
+            { "label": "Medio", "description": "Hay carencias que se pueden corregir con una adenda, como plazos poco precisos o falta de auditoría, sin transferencias de riesgo ni pérdida de datos." },
+            { "label": "Alto", "description": "Transferencias sin garantías, subencargados sin control, aviso de brechas sin plazo en horas o pérdida de los datos al terminar." }
+          ],
+          "good": [0, 1]
+        }
+      }
+    },
+    {
+      "id": "finanzas",
+      "icon": "💶",
+      "title": "Finanzas y compras",
+      "questions": {
+        "importe_total": {
+          "type": "predicate",
+          "label": "Importe total ≤ 100.000 €",
+          "instructions": "¿Es el importe total del contrato durante su duración inicial, IVA excluido, igual o inferior a 100.000 €? Calcúlalo a partir de las cuotas si hace falta. Por encima de esa cifra, la firma necesita la aprobación del consejo.",
+          "good": true
+        },
+        "precio_determinado": {
+          "type": "predicate",
+          "label": "Precio fijado en el contrato",
+          "instructions": "¿Fija el contrato un precio concreto en euros por los servicios, ya sea una cuota periódica o un importe total?",
+          "good": true
+        },
+        "revision_precio": {
+          "type": "choice",
+          "label": "Revisión del precio",
+          "instructions": "¿Cómo puede cambiar el precio durante la vigencia del contrato?",
+          "choices": {
+            "fijo": { "label": "Precio fijo", "description": "El precio es fijo y no se revisa durante el contrato." },
+            "ipc_limitado": { "label": "IPC con tope ≤ 3 %", "description": "Solo se actualiza según el IPC u otro índice oficial, con un límite del 3 % anual o inferior." },
+            "subidas_libres": { "label": "Subidas libres", "description": "El proveedor puede subir el precio a su criterio o sin índice, o el límite de subida supera el 3 % anual." },
+            "no_indicado": { "label": "No indicado", "description": "El contrato no dice nada sobre la revisión del precio." }
+          },
+          "good": ["fijo", "ipc_limitado"]
+        },
+        "condiciones_pago": {
+          "type": "choice",
+          "label": "Condiciones de pago",
+          "instructions": "¿Cuándo se factura y en qué plazo paga Fabrikam?",
+          "choices": {
+            "vencido_60": { "label": "Vencido a ≥ 60 días", "description": "Se factura a mes vencido o por servicio prestado, sin anticipos relevantes, y Fabrikam paga a 60 días o más." },
+            "vencido_corto": { "label": "Vencido a < 60 días", "description": "Se factura a mes vencido o por servicio prestado, sin anticipos relevantes, y Fabrikam paga a menos de 60 días." },
+            "anticipado": { "label": "Pago anticipado", "description": "Fabrikam paga por adelantado el 25 % o más del precio anual o total, sea cual sea el plazo de pago." },
+            "no_indicado": { "label": "No indicado", "description": "El contrato no indica cuándo se factura ni el plazo de pago." }
+          },
+          "good": ["vencido_60"]
+        },
+        "niveles_servicio": {
+          "type": "choice",
+          "label": "Niveles de servicio (SLA)",
+          "instructions": "¿Qué recibe Fabrikam si el proveedor no cumple los niveles de servicio?",
+          "choices": {
+            "con_penalizaciones": { "label": "Con penalizaciones", "description": "Hay niveles de servicio medibles y su incumplimiento da lugar a penalizaciones, descuentos o créditos para Fabrikam." },
+            "sin_penalizaciones": { "label": "Sin compensación", "description": "Hay niveles u objetivos de servicio, pero su incumplimiento no da lugar a ninguna compensación." },
+            "no_aplica": { "label": "No aplica (justificado)", "description": "El contrato excluye expresamente los niveles de servicio y lo justifica por la naturaleza del servicio, por ejemplo, trabajos creativos." },
+            "sin_sla": { "label": "Sin SLA", "description": "No hay niveles de servicio y el contrato no justifica su ausencia." }
+          },
+          "good": ["con_penalizaciones", "no_aplica"]
+        },
+        "comision_terceros": {
+          "type": "predicate",
+          "label": "Comisión sobre costes de terceros",
+          "instructions": "¿Cobra el proveedor un recargo o una comisión (por ejemplo, un porcentaje) sobre costes de terceros, como la inversión en medios o los materiales?",
+          "good": false
+        },
+        "compromiso_minimo": {
+          "type": "predicate",
+          "label": "Compromiso mínimo de compra",
+          "instructions": "Sin contar el precio pactado, ¿obliga el contrato a Fabrikam a comprar un mínimo adicional de productos, horas, usuarios o inversión en medios?",
+          "good": false
+        },
+        "reembolso_anticipos": {
+          "type": "predicate",
+          "label": "Devolución de anticipos",
+          "instructions": "Si Fabrikam paga por adelantado, ¿le devolverá el proveedor la parte no consumida cuando el contrato termine por incumplimiento del proveedor? Si no hay pagos anticipados, responde sí.",
+          "good": true
+        },
+        "gastos_aprobados": {
+          "type": "predicate",
+          "label": "Gastos con aprobación previa",
+          "instructions": "¿Exige el contrato la aprobación previa y por escrito de Fabrikam para los gastos reembolsables que menciona?",
+          "good": true
+        },
+        "extras_presupuesto": {
+          "type": "predicate",
+          "label": "Extras con presupuesto aceptado",
+          "instructions": "¿Requieren los trabajos adicionales un presupuesto aceptado por escrito por Fabrikam antes de facturarse?",
+          "good": true
+        },
+        "tarifas_ampliacion": {
+          "type": "predicate",
+          "label": "Tarifas de ampliación pactadas",
+          "instructions": "¿Fija el contrato el precio de las ampliaciones o de los trabajos adicionales (por ejemplo, por usuario o por hora)?",
+          "good": true
+        },
+        "costes_arranque": {
+          "type": "predicate",
+          "label": "Puesta en marcha incluida",
+          "instructions": "¿Están incluidos en el precio los costes de puesta en marcha (implantación, migración, formación o incorporación), sin cargos iniciales adicionales?",
+          "good": true
+        },
+        "moneda_eur": {
+          "type": "predicate",
+          "label": "Importes en euros",
+          "instructions": "¿Están todos los importes monetarios del contrato en euros, sin ninguno en otra moneda?",
+          "good": true
+        },
+        "iva_indicado": {
+          "type": "predicate",
+          "label": "IVA indicado",
+          "instructions": "¿Indica el contrato si los importes incluyen o no el IVA?",
+          "good": true
+        },
+        "numero_pedido": {
+          "type": "predicate",
+          "label": "Número de pedido en la factura",
+          "instructions": "¿Deben las facturas indicar el número de pedido de Fabrikam?",
+          "good": true
+        },
+        "factura_detallada": {
+          "type": "predicate",
+          "label": "Factura detallada",
+          "instructions": "¿Deben las facturas detallar los conceptos facturados (por ejemplo, el periodo, el servicio, la sede o la campaña)?",
+          "good": true
+        },
+        "pago_transferencia": {
+          "type": "predicate",
+          "label": "Pago por transferencia",
+          "instructions": "¿Se pagan las facturas por transferencia bancaria?",
+          "good": true
+        },
+        "intereses_excesivos": {
+          "type": "predicate",
+          "label": "Intereses de demora excesivos",
+          "instructions": "¿Prevé el contrato, por retraso en el pago, intereses o penalizaciones superiores al interés de demora de la Ley 3/2004?",
+          "good": false
+        },
+        "avales_cliente": {
+          "type": "predicate",
+          "label": "Avales o depósitos de Fabrikam",
+          "instructions": "¿Exige el contrato a Fabrikam un aval, un depósito u otra garantía?",
+          "good": false
+        },
+        "riesgo_financiero": {
+          "type": "score",
+          "label": "Riesgo financiero global",
+          "instructions": "Valora el riesgo económico global de las condiciones del contrato para Fabrikam, sin tener en cuenta su importe total. Los niveles van de menor a mayor riesgo.",
+          "levels": [
+            { "label": "Bajo", "description": "Precio fijo o revisado con el IPC con tope, pago a mes vencido a 60 días o más, sin comisiones sobre costes de terceros y con penalizaciones si falla el servicio." },
+            { "label": "Medio", "description": "Condiciones desfavorables pero acotadas, con el precio fijo: un anticipo inferior a la mitad del precio, una comisión declarada sobre costes de terceros o un plazo de pago corto." },
+            { "label": "Alto", "description": "Subidas de precio unilaterales, un anticipo de la mitad del precio o más, o niveles de servicio sin ninguna compensación si se incumplen." }
+          ],
+          "good": [0, 1]
+        }
+      }
+    }
+  ],
+  "notes": {
+    "reto": "Cada contrato de proveedor pasa por Legal, Privacidad y Finanzas, y cada departamento lo relee entero con su propia lista: **unos 90 minutos de primera lectura por contrato** y semanas de cola. Aun así, se cuelan renovaciones automáticas, límites de responsabilidad simbólicos o transferencias de datos sin garantías.",
+    "solucion": "Con la OpenAI Decisions API, el texto del contrato va como prefijo común y cada departamento envía sus **20 preguntas cerradas**: 60 respuestas calibradas por contrato en segundos. Solo las casillas en rojo llegan al abogado, al DPD o a Compras.",
+    "paradigma": "Preguntas sobre un documento **en caché**: la primera lista paga el contrato completo y las otras dos lo leen de la caché a **una décima parte del precio**. No hay texto generado que leer ni verificar: solo sí/no, una opción o una escala, cada una con su probabilidad.",
+    "aplica_a": [
+      "Contratos de proveedores",
+      "Pólizas de seguros",
+      "Pliegos y licitaciones",
+      "Due diligence de adquisiciones"
+    ],
+    "capacidades": [
+      "📄 Contrato largo como entrada",
+      "💾 Contrato en caché entre departamentos",
+      "✅ 60 preguntas cerradas por contrato",
+      "🎚️ Sí/no, opciones y escalas"
+    ],
+    "savings": {
+      "volume_month": 300,
+      "minutes_per_item": 90,
+      "eur_hour": 70
+    }
+  }
+}

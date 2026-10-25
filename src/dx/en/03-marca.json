@@ -1,0 +1,94 @@
+{
+  "title": "Brand compliance",
+  "headline": "Every ad checked against the brand guidelines before it goes live: logo, colours, contrast and legal copy.",
+  "item_label": "creative",
+  "item_label_plural": "creatives",
+  "developer": "You are the brand reviewer at Contoso Viajes. You review advertising creatives before they are published and compare them with the brand guidelines below and with the official logo and palette, attached as reference images.",
+  "context_label": "Brand guidelines",
+  "references_text": "Official brand references: the Contoso Viajes logo and its colour palette.",
+  "references": [
+    { "label": "Official logo" },
+    { "label": "Official palette" }
+  ],
+  "image_text": "Creative to review ({format}, {channel}):",
+  "rules": [
+    { "id": "legal", "reason": "Offer without legal copy or identifiable person: Legal takes priority (guidelines, 7.3, 8.2 and 10)." },
+    { "id": "diseno", "reason": "Logo, colours or contrast outside the guidelines: back to Design (guidelines, 3, 4, 6 and 10)." },
+    { "id": "cumple", "reason": "Passes every check in the brand guidelines." }
+  ],
+  "questions": {
+    "logo_presente": {
+      "label": "Has the logo",
+      "instructions": "Does the Contoso Viajes logo appear in the creative?",
+      "flag": "🚫 No logo"
+    },
+    "logo_deformado": {
+      "label": "Distorted logo",
+      "instructions": "Look only at the logo and compare it with the reference. Is it stretched or squashed? For example, the circle looks like an oval, or the letters look wider or narrower than normal.",
+      "flag": "↔️ Distorted logo"
+    },
+    "logo_recoloreado": {
+      "label": "Recoloured logo",
+      "instructions": "Look only at the logo (the circle with the wave and the name), not at the rest of the creative. Is the circle a colour other than teal, the wave a colour other than white, or the name a colour other than navy or white?",
+      "flag": "🖍️ Recoloured logo"
+    },
+    "paleta": {
+      "label": "Palette fidelity",
+      "instructions": "How closely do the colours of the text, labels and graphic elements match the official palette? Ignore the colours of the background photo.",
+      "flag": "🎨 Off-palette colours",
+      "levels": [
+        { "label": "Off-palette", "description": "Colours foreign to the brand, such as neon or fluorescent tones." },
+        { "label": "Partial", "description": "Mixes palette colours with foreign ones." },
+        { "label": "Faithful", "description": "Uses only colours from the official palette." }
+      ]
+    },
+    "legible": {
+      "label": "Legibility",
+      "instructions": "How easily can the text that appears in the creative be read against its background?",
+      "flag": "👓 Insufficient contrast",
+      "levels": [
+        { "label": "Hard", "description": "Some text is hard to read: poor contrast with the background, for example light text on a light area." },
+        { "label": "Acceptable", "description": "Everything can be read, although some text could have more contrast." },
+        { "label": "Easy", "description": "All the text can be read effortlessly." }
+      ]
+    },
+    "precio": {
+      "label": "Advertises a price or discount",
+      "instructions": "Does the creative show a price in euros or a discount percentage?",
+      "info": "💶 Advertises a price or discount"
+    },
+    "falta_legal": {
+      "label": "Legal copy missing",
+      "instructions": "Does the creative show a price in euros or a discount percentage without the legal line starting with «Precio final por persona»? If it shows no price or discount, answer no.",
+      "flag": "⚖️ Offer without legal copy"
+    },
+    "persona": {
+      "label": "Identifiable person",
+      "instructions": "Does an identifiable person appear, with their face clearly visible?",
+      "flag": "🧑 Identifiable person: image rights"
+    }
+  },
+  "outcomes": {
+    "publicar": { "stamp": "PUBLISH" },
+    "corregir": { "stamp": "FIX" },
+    "legal": { "stamp": "LEGAL" },
+    "revisar": { "stamp": "REVIEW" }
+  },
+  "items": [
+    { "id": "k1", "title": "Lisbon in autumn" },
+    { "id": "k2", "title": "Coves of Majorca" },
+    { "id": "k3", "title": "Paris at sunset" },
+    { "id": "k4", "title": "Seville flash sale" },
+    { "id": "k5", "title": "Black Friday Balearics" },
+    { "id": "k6", "title": "Santorini" },
+    { "id": "k7", "title": "Your summer starts here" },
+    { "id": "k8", "title": "Dolomites" }
+  ],
+  "notes": {
+    "reto": "Marketing teams produce hundreds of assets a week across agencies, subsidiaries and generative tools. Checking each one against the brand guidelines takes **about 6 minutes** and is a bottleneck before every campaign.",
+    "solucion": "One call per creative with the **brand guidelines as text**, the **official logo and palette as reference images** and the asset to review. Eight questions catch distorted or recoloured logos, off-palette colours, low contrast, offers without legal copy and identifiable people; **the guidelines' priority, written as code, decides** whether it is published, fixed or sent to Legal.",
+    "paradigma": "The guidelines and reference images form a **fixed prefix that the API caches**: each new asset only pays for its own image. Reviewing everything that gets published, including AI-generated content, now costs cents and takes a second.",
+    "aplica_a": ["Marketing and agencies", "Retail and consumer goods", "Travel and hotels", "Banking and insurance: regulated advertising", "Franchises and sales networks", "Marketplaces: seller photos"],
+    "capacidades": ["🖼️ Several images per request", "🖼️ Cached reference images", "📏 Brand rules in natural language", "⚖️ Legal risk detection"]
+  }
+}

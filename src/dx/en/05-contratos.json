@@ -1,0 +1,354 @@
+{
+  "title": "Contract review",
+  "sector": "Legal and procurement",
+  "item_label": "contract",
+  "item_label_plural": "contracts",
+  "headline": "60 checks per contract in seconds; the 2nd and 3rd reviews read the contract from the cache.",
+  "developer": "You are the contract analyst at Fabrikam, S.A. Fabrikam is always the customer. Answer each question only from what the attached contract text says, without assuming clauses that do not appear. If the contract says nothing about the point asked, answer “no” or “not stated”, as each question specifies. Calculate total amounts from the monthly or annual fees when needed.",
+  "contracts": [
+    { "id": "litware", "title": "CRM SaaS subscription", "summary": "36 months · €84,000" },
+    { "id": "proseware", "title": "Office cleaning and maintenance", "summary": "24 months · €4,500/month" },
+    { "id": "lucerne", "title": "Marketing and creative agency", "summary": "12 months · €150,000" }
+  ],
+  "checklists": [
+    {
+      "id": "legal",
+      "title": "Legal",
+      "questions": {
+        "alcance_definido": {
+          "label": "Defined purpose and scope",
+          "instructions": "Does the contract precisely describe the purpose and scope of the services (what is included and in what quantities, sites or frequencies)?"
+        },
+        "salida": {
+          "label": "Term, renewal and exit",
+          "instructions": "How much room does Fabrikam (not the supplier) have to terminate the contract without cause? Take into account the term, renewal and notice period, and ignore any termination right that only the supplier has.",
+          "choices": {
+            "desistimiento_libre": { "label": "Free termination", "description": "Fabrikam may terminate the contract without cause at any time, with 90 days' notice or less and without penalty." },
+            "al_vencimiento": { "label": "Only at expiry", "description": "Fabrikam cannot terminate without cause before expiry, but the contract ends at expiry or renews for periods of 12 months or less that Fabrikam can prevent with 90 days' notice or less." },
+            "permanencia_bloqueada": { "label": "Locked-in term", "description": "Fabrikam cannot terminate without cause and the contract renews automatically for periods of more than 12 months, or preventing renewal requires more than 90 days' notice." },
+            "no_indicado": { "label": "Not stated", "description": "The contract does not regulate the term or termination." }
+          }
+        },
+        "resolucion_asimetrica": {
+          "label": "Only the supplier can walk away",
+          "instructions": "Can the supplier terminate the contract without giving reasons while Fabrikam cannot?"
+        },
+        "resolucion_incumplim": {
+          "label": "Termination for breach",
+          "instructions": "Can Fabrikam terminate the contract if the supplier seriously breaches its obligations and fails to remedy the breach after notice?"
+        },
+        "limite_resp_12m": {
+          "label": "Liability cap ≥ 12 months",
+          "instructions": "If the contract limits the supplier's liability, is the cap equal to or greater than what Fabrikam pays for 12 months of service? If there is no liability cap, answer yes."
+        },
+        "excluye_dolo": {
+          "label": "No cap for misconduct or negligence",
+          "instructions": "If the contract limits the supplier's liability, is damage caused by wilful misconduct or gross negligence excluded from that cap? If there is no liability cap, answer yes."
+        },
+        "pi_entregables": {
+          "label": "Deliverables owned by Fabrikam",
+          "instructions": "Do the deliverables created specifically for Fabrikam (reports, configurations, documentation or creative pieces) belong to Fabrikam? If the contract does not mention custom deliverables, answer yes."
+        },
+        "indemnidad_pi": {
+          "label": "IP indemnity",
+          "instructions": "Does the supplier undertake to defend or hold Fabrikam harmless against third-party claims for infringement of intellectual or industrial property rights?"
+        },
+        "confidencialidad": {
+          "label": "Confidentiality after the contract",
+          "instructions": "Does the contract include a confidentiality obligation that continues after its termination?"
+        },
+        "exclusividad": {
+          "label": "Exclusivity for the supplier",
+          "instructions": "Does the contract prevent Fabrikam from contracting similar services from other suppliers for any period (exclusivity)?"
+        },
+        "no_captacion": {
+          "label": "Non-solicitation of staff",
+          "instructions": "Does the contract prohibit Fabrikam from hiring the supplier's employees (non-solicitation clause)?"
+        },
+        "cesion_consentimiento": {
+          "label": "Assignment only with consent",
+          "instructions": "Does the supplier need Fabrikam's prior written consent to assign the contract to a third party?"
+        },
+        "fuerza_mayor": {
+          "label": "Force majeure covered",
+          "instructions": "Does the contract regulate failures caused by force majeure?"
+        },
+        "seguro_rc": {
+          "label": "Civil liability insurance",
+          "instructions": "Does the contract require the supplier to maintain civil liability insurance with minimum cover stated in euros?"
+        },
+        "cambios_unilaterales": {
+          "label": "Unilateral changes by the supplier",
+          "instructions": "Leaving aside price reviews and termination rights, can the supplier modify the service or the contract terms on its own, without a written amendment signed by Fabrikam?"
+        },
+        "interlocutor": {
+          "label": "Named point of contact",
+          "instructions": "Does the supplier appoint a specific person as service manager or Fabrikam's point of contact?"
+        },
+        "cumplimiento_normativo": {
+          "label": "Compliance and anti-corruption",
+          "instructions": "Does the supplier expressly undertake to comply with applicable law, including anti-corruption rules?"
+        },
+        "notificaciones": {
+          "label": "Notice channel",
+          "instructions": "Does the contract establish how and to which addresses notices between the parties must be sent?"
+        },
+        "ley_aplicable": {
+          "label": "Governing law and jurisdiction",
+          "instructions": "Which law governs the contract and which courts resolve disputes?",
+          "choices": {
+            "espanola": { "label": "Spanish", "description": "Spanish law and Spanish courts or tribunals." },
+            "otra_ue": { "label": "Another EU country", "description": "Law or courts of another European Union country." },
+            "fuera_ue": { "label": "Outside the EU", "description": "Law or courts of a country outside the European Union." },
+            "no_indicada": { "label": "Not stated", "description": "The contract does not state the governing law or the competent courts." }
+          }
+        },
+        "riesgo_legal": {
+          "label": "Overall legal risk",
+          "instructions": "Rate the overall legal risk of the contract for Fabrikam. The levels go from lowest to highest risk.",
+          "levels": [
+            { "label": "Low", "description": "A balanced contract that can be signed as is; at most, a minor clause such as non-solicitation of staff." },
+            { "label": "Medium", "description": "Unfavourable but negotiable clauses, such as exclusivity, intellectual property kept by the supplier or termination without cause only for the supplier. The contract lasts one year or less, is governed by Spanish law and caps the supplier's liability at a reasonable amount." },
+            { "label": "High", "description": "Fabrikam is locked in or unprotected: a multi-year term with automatic renewal, supplier liability capped at a token amount, or foreign law and courts." }
+          ]
+        }
+      }
+    },
+    {
+      "id": "privacidad",
+      "title": "Privacy and security",
+      "questions": {
+        "encargo_art28": {
+          "label": "Processing agreement (Art. 28)",
+          "instructions": "If the supplier processes personal data on Fabrikam's behalf, does the contract include a data processing agreement under Article 28 GDPR? If it does not process personal data, answer yes."
+        },
+        "tipo_datos": {
+          "label": "Personal data processed",
+          "instructions": "What personal data does the supplier process on Fabrikam's behalf? Choose the most sensitive category that appears.",
+          "choices": {
+            "ninguno": { "label": "None", "description": "The supplier does not process personal data on Fabrikam's behalf." },
+            "basicos": { "label": "Employees or visitors", "description": "Only identification, contact or access data of Fabrikam's employees or visitors." },
+            "clientes": { "label": "Customers", "description": "Data of Fabrikam's customers or prospects, such as contact details, sales history, purchases or preferences." },
+            "sensibles": { "label": "Sensitive data", "description": "Special categories under Article 9 GDPR (health, biometrics and others), data of minors, or card or bank account data." }
+          }
+        },
+        "instrucciones": {
+          "label": "Only on Fabrikam's instructions",
+          "instructions": "Does the supplier undertake to process personal data only on Fabrikam's documented instructions?"
+        },
+        "confid_personal": {
+          "label": "Staff confidentiality",
+          "instructions": "Have the supplier's staff who access the data given a confidentiality undertaking?"
+        },
+        "transferencias": {
+          "label": "Location and transfers",
+          "instructions": "Where is the data processed and, if it leaves the European Economic Area (EEA), with what safeguard? Also take sub-processors into account.",
+          "choices": {
+            "sin_transferencias": { "label": "EU/EEA only", "description": "The data is processed only in the EU or the EEA, with no international transfers." },
+            "adecuacion": { "label": "Adequacy decision", "description": "There are transfers to a country with a European Commission adequacy decision, such as the United Kingdom, or to US companies certified under the EU-US Data Privacy Framework." },
+            "clausulas_tipo": { "label": "Standard clauses", "description": "There are transfers covered by standard contractual clauses or another safeguard under Article 46 GDPR." },
+            "sin_garantias": { "label": "No safeguards", "description": "There are transfers outside the EEA with no adequacy decision, standard clauses or other valid safeguard." },
+            "no_indicado": { "label": "Not stated", "description": "The contract does not state where the data is processed." }
+          }
+        },
+        "subencargados": {
+          "label": "Sub-processor control",
+          "instructions": "Does the contract protect Fabrikam against new sub-processors, by requiring its prior authorisation or prior notice with a right to object?"
+        },
+        "notif_brechas": {
+          "label": "Breach notification deadline",
+          "instructions": "Within what period must the supplier notify Fabrikam of a personal data breach?",
+          "choices": {
+            "hasta_24h": { "label": "≤ 24 h", "description": "Within 24 hours or less." },
+            "hasta_72h": { "label": "24 to 72 h", "description": "In more than 24 hours and up to 72 hours." },
+            "sin_horas": { "label": "No deadline in hours", "description": "Without a deadline in hours (for example, “without undue delay”) or in more than 72 hours." },
+            "no_indicado": { "label": "Not stated", "description": "The contract does not regulate the notification of security breaches." }
+          }
+        },
+        "medidas_seguridad": {
+          "label": "Security measures (Art. 32)",
+          "instructions": "Does the contract describe specific technical and organisational security measures (Article 32 GDPR)?"
+        },
+        "certificacion": {
+          "label": "ISO 27001 or ENS certification",
+          "instructions": "Does the supplier hold an information security certification, such as ISO/IEC 27001 or Spain's National Security Framework (ENS)?"
+        },
+        "cifrado": {
+          "label": "Encryption in transit and at rest",
+          "instructions": "Is the data encrypted both in transit and at rest?"
+        },
+        "control_acceso": {
+          "label": "Access control",
+          "instructions": "Does the contract limit access to the data to authorised staff through user accounts, roles or profiles?"
+        },
+        "asistencia_derechos": {
+          "label": "Help with data subject rights",
+          "instructions": "Will the supplier assist Fabrikam in responding to data subjects' rights requests (access, rectification, erasure, etc.)?"
+        },
+        "asistencia_eipd": {
+          "label": "Help with DPIAs and consultations",
+          "instructions": "Will the supplier assist Fabrikam with impact assessments and consultations with the supervisory authority?"
+        },
+        "uso_propio_datos": {
+          "label": "Use of data for own purposes",
+          "instructions": "Does the contract allow the supplier to use Fabrikam's data for its own purposes, such as improving its products, compiling statistics, advertising or training models?"
+        },
+        "auditoria": {
+          "label": "Audit or security reports",
+          "instructions": "Does Fabrikam have at least one of these: the right to audit the supplier, or a regular copy of the supplier's security certificate or audit report?"
+        },
+        "dpd_contacto": {
+          "label": "Data protection officer",
+          "instructions": "Does the contract state how to contact the supplier's data protection officer?"
+        },
+        "formacion_personal": {
+          "label": "Staff training",
+          "instructions": "Do the supplier's staff receive training in data protection and security?"
+        },
+        "devolucion_datos": {
+          "label": "Data returned at exit",
+          "instructions": "On termination of the contract, will the supplier return the data to Fabrikam or allow it to export the data before deleting it?"
+        },
+        "supresion_plazo": {
+          "label": "Data deletion deadline",
+          "instructions": "Does the contract set a specific deadline for deleting the data after termination?"
+        },
+        "riesgo_privacidad": {
+          "label": "Overall privacy risk",
+          "instructions": "Rate the overall privacy and data security risk for Fabrikam. The levels go from lowest to highest risk.",
+          "levels": [
+            { "label": "Low", "description": "Complete Article 28 processing agreement, data in the EEA or transfers with safeguards, a breach notification deadline in hours and return of the data at termination." },
+            { "label": "Medium", "description": "There are gaps that can be corrected with an addendum, such as vague deadlines or no audit, with no risky transfers or loss of data." },
+            { "label": "High", "description": "Transfers without safeguards, uncontrolled sub-processors, breach notification with no deadline in hours or loss of the data at termination." }
+          ]
+        }
+      }
+    },
+    {
+      "id": "finanzas",
+      "title": "Finance and procurement",
+      "questions": {
+        "importe_total": {
+          "label": "Total amount ≤ €100,000",
+          "instructions": "Is the total amount of the contract over its initial term, excluding VAT, equal to or less than €100,000? Calculate it from the fees if needed. Above that figure, signing requires board approval."
+        },
+        "precio_determinado": {
+          "label": "Price set in the contract",
+          "instructions": "Does the contract set a specific price in euros for the services, either a periodic fee or a total amount?"
+        },
+        "revision_precio": {
+          "label": "Price review",
+          "instructions": "How can the price change during the term of the contract?",
+          "choices": {
+            "fijo": { "label": "Fixed price", "description": "The price is fixed and is not reviewed during the contract." },
+            "ipc_limitado": { "label": "CPI capped at ≤ 3%", "description": "It is only updated in line with the CPI or another official index, with a cap of 3% a year or less." },
+            "subidas_libres": { "label": "Free increases", "description": "The supplier can raise the price at its discretion or without an index, or the cap on increases exceeds 3% a year." },
+            "no_indicado": { "label": "Not stated", "description": "The contract says nothing about price review." }
+          }
+        },
+        "condiciones_pago": {
+          "label": "Payment terms",
+          "instructions": "When is invoicing done and within what period does Fabrikam pay?",
+          "choices": {
+            "vencido_60": { "label": "In arrears, ≥ 60 days", "description": "Invoiced monthly in arrears or per service provided, with no significant advance payments, and Fabrikam pays at 60 days or more." },
+            "vencido_corto": { "label": "In arrears, < 60 days", "description": "Invoiced monthly in arrears or per service provided, with no significant advance payments, and Fabrikam pays in less than 60 days." },
+            "anticipado": { "label": "Payment in advance", "description": "Fabrikam pays 25% or more of the annual or total price in advance, whatever the payment period." },
+            "no_indicado": { "label": "Not stated", "description": "The contract does not state when invoicing takes place or the payment period." }
+          }
+        },
+        "niveles_servicio": {
+          "label": "Service levels (SLA)",
+          "instructions": "What does Fabrikam receive if the supplier fails to meet the service levels?",
+          "choices": {
+            "con_penalizaciones": { "label": "With penalties", "description": "There are measurable service levels and failure to meet them gives rise to penalties, discounts or credits for Fabrikam." },
+            "sin_penalizaciones": { "label": "No compensation", "description": "There are service levels or targets, but failure to meet them gives rise to no compensation." },
+            "no_aplica": { "label": "Not applicable (justified)", "description": "The contract expressly excludes service levels and justifies this by the nature of the service, for example, creative work." },
+            "sin_sla": { "label": "No SLA", "description": "There are no service levels and the contract does not justify their absence." }
+          }
+        },
+        "comision_terceros": {
+          "label": "Commission on third-party costs",
+          "instructions": "Does the supplier charge a surcharge or a commission (for example, a percentage) on third-party costs, such as media spend or materials?"
+        },
+        "compromiso_minimo": {
+          "label": "Minimum purchase commitment",
+          "instructions": "Apart from the fixed price agreed for the contracted scope, does the contract require Fabrikam to buy an additional minimum volume (extra products, hours, users or media spend)?"
+        },
+        "reembolso_anticipos": {
+          "label": "Refund of advance payments",
+          "instructions": "If Fabrikam pays in advance, will the supplier refund the unused part when the contract ends because of the supplier's breach? If there are no advance payments, answer yes."
+        },
+        "gastos_aprobados": {
+          "label": "Expenses need prior approval",
+          "instructions": "Does the contract require Fabrikam's prior written approval for the reimbursable expenses it mentions?"
+        },
+        "extras_presupuesto": {
+          "label": "Extras need an accepted quote",
+          "instructions": "Does additional work require a quote accepted in writing by Fabrikam before it is invoiced?"
+        },
+        "tarifas_ampliacion": {
+          "label": "Agreed rates for extensions",
+          "instructions": "Does the contract set the price of extensions or additional work (for example, per user or per hour)?"
+        },
+        "costes_arranque": {
+          "label": "Start-up included",
+          "instructions": "Are start-up costs (implementation, migration, training or onboarding) included in the price, with no additional upfront charges?"
+        },
+        "moneda_eur": {
+          "label": "Amounts in euros",
+          "instructions": "Are the contract's prices, fees and amounts expressed in euros (€)?"
+        },
+        "iva_indicado": {
+          "label": "VAT stated",
+          "instructions": "Does the contract state whether or not the amounts include VAT?"
+        },
+        "numero_pedido": {
+          "label": "PO number on invoices",
+          "instructions": "Must the invoices state Fabrikam's purchase order number?"
+        },
+        "factura_detallada": {
+          "label": "Itemised invoice",
+          "instructions": "Must the invoices itemise the charges (for example, the period, service, site or campaign)?"
+        },
+        "pago_transferencia": {
+          "label": "Payment by bank transfer",
+          "instructions": "Are the invoices paid by bank transfer?"
+        },
+        "intereses_excesivos": {
+          "label": "Excessive late-payment interest",
+          "instructions": "For late payment, does the contract provide for interest or penalties higher than the late-payment interest under Spanish Law 3/2004?"
+        },
+        "avales_cliente": {
+          "label": "Guarantees or deposits from Fabrikam",
+          "instructions": "Does the contract require Fabrikam to provide a bank guarantee, a deposit or other security?"
+        },
+        "riesgo_financiero": {
+          "label": "Overall financial risk",
+          "instructions": "Rate the overall financial risk of the contract terms for Fabrikam, without taking its total amount into account. The levels go from lowest to highest risk.",
+          "levels": [
+            { "label": "Low", "description": "Fixed price or CPI-linked review with a cap, payment monthly in arrears at 60 days or more, no commissions on third-party costs and penalties if the service fails." },
+            { "label": "Medium", "description": "Unfavourable but limited terms, with a fixed price: an advance payment of less than half the price, a declared commission on third-party costs or a short payment period." },
+            { "label": "High", "description": "Unilateral price increases, an advance payment of half the price or more, or service levels with no compensation if they are not met." }
+          ]
+        }
+      }
+    }
+  ],
+  "notes": {
+    "reto": "Every supplier contract goes through Legal, Privacy and Finance, and each department rereads it in full with its own checklist: **about 90 minutes of first-pass reading per contract** and weeks of backlog. Even so, automatic renewals, token liability caps and data transfers without safeguards slip through.",
+    "solucion": "With the OpenAI Decisions API, the contract text goes in as a shared prefix and each department sends its **20 closed questions**: 60 calibrated answers per contract in seconds. Only the red boxes reach the lawyer, the DPO or Procurement.",
+    "paradigma": "Questions over a **cached** document: the first checklist pays for the full contract and the other two read it from the cache at **a tenth of the price**. There is no generated text to read or check: just yes/no, an option or a scale, each with its probability.",
+    "aplica_a": [
+      "Supplier contracts",
+      "Insurance policies",
+      "Tenders and specifications",
+      "Acquisition due diligence"
+    ],
+    "capacidades": [
+      "📄 Long contract as input",
+      "💾 Contract cached across departments",
+      "✅ 60 closed questions per contract",
+      "🎚️ Yes/no, options and scales"
+    ]
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "id": "reclamaciones",
+  "order": 1,
+  "icon": "📦",
+  "kind": "cascade",
+  "title": "Reclamaciones en cascada",
+  "sector": "Retail y e-commerce",
+  "brand": "Northwind Hogar",
+  "headline": "Cada respuesta elige la siguiente pregunta: foto, catálogo, entrega, manual e historial, en segundos.",
+  "item_label": "reclamación",
+  "item_label_plural": "reclamaciones",
+  "threshold": 0.7,
+  "developer": "Eres el sistema de triaje de reclamaciones posventa de Northwind Hogar, una tienda online de muebles, menaje y electrónica para el hogar. Responde solo con lo que muestran las imágenes y los datos; si la evidencia no es clara, refléjalo en las probabilidades.",
+  "prompts": {
+    "foto": "Foto enviada por el cliente:",
+    "texto": "Relato del cliente:",
+    "entrega": "Foto que hizo el transportista al entregar el pedido:",
+    "manual": "Manual técnico del producto:",
+    "json": "Pedido, historial del cliente y decisiones previas de esta reclamación:"
+  },
+  "inputs": {
+    "foto": { "icon": "🖼️", "label": "Foto del cliente", "media": "image" },
+    "catalogo": { "icon": "🖼️", "label": "Foto de catálogo", "media": "image" },
+    "texto": { "icon": "📝", "label": "Relato del cliente", "media": "text" },
+    "entrega": { "icon": "🖼️", "label": "Foto de la entrega", "media": "image" },
+    "manual": { "icon": "📘", "label": "Manual técnico", "media": "text" },
+    "json": { "icon": "{ }", "label": "Pedido, historial y pasos previos", "media": "json" },
+    "regla": { "icon": "⚙️", "label": "Regla de negocio", "media": "rule" }
+  },
+  "products": {
+    "P1": { "name": "Cafetera espresso Barista", "price": 249, "image": "reclamaciones/cat-cafetera.jpg" },
+    "P2": { "name": "Juego de 6 copas de cristal", "price": 39, "image": "reclamaciones/cat-copas.jpg" },
+    "P3": { "name": "Lámpara de pie nórdica", "price": 89, "image": "reclamaciones/cat-lampara.jpg" },
+    "P4": { "name": "Mesa auxiliar redonda de roble", "price": 349, "image": "reclamaciones/cat-mesa.jpg" },
+    "P5": { "name": "Monitor curvo de 32\"", "price": 429, "image": "reclamaciones/cat-monitor.jpg" },
+    "P6": { "name": "Robot aspirador RV-300", "price": 299, "image": "reclamaciones/cat-robot.jpg", "manual": "manual-robot.md" }
+  },
+  "outcomes": {
+    "nueva_foto": { "icon": "📷", "label": "Pedir otra foto", "desc": "Se pide al cliente una foto nítida del producto, sin intervención humana.", "tone": "info", "auto": true },
+    "fraude": { "icon": "🚩", "label": "Revisión antifraude", "desc": "El producto de la foto no es el que se vendió: pasa al equipo antifraude.", "tone": "bad", "auto": false },
+    "revision": { "icon": "👤", "label": "Revisión humana", "desc": "Algo no cuadra o la confianza es baja: decide una persona.", "tone": "warn", "auto": false },
+    "autoservicio": { "icon": "🛠️", "label": "Solución guiada", "desc": "Se envían al cliente los pasos del manual. Sin devolución ni técnico.", "tone": "ok", "auto": true },
+    "tecnico": { "icon": "🔧", "label": "Visita técnica", "desc": "Se agenda la visita de un técnico.", "tone": "info", "auto": true },
+    "transportista": { "icon": "🚚", "label": "Reposición y cargo al transportista", "desc": "Se repone el producto hoy y se reclama el coste al transportista.", "tone": "ok", "auto": true },
+    "reposicion": { "icon": "📦", "label": "Reposición inmediata", "desc": "Se envía hoy mismo un producto nuevo.", "tone": "ok", "auto": true }
+  },
+  "steps": [
+    {
+      "id": "A",
+      "icon": "📷",
+      "title": "¿La foto sirve?",
+      "inputs": ["foto"],
+      "questions": {
+        "foto_valida": {
+          "type": "predicate",
+          "label": "Muestra un producto",
+          "instructions": "¿La foto muestra un producto físico (mueble, menaje o electrodoméstico) que pueda ser objeto de una reclamación? Responde que no si es una captura de pantalla, un documento, una persona, un paisaje o una imagen sin producto."
+        },
+        "nitidez": {
+          "type": "score",
+          "label": "Nitidez",
+          "instructions": "¿Permite la foto valorar el estado del producto?",
+          "levels": [
+            { "label": "Borrosa", "description": "Movida, desenfocada o demasiado oscura: el producto apenas se reconoce y no se aprecian detalles." },
+            { "label": "Aceptable", "description": "Se reconoce el producto y su estado general, aunque con poco detalle." },
+            { "label": "Nítida", "description": "Enfocada y bien iluminada: se aprecian los detalles del producto." }
+          ]
+        }
+      },
+      "route": [
+        { "q": "foto_valida", "eq": false, "outcome": "nueva_foto", "low_outcome": "nueva_foto", "reason": "La foto no muestra ningún producto." },
+        { "q": "nitidez", "in": [0], "outcome": "nueva_foto", "low_outcome": "nueva_foto", "reason": "La foto es demasiado borrosa para valorar el daño." },
+        { "next": "B", "reason": "Foto válida." }
+      ]
+    },
+    {
+      "id": "B",
+      "icon": "🔎",
+      "title": "¿Es el producto vendido?",
+      "inputs": ["foto", "catalogo"],
+      "questions": {
+        "otro_producto": {
+          "type": "predicate",
+          "label": "Producto distinto del catálogo",
+          "instructions": "Compara el producto de la foto del cliente con esta foto de catálogo del artículo que se le vendió. ¿Es un modelo distinto: otro tipo de objeto o un diseño claramente diferente en forma, materiales o color? Los daños, el ángulo, la iluminación y el fondo no cuentan como diferencias.",
+          "ref_image": "catalogo"
+        }
+      },
+      "route": [
+        { "q": "otro_producto", "outcome": "fraude", "reason": "El producto de la foto no es el que se vendió." },
+        { "next": "C", "reason": "Coincide con el catálogo." }
+      ]
+    },
+    {
+      "id": "C",
+      "icon": "🩹",
+      "title": "¿Qué daño hay?",
+      "inputs": ["foto", "texto"],
+      "questions": {
+        "danio_visible": {
+          "type": "predicate",
+          "label": "Daño físico visible",
+          "instructions": "¿Se ve en la foto un daño físico en el producto: rotura, grieta, arañazo, abolladura o una pieza desprendida? Una luz o un indicador encendido no es un daño físico."
+        },
+        "tipo": {
+          "type": "choice",
+          "label": "Tipo de daño",
+          "instructions": "¿Qué tipo de daño físico se ve en el producto?",
+          "choices": {
+            "rotura": { "label": "Rotura", "description": "Piezas rotas, fragmentos o cristales hechos añicos." },
+            "grieta": { "label": "Grieta", "description": "Fisura o grieta, incluida una pantalla agrietada." },
+            "aranazo": { "label": "Arañazo", "description": "Rayas o arañazos en la superficie." },
+            "abolladura": { "label": "Abolladura", "description": "Golpe, bollo o deformación." },
+            "ninguno": { "label": "Ninguno", "description": "No se ve ningún daño físico." }
+          }
+        },
+        "gravedad": {
+          "type": "score",
+          "label": "Gravedad",
+          "instructions": "¿Cómo afecta el daño al uso del producto?",
+          "levels": [
+            { "label": "Leve", "description": "Daño estético: el producto se usa con normalidad." },
+            { "label": "Moderada", "description": "Afecta al aspecto o al uso, pero el producto sigue funcionando." },
+            { "label": "Inutilizable", "description": "El producto no se puede usar o es peligroso usarlo." }
+          ]
+        },
+        "relato_cuadra": {
+          "type": "predicate",
+          "label": "El relato cuadra con la foto",
+          "instructions": "¿Es coherente lo que cuenta el cliente con lo que se ve en la foto? Una avería de funcionamiento no siempre se ve en una foto: basta con que la foto no contradiga el relato. Responde que no si el cliente describe un daño o un producto que no aparecen en la foto."
+        }
+      },
+      "route": [
+        { "q": "relato_cuadra", "eq": false, "outcome": "revision", "reason": "Lo que cuenta el cliente no cuadra con la foto." },
+        { "q": "danio_visible", "eq": false, "next": "D2", "reason": "Sin daño físico visible: posible avería de funcionamiento." },
+        { "next": "D", "reason": "Daño físico confirmado." }
+      ]
+    },
+    {
+      "id": "D",
+      "icon": "🚚",
+      "title": "¿Llegó dañado?",
+      "inputs": ["entrega"],
+      "questions": {
+        "embalaje_danado": {
+          "type": "predicate",
+          "label": "Embalaje dañado en la entrega",
+          "instructions": "Esta es la foto que hizo el transportista al entregar el pedido. ¿Se ve la caja o el embalaje aplastado, roto, abierto, mojado o golpeado?"
+        }
+      },
+      "route": [
+        { "q": "embalaje_danado", "eq": true, "outcome": "transportista", "reason": "El paquete llegó dañado: responde el transportista." },
+        { "next": "E", "reason": "El paquete llegó intacto." }
+      ]
+    },
+    {
+      "id": "D2",
+      "icon": "📘",
+      "title": "¿Lo resuelve el cliente?",
+      "inputs": ["texto", "manual"],
+      "questions": {
+        "averia": {
+          "type": "choice",
+          "label": "Avería según el manual",
+          "instructions": "Según el manual técnico y lo que cuenta el cliente, ¿cuál es la avería más probable?",
+          "choices": {
+            "cepillo_atascado": { "label": "Cepillo atascado", "description": "Pelo o hilos enredados en el cepillo principal o en los laterales." },
+            "bateria": { "label": "Batería", "description": "La batería no carga o dura muy poco." },
+            "sensores_sucios": { "label": "Sensores sucios", "description": "Sensores de caída u obstáculos sucios o tapados." },
+            "base_carga": { "label": "Base de carga", "description": "El robot no encuentra la base o no carga en ella." },
+            "motor": { "label": "Motor", "description": "Ruido anormal, olor a quemado o el motor no gira." },
+            "desconocida": { "label": "Desconocida", "description": "Los síntomas no encajan con ninguna avería del manual." }
+          }
+        },
+        "autoservicio": {
+          "type": "predicate",
+          "label": "El cliente puede resolverlo",
+          "instructions": "Según el manual, ¿puede el propio cliente resolver esta avería siguiendo los pasos de mantenimiento, sin herramientas especiales y sin abrir el aparato?"
+        }
+      },
+      "route": [
+        { "q": "autoservicio", "eq": true, "outcome": "autoservicio", "reason": "El manual tiene la solución: se envían los pasos al cliente." },
+        { "outcome": "tecnico", "reason": "La avería necesita un técnico." }
+      ]
+    },
+    {
+      "id": "E",
+      "icon": "⚖️",
+      "title": "¿Reponemos sin revisión?",
+      "inputs": ["json", "texto", "regla"],
+      "questions": {
+        "riesgo": {
+          "type": "score",
+          "label": "Riesgo de abuso",
+          "instructions": "Con los datos del pedido, el historial del cliente y las decisiones previas de esta reclamación, ¿qué riesgo de abuso o fraude tiene aprobar la reposición sin revisión humana?",
+          "levels": [
+            { "label": "Bajo", "description": "Buen historial y reclamación coherente y en plazo." },
+            { "label": "Medio", "description": "Algún indicio aislado, como una reclamación previa reciente." },
+            { "label": "Alto", "description": "Patrón de abuso: varias reclamaciones o devoluciones recientes, reclamación tardía o datos que no cuadran." }
+          ]
+        }
+      },
+      "route": [
+        { "rule": "plazo", "label": "Plazo de reclamación: 30 días", "max_days": 30, "outcome": "revision", "reason": "Fuera del plazo de 30 días desde la entrega." },
+        { "q": "riesgo", "in": [2], "outcome": "revision", "reason": "Riesgo de abuso alto." },
+        { "outcome": "reposicion", "reason": "Daño confirmado, entrega correcta y cliente fiable." }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "c1",
+      "customer": "Marta P.",
+      "order": "NW-10421",
+      "product": "P2",
+      "delivered": "2026-10-22",
+      "claimed": "2026-10-24",
+      "photo": "reclamaciones/c1-copas-rotas.jpg",
+      "delivery_photo": "reclamaciones/pod-c1-aplastada.jpg",
+      "text": "Me han llegado tres de las seis copas rotas. La caja venía aplastada por un lado y el repartidor tenía mucha prisa.",
+      "history": { "antiguedad_meses": 31, "pedidos_12m": 5, "reclamaciones_12m": 0, "devoluciones_12m": 1 },
+      "expected": { "path": ["A", "B", "C", "D"], "outcome": "transportista" }
+    },
+    {
+      "id": "c2",
+      "customer": "Daniel R.",
+      "order": "NW-10388",
+      "product": "P4",
+      "delivered": "2026-10-18",
+      "claimed": "2026-10-24",
+      "photo": "reclamaciones/c2-mesa-rayada.jpg",
+      "delivery_photo": "reclamaciones/pod-c2-ok.jpg",
+      "text": "Al desembalar la mesa he visto un arañazo largo en el tablero. La caja estaba perfecta, así que debió de salir así del almacén.",
+      "history": { "antiguedad_meses": 26, "pedidos_12m": 7, "reclamaciones_12m": 0, "devoluciones_12m": 0 },
+      "expected": { "path": ["A", "B", "C", "D", "E"], "outcome": "reposicion" }
+    },
+    {
+      "id": "c3",
+      "customer": "Lucía M.",
+      "order": "NW-10102",
+      "product": "P6",
+      "delivered": "2026-09-30",
+      "claimed": "2026-10-24",
+      "photo": "reclamaciones/c3-robot-luz.jpg",
+      "text": "Desde ayer el robot se para a los pocos minutos de empezar y parpadea una luz roja. Tengo un perro con mucho pelo, no sé si tendrá que ver.",
+      "history": { "antiguedad_meses": 12, "pedidos_12m": 3, "reclamaciones_12m": 0, "devoluciones_12m": 0 },
+      "expected": { "path": ["A", "B", "C", "D2"], "outcome": "autoservicio" }
+    },
+    {
+      "id": "c4",
+      "customer": "Andrés G.",
+      "order": "NW-10455",
+      "product": "P1",
+      "delivered": "2026-10-20",
+      "claimed": "2026-10-24",
+      "photo": "reclamaciones/c4-cafetera-borrosa.jpg",
+      "text": "La cafetera pierde agua por abajo cada vez que la uso. Os mando una foto.",
+      "history": { "antiguedad_meses": 4, "pedidos_12m": 2, "reclamaciones_12m": 0, "devoluciones_12m": 0 },
+      "expected": { "path": ["A"], "outcome": "nueva_foto" }
+    },
+    {
+      "id": "c5",
+      "customer": "Sergio T.",
+      "order": "NW-10397",
+      "product": "P3",
+      "delivered": "2026-10-19",
+      "claimed": "2026-10-24",
+      "photo": "reclamaciones/c5-lampara-otra.jpg",
+      "text": "La lámpara ha llegado rota: la pantalla está doblada y la bombilla hecha añicos. Quiero el reembolso completo.",
+      "history": { "antiguedad_meses": 2, "pedidos_12m": 4, "reclamaciones_12m": 2, "devoluciones_12m": 2 },
+      "expected": { "path": ["A", "B"], "outcome": "fraude" }
+    },
+    {
+      "id": "c6",
+      "customer": "Raúl V.",
+      "order": "NW-09876",
+      "product": "P5",
+      "delivered": "2026-09-13",
+      "claimed": "2026-10-24",
+      "photo": "reclamaciones/c6-monitor-roto.jpg",
+      "delivery_photo": "reclamaciones/pod-c6-ok.jpg",
+      "text": "El monitor tiene una grieta enorme en la pantalla desde que lo saqué de la caja. Quiero uno nuevo.",
+      "history": { "antiguedad_meses": 14, "pedidos_12m": 9, "reclamaciones_12m": 3, "devoluciones_12m": 2 },
+      "expected": { "path": ["A", "B", "C", "D", "E"], "outcome": "revision" }
+    }
+  ],
+  "notes": {
+    "reto": "Cada reclamación posventa con foto obliga a alguien a mirar la imagen, comprobar que es el producto vendido, valorar el daño y revisar la entrega y el historial del cliente. Son unos **8 minutos por caso**, y el cliente espera días.",
+    "solucion": "Una **cascada de decisiones**: cada paso es una llamada a la OpenAI Decisions API con preguntas cerradas, y sus respuestas eligen el paso siguiente. Se intercalan pasos con imagen (foto del cliente, catálogo, entrega) y pasos solo de texto (manual técnico, historial en JSON), más una regla de negocio determinista.",
+    "paradigma": "No hace falta un agente generativo que «razone» cada caso: basta un **árbol de decisiones explícito y auditable** cuyos nodos devuelven probabilidades calibradas. Lo que no supera el umbral de confianza pasa a una persona; el resto se resuelve solo, en segundos y por céntimos.",
+    "aplica_a": ["Retail y e-commerce", "Seguros: partes con foto", "Logística y paquetería", "Garantías de fabricante", "Alquiler de vehículos y equipos", "Mantenimiento con foto"],
+    "capacidades": ["🖼️ Imágenes como entrada", "🖼️ Una imagen dentro de la pregunta (catálogo)", "🔗 La respuesta de un paso elige el siguiente", "{ } Pedido, historial y pasos previos en JSON", "⚙️ Reglas deterministas dentro de la cascada"],
+    "savings": { "volume_month": 20000, "minutes_per_item": 8, "eur_hour": 28 }
+  }
+}

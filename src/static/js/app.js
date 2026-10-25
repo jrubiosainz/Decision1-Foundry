@@ -8,6 +8,7 @@ import { mountCase, unmountCase, currentCase, refresh, caseAction } from './case
 import { mountIntro } from './intro.js';
 import { mountLab, unmountLab, labRun } from './lab.js';
 import { mountArcade, unmountArcade, arcadeAction, arcadeFlags, isArcade } from './arcade.js';
+import { isDx, dxReady, dxPages, dxCase, loadDx, mountDx, unmountDx, dxAction, dxFlags } from './dx/index.js';
 
 const stage = $('#stage');
 const notes = $('#notes');
@@ -17,6 +18,9 @@ const sess = {};
 const status = {};
 
 const pages = () => ['intro', ...S.scenarios.map((s) => s.id), 'lab'];
+// Última página visitada en cada pestaña: al volver a una pestaña se retoma donde se dejó.
+const last = { d1: 'intro', dx: 'dx' };
+const tabOf = (page) => (isDx(page) ? 'dx' : 'd1');
 
 // ---------- Panel izquierdo ----------
 
@@ -25,7 +29,7 @@ function navItem(page, icon, title, sub, num) {
     'a',
     { class: 'nav-item', href: `#${page}`, dataset: { page } },
     h('span', { class: 'ni-icon' }, icon, num != null ? h('span', { class: 'ni-num' }, num) : null),
-    h('span', { class: 'ni-title' }, title),
+    h('span', { class: 'ni-title' }, h('span', { class: 'ni-text' }, title)),
     h('span', { class: 'ni-sub' }, sub),
   );
   return nav[page];
@@ -51,16 +55,33 @@ function updateSession() {
   sess.p50.textContent = s.lat.length ? fmt.ms(median(s.lat)) : '—';
 }
 
-function buildSidebar() {
-  $('#sidebar').replaceChildren(
-    h('div', { class: 'nav-section' }, t('Presentación')),
-    navItem('intro', '🏠', t('Introducción'), t('Qué es Decision-1 y por qué importa')),
-    h('div', { class: 'nav-section' }, t('Casos de uso')),
-    ...S.scenarios.map((sc) => navItem(sc.id, sc.icon, sc.title, `${sc.sector} · ${sc.brand}`, sc.order)),
-    h('div', { class: 'nav-section' }, t('Pruébalo')),
-    navItem('lab', '🧪', t('Laboratorio'), t('Tus datos, tus preguntas')),
-    sessionBox(),
-  );
+let sidebarTab = null;
+
+function buildSidebar(tab) {
+  for (const key of Object.keys(nav)) delete nav[key];
+  sidebarTab = tab;
+  const items =
+    tab === 'dx'
+      ? [
+          h('div', { class: 'nav-section' }, t('Presentación')),
+          navItem('dx', '🏠', t('Introducción'), t('Decisiones sobre imágenes y texto')),
+          h('div', { class: 'nav-section' }, t('Casos de uso')),
+          ...dxPages()
+            .slice(1)
+            .map((page) => {
+              const sc = dxCase(page);
+              return navItem(page, sc.icon, sc.title, `${sc.sector} · ${sc.brand}`, sc.order);
+            }),
+        ]
+      : [
+          h('div', { class: 'nav-section' }, t('Presentación')),
+          navItem('intro', '🏠', t('Introducción'), t('Qué es Decision-1 y por qué importa')),
+          h('div', { class: 'nav-section' }, t('Casos de uso')),
+          ...S.scenarios.map((sc) => navItem(sc.id, sc.icon, sc.title, `${sc.sector} · ${sc.brand}`, sc.order)),
+          h('div', { class: 'nav-section' }, t('Pruébalo')),
+          navItem('lab', '🧪', t('Laboratorio'), t('Tus datos, tus preguntas')),
+        ];
+  $('#sidebar').replaceChildren(...items, sessionBox());
   updateSession();
 }
 
@@ -70,6 +91,12 @@ function updateNav() {
     el.classList.toggle('active', active);
     if (active) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
+    if (isDx(page)) {
+      const f = dxFlags(page);
+      el.classList.toggle('running', f.running);
+      el.classList.toggle('has-result', f.hasResult);
+      continue;
+    }
     const st = S.byId[page] ? caseState(page) : null;
     const arc = S.byId[page]?.kind === 'game' ? arcadeFlags() : null;
     el.classList.toggle('running', !!(st && (st.busy || st.race?.running)) || !!arc?.running);
@@ -79,18 +106,39 @@ function updateNav() {
 
 // ---------- Barra superior ----------
 
+const tabs = {};
+
+function buildTabs() {
+  tabs.d1 = h('a', { class: 'tab', href: `#${last.d1}` }, '⚡ Microsoft-Decision-1');
+  tabs.dx = h('a', { class: 'tab', href: `#${last.dx}` }, '🖼️ OpenAI Decisions API', h('span', { class: 'tab-badge' }, t('Nuevo')));
+  $('#tabs').replaceChildren(tabs.d1, tabs.dx);
+  updateTabs();
+}
+
+function updateTabs() {
+  const current = tabOf(S.page);
+  document.body.classList.toggle('tab-dx', current === 'dx');
+  for (const [tab, el] of Object.entries(tabs)) {
+    el.href = `#${last[tab]}`;
+    el.classList.toggle('active', tab === current);
+    if (tab === current) el.setAttribute('aria-current', 'page');
+    else el.removeAttribute('aria-current');
+  }
+}
+
 function buildStatus() {
   const d = S.config?.decision || {};
   const ok = !!S.config?.configured;
   status.region = h('b', null, '—');
-  status.regionPill = h('span', { class: 'pill', title: t('Región donde se ejecutó la última inferencia (cabecera de la respuesta)'), hidden: true }, t('🧠 Inferencia: '), status.region);
+  status.regionPill = h('span', { class: 'pill d1-only', title: t('Región donde se ejecutó la última inferencia (cabecera de la respuesta)'), hidden: true }, t('🧠 Inferencia: '), status.region);
   status.gauge = h('i');
   status.q = h('b', null, '—');
-  status.quota = h('span', { class: 'pill quota', title: t('Peticiones por minuto disponibles para Decision-1 (estimación)') }, '⏱ ', h('span', { class: 'gauge' }, status.gauge), status.q);
+  status.quota = h('span', { class: 'pill quota d1-only', title: t('Peticiones por minuto disponibles para Decision-1 (estimación)') }, '⏱ ', h('span', { class: 'gauge' }, status.gauge), status.q);
   status.notesBtn = h('button', { class: 'btn ghost notes-btn', onclick: () => toggleNotes(), title: t('Mostrar u ocultar las notas (N)') }, t('📝 Notas'));
   $('#status').replaceChildren(
     h('span', { class: 'pill', title: t('Región del recurso de Microsoft Foundry') }, h('span', { class: `dot${ok ? '' : ' off'}` }), ok ? t('Foundry · ') : t('Sin configurar · '), h('b', null, regionLabel(d.location))),
-    h('span', { class: 'pill', title: t('Tipo de despliegue de Decision-1') }, '🛡️ ', h('b', null, skuLabel(d.sku, d.location))),
+    h('span', { class: 'pill d1-only', title: t('Tipo de despliegue de Decision-1') }, '🛡️ ', h('b', null, skuLabel(d.sku, d.location))),
+    h('span', { class: 'pill dx-only', title: t('Despliegue de Foundry que responde a la Decisions API') }, '🧠 ', h('b', null, S.config?.dx?.model || 'gpt-6-luna')),
     status.regionPill,
     status.quota,
     status.notesBtn,
@@ -123,12 +171,23 @@ function toggleNotes(force) {
 
 // ---------- Navegación ----------
 
-function show(page) {
-  if (!pages().includes(page)) page = 'intro';
+let showToken = 0;
+
+function unmountAll() {
   unmountCase();
   unmountLab();
   unmountArcade();
-  S.page = page;
+  unmountDx();
+}
+
+function show(page) {
+  const token = ++showToken;
+  if (isDx(page)) return showDx(page, token);
+  if (!pages().includes(page)) page = 'intro';
+  unmountAll();
+  S.page = last.d1 = page;
+  if (sidebarTab !== 'd1') buildSidebar('d1');
+  updateTabs();
   const sc = S.byId[page];
   if (sc?.kind === 'game') mountArcade(sc, stage, notes);
   else if (sc) mountCase(sc, stage, notes);
@@ -139,6 +198,36 @@ function show(page) {
   document.title = `${sc ? `${sc.order}. ${sc.title}` : page === 'lab' ? t('Laboratorio') : t('Introducción')} · Microsoft-Decision-1`;
   updateNav();
   warm();
+}
+
+// La pestaña de la Decisions API carga su contenido la primera vez que se abre.
+async function showDx(page, token) {
+  unmountAll();
+  S.page = page;
+  updateTabs();
+  if (!dxReady()) {
+    stage.replaceChildren(h('div', { class: 'boot' }, h('span', { class: 'spinner', 'aria-hidden': 'true' }), ' ', h('span', null, t('Cargando los casos…'))));
+    notes.replaceChildren();
+    try {
+      await loadDx(getLang());
+    } catch (e) {
+      if (token === showToken) {
+        stage.replaceChildren(h('div', { class: 'boot-error' }, h('h2', null, t('No se pudieron cargar los casos')), h('p', { class: 'muted' }, errorText(e)), h('button', { class: 'btn primary', onclick: () => show(page) }, t('Reintentar'))));
+      }
+      return;
+    }
+    if (token !== showToken) return;
+  }
+  if (!dxPages().includes(page)) page = 'dx';
+  S.page = last.dx = page;
+  if (sidebarTab !== 'dx') buildSidebar('dx');
+  updateTabs();
+  mountDx(page, stage, notes);
+  stage.scrollTop = 0;
+  notes.scrollTop = 0;
+  const sc = dxCase(page);
+  document.title = `${sc ? `${sc.order}. ${sc.title}` : t('Introducción')} · OpenAI Decisions API`;
+  updateNav();
 }
 
 // La primera decisión tras unos minutos de inactividad tarda ~3 s: el servidor despierta el modelo antes de «Procesar».
@@ -155,12 +244,23 @@ function go(page) {
 }
 
 function step(delta) {
-  const ps = pages();
+  const ps = isDx(S.page) ? dxPages() : pages();
   const i = Math.max(0, ps.indexOf(S.page));
   go(ps[Math.max(0, Math.min(ps.length - 1, i + delta))]);
 }
 
 // ---------- Atajos ----------
+
+const dxKeys = () => [
+  ['← →', t('Página anterior / siguiente')],
+  ['0', t('Introducción')],
+  ['1 – 5', t('Ir a un caso')],
+  [t('Espacio'), t('Procesar el caso')],
+  ['R', t('Reiniciar el caso')],
+  ['T', t('Cambiar de pestaña')],
+  ['N', t('Mostrar u ocultar las notas')],
+  ['Esc', t('Cerrar la ventana')],
+];
 
 const keys = () => [
   ['← →', t('Página anterior / siguiente')],
@@ -171,13 +271,14 @@ const keys = () => [
   ['C', t('Carrera contra un LLM')],
   ['B', t('Cambiar entre lote y uno a uno')],
   ['R', t('Reiniciar el caso o la partida')],
+  ['T', t('Cambiar de pestaña')],
   ['N', t('Mostrar u ocultar las notas')],
   ['Ctrl + Enter', t('Decidir en el laboratorio')],
   ['Esc', t('Cerrar la ventana')],
 ];
 
 function showHelp() {
-  openModal(h('div', { class: 'help' }, h('h2', null, t('⌨️ Atajos de teclado')), h('div', { class: 'help-grid' }, keys().map(([k, label]) => [h('kbd', null, k), h('span', null, label)]))));
+  openModal(h('div', { class: 'help' }, h('h2', null, t('⌨️ Atajos de teclado')), h('div', { class: 'help-grid' }, (isDx(S.page) ? dxKeys() : keys()).map(([k, label]) => [h('kbd', null, k), h('span', null, label)]))));
 }
 
 const typing = (el) => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
@@ -189,6 +290,7 @@ function onKey(e) {
   }
   if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target) || modalOpen() || !S.scenarios.length) return;
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (isDx(S.page)) return onDxKey(e, k);
   const sc = currentCase();
   if (k === 'ArrowRight') step(1);
   else if (k === 'ArrowLeft') step(-1);
@@ -205,6 +307,22 @@ function onKey(e) {
   else if (sc && k === 'b') caseAction('mode');
   else if (sc && k === 'r') caseAction('reset');
   else if (isArcade() && k === 'r') arcadeAction('reset');
+  else if (k === 't') go(last.dx);
+  else if (k === 'n') toggleNotes();
+  else if (k === '?') showHelp();
+  else return;
+  e.preventDefault();
+}
+
+function onDxKey(e, k) {
+  if (k === 'ArrowRight') step(1);
+  else if (k === 'ArrowLeft') step(-1);
+  else if (/^[0-9]$/.test(k) && dxPages()[Number(k)]) go(dxPages()[Number(k)]);
+  else if (k === ' ') {
+    if (e.target.closest?.('button') || !dxAction('process')) return;
+  } else if (k === 'r') {
+    if (!dxAction('reset')) return;
+  } else if (k === 't') go(last.d1);
   else if (k === 'n') toggleNotes();
   else if (k === '?') showHelp();
   else return;
@@ -247,6 +365,7 @@ setInterval(pollQuota, 5000);
 function applyStaticTexts() {
   $('meta[name="description"]')?.setAttribute('content', t('Demo de Microsoft-Decision-1 en Microsoft Foundry: seis casos de uso de decisiones rápidas, baratas y calibradas.'));
   $('#sidebar').setAttribute('aria-label', t('Casos de uso'));
+  $('#tabs').setAttribute('aria-label', t('Modelos'));
   $('#notes').setAttribute('aria-label', t('Notas para el presentador'));
   const bootText = $('#boot-text');
   if (bootText) bootText.textContent = t('Cargando la demo…');
@@ -274,13 +393,16 @@ async function switchLang(code) {
   try {
     const config = await api('/api/config', null, { lang: code });
     const data = await api('/api/scenarios', null, { lang: code });
+    // La pestaña de la Decisions API solo se recarga si ya se había abierto; si no, se cargará en el idioma nuevo al abrirla.
+    if (dxReady()) await loadDx(code);
     setLang(code);
     S.config = config;
     applyContent(data);
     closeModal();
     applyStaticTexts();
     buildStatus();
-    buildSidebar();
+    buildTabs();
+    sidebarTab = null;
     show(S.page);
   } catch (e) {
     toast(errorText(e), 'error', 7000);
@@ -309,6 +431,7 @@ async function boot() {
     return bootError(t('No se pudo conectar con el servidor'), e, t('Reintentar'));
   }
   buildStatus();
+  buildTabs();
   try {
     applyContent(await api('/api/scenarios'));
   } catch (e) {
@@ -316,7 +439,6 @@ async function boot() {
   }
   const cmps = S.config.comparisons || [];
   S.raceModel = (cmps.find((c) => c.id === 'gpt-6-sol') || cmps[0])?.id || null;
-  buildSidebar();
   if (!S.config.configured) toast(t('Falta AZURE_AI_ENDPOINT: la interfaz funciona, pero no puede llamar al modelo.'), 'warn', 10000);
   show(location.hash.slice(1) || 'intro');
   pollQuota();

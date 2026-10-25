@@ -1,8 +1,12 @@
-"""Cliente mínimo y sin claves (Entra ID) para Microsoft-Decision-1 y los LLMs de comparación en Microsoft Foundry.
+"""Cliente mínimo y sin claves (Entra ID) para Microsoft-Decision-1, la OpenAI Decisions API y los LLMs de comparación en Microsoft Foundry.
 
 Microsoft-Decision-1 habla el protocolo "System One":
     POST {endpoint}/providers/microsoft/v1/systemone
     {"model": "<deployment>", "state": <texto u objeto>, "questions": {"<nombre>": {"type": "choice"|"score"|"noul", ...}}}
+
+La OpenAI Decisions API acepta texto, imágenes y JSON como entrada:
+    POST {endpoint}/openai/v1/decisions
+    {"model": "<deployment>", "input": <texto o mensajes>, "questions": [{"type": "predicate"|"choice"|"score", "name": ..., ...}]}
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 SCOPE = "https://cognitiveservices.azure.com/.default"
 DECISION_PATH = "/providers/microsoft/v1/systemone"
 CHAT_PATH = "/openai/v1/chat/completions"
+DECISIONS_PATH = "/openai/v1/decisions"
 MAX_RATE_WAIT_S = 45.0
 
 
@@ -150,6 +155,28 @@ class FoundryClient:
             "raw": data,
         }
 
+    # ---------- OpenAI Decisions API ----------
+
+    async def decisions(self, deployment: str, input: Any, questions: list[dict], max_wait_s: float | None = None) -> dict:
+        body = {"model": deployment, "input": input, "questions": questions}
+        res = await self._post(DECISIONS_PATH, body, max_wait_s)
+        data = res.pop("data")
+        res.pop("rate", None)
+        usage = data.get("usage") or {}
+        details = usage.get("input_tokens_details") or {}
+        return {
+            **res,
+            "model": data.get("model"),
+            "answers": normalize_decisions(data.get("answers") or [], questions),
+            "usage": {
+                "input_tokens": usage.get("input_tokens", 0) or 0,
+                "cached_input_tokens": details.get("cached_tokens", 0) or 0,
+                "cache_write_tokens": details.get("cache_write_tokens", 0) or 0,
+                "output_tokens": usage.get("output_tokens", 0) or 0,
+            },
+            "raw": data,
+        }
+
     # ---------- LLM generativo equivalente (para la carrera) ----------
 
     async def chat_json(
@@ -277,6 +304,48 @@ PROMPT_TEXTS = {
         "score": "(choose a numeric level, from lowest to highest)",
     },
 }
+
+
+def normalize_decisions(answers: list[dict], questions: list[dict]) -> dict[str, dict]:
+    """Respuestas de la Decisions API por nombre de pregunta, con el mismo vocabulario para los tres tipos.
+
+    predicate → value (bool) y p; choice → value y probs ordenadas; score → value (índice del nivel), label y expected.
+    `confidence` es la probabilidad de la respuesta elegida.
+    """
+    by_name = {a.get("name"): a for a in answers if isinstance(a, dict)}
+    out: dict[str, dict] = {}
+    for q in questions:
+        name = q["name"]
+        a = by_name.get(name)
+        if not a:
+            out[name] = {"type": "missing"}
+            continue
+        kind = a.get("type")
+        if kind == "predicate":
+            p = float(a.get("probability") or 0.0)
+            out[name] = {"type": "predicate", "value": p >= 0.5, "p": p, "confidence": max(p, 1 - p)}
+        elif kind == "choice":
+            probs = sorted(
+                ({"key": str(x.get("value")), "p": float(x.get("probability") or 0.0)} for x in a.get("probabilities") or []),
+                key=lambda x: -x["p"],
+            )
+            value = a.get("choice") or (probs[0]["key"] if probs else None)
+            conf = next((x["p"] for x in probs if x["key"] == value), 0.0)
+            out[name] = {"type": "choice", "value": value, "confidence": conf, "probs": probs}
+        elif kind == "score":
+            labels = [lv.get("label") for lv in q.get("levels") or []]
+            probs = []
+            for x in a.get("probabilities") or []:
+                label = x.get("label")
+                idx = labels.index(label) if label in labels else int(x.get("value") or 0)
+                probs.append({"key": idx, "label": labels[idx] if 0 <= idx < len(labels) else label, "p": float(x.get("probability") or 0.0)})
+            probs.sort(key=lambda x: x["key"])
+            best = max(probs, key=lambda x: x["p"]) if probs else {"key": 0, "label": None, "p": 0.0}
+            expected = sum(x["key"] * x["p"] for x in probs)
+            out[name] = {"type": "score", "value": best["key"], "label": best["label"], "expected": round(expected, 3), "confidence": best["p"], "probs": probs}
+        else:
+            out[name] = {"type": "refusal" if kind == "refusal" else "missing"}
+    return out
 
 
 def llm_system_prompt(context: str, questions: dict[str, dict], lang: str = "es") -> str:

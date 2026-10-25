@@ -1,8 +1,8 @@
 # Guion de la demo · Microsoft-Decision-1
 
-Guía para presentar la demo en unos 25–35 minutos, según los casos que recorras. La web tiene tres paneles: a la izquierda eliges la página, en el centro corre la demo en directo y a la derecha están las notas que ve el público (reto, solución, resultado y ahorro). Arriba a la derecha, un selector con banderas cambia toda la demo entre español e inglés. Este guion añade lo que no está en pantalla: qué pulsar, qué decir y cómo responder a las preguntas habituales.
+Guía para presentar la demo en unos 25–35 minutos, según los casos que recorras, y 10–12 minutos más si enseñas la segunda pestaña. Arriba hay dos pestañas: **⚡ Microsoft-Decision-1**, con seis casos sobre texto y el laboratorio, y **🖼️ OpenAI Decisions API**, con cinco casos que deciden también sobre imágenes y documentos. La tecla `T` cambia de una a otra. En las dos, la web tiene tres paneles: a la izquierda eliges la página, en el centro corre la demo en directo y a la derecha están las notas que ve el público (reto, solución, resultado y ahorro). Arriba a la derecha, un selector con banderas cambia toda la demo entre español e inglés. Este guion añade lo que no está en pantalla: qué pulsar, qué decir y cómo responder a las preguntas habituales.
 
-Las marcas que aparecen en pantalla son ficticias (Nexa Energía, Brisa Hotels & Resorts, Alisio Travel Group) para que la misma demo sirva para cualquier cliente del sector.
+Las marcas que aparecen en pantalla son ficticias para que la misma demo sirva para cualquier cliente del sector: Nexa Energía, Brisa Hotels & Resorts y Alisio Travel Group en la primera pestaña, y Northwind Hogar, Fabrikam y Contoso Viajes en la segunda. Las fotos, los tiques, las creatividades y los contratos de la segunda pestaña son sintéticos.
 
 ## Antes de presentar
 
@@ -16,14 +16,16 @@ Las marcas que aparecen en pantalla son ficticias (Nexa Energía, Brisa Hotels &
 
 2. Ábrelo en el mismo equipo y navegador con los que vas a presentar. El código se guarda en el navegador y desaparece de la barra de direcciones, así que no se verá al proyectar.
 3. Recorre los seis casos (barra espaciadora en cada uno; en el 6, deja correr una partida corta a ×2) y lanza una carrera (tecla C) en un caso del 1 al 5 para comprobar que los modelos de comparación responden.
-4. Elige el idioma de la presentación con las banderas de la esquina superior derecha, o añade `&lang=en` al enlace. La web recuerda la elección. Cambiar de idioma mantiene los resultados de los casos 1 a 5 y deja en pausa la partida del caso 6 en curso (se reanuda con «Seguir»), aunque lo más cómodo es elegirlo antes de empezar. Si presentas en inglés, repasa los casos en ese idioma: los ejemplos en español se traducen y quedan los demás idiomas tal cual.
+4. Si vas a enseñar la segunda pestaña, pulsa `T` y recorre sus cinco casos: en el caso 1, «⏩ Resolver todas»; en los demás, `Espacio`. Si vas a subir una foto propia en el caso 4, pruébala también.
+5. Elige el idioma de la presentación con las banderas de la esquina superior derecha, o añade `&lang=en` al enlace. La web recuerda la elección. Cambiar de idioma mantiene los resultados de los casos 1 a 5 y deja en pausa la partida del caso 6 en curso (se reanuda con «Seguir»), aunque lo más cómodo es elegirlo antes de empezar. En la segunda pestaña, en cambio, cambiar de idioma borra los resultados. Si presentas en inglés, repasa los casos en ese idioma: los ejemplos en español se traducen y quedan los demás idiomas tal cual.
 
 **Diez minutos antes**
 
 - Pantalla completa (F11 en Windows, ⌃⌘F en Mac), zoom del navegador al 100 % y resolución de al menos 1280 × 720.
 - Entra en el caso 1 y vuelve a la portada. La web despierta el modelo cada vez que cambias de página; así la primera decisión no tarda los ~3 s del arranque en frío.
+- Si vas a enseñar la segunda pestaña, resuelve allí una reclamación del caso 1 y pulsa `R` para dejarlo limpio: así compruebas que el despliegue `gpt-6-luna` responde.
 - Si la web corre en el plan gratuito F1 de App Service, se duerme tras unos 20 minutos sin tráfico y tarda hasta 30 s en abrir: ábrela unos minutos antes y no la dejes en frío.
-- Cierra otras pestañas o copias de la demo: todas comparten las peticiones por minuto (RPM) del despliegue. El indicador ⏱ de la cabecera muestra las disponibles. El caso 6 necesita unas 60 RPM para llevar una decisión por segundo.
+- Cierra otras pestañas o copias de la demo: todas comparten las peticiones por minuto (RPM) del despliegue. El indicador ⏱ de la cabecera muestra las disponibles. El caso 6 necesita unas 60 RPM para llevar una decisión por segundo. La segunda pestaña comparte los tokens por minuto de `gpt-6-luna` con el rival del caso 6.
 
 **Atajos de teclado** (pulsa `?` en la web para verlos)
 
@@ -35,9 +37,12 @@ Las marcas que aparecen en pantalla son ficticias (Nexa Energía, Brisa Hotels &
 | `C` | Carrera contra un LLM generativo (casos 1 a 5) |
 | `B` | Cambiar entre lote (1 llamada) y uno a uno (casos 1 a 5) |
 | `R` | Reiniciar el caso o la partida |
+| `T` | Cambiar de pestaña: Microsoft-Decision-1 ↔ OpenAI Decisions API |
 | `N` | Mostrar u ocultar las notas |
 | `Ctrl` + `Enter` | Decidir en el laboratorio |
 | `Esc` | Cerrar una ventana |
+
+En la segunda pestaña, `0` y `1`–`5` llevan a su introducción y a sus casos, `Espacio` procesa el caso (en el caso 1, la reclamación seleccionada o la siguiente pendiente) y `R` lo reinicia. `C`, `B`, `L` y `Ctrl` + `Enter` solo funcionan en la primera.
 
 ## Estructura recomendada
 
@@ -51,17 +56,22 @@ Las marcas que aparecen en pantalla son ficticias (Nexa Energía, Brisa Hotels &
 | Caso 5 · Guardarraíles para agentes | 3 min | `5` |
 | Caso 6 · Space Invaders en directo | 4 min | `6` |
 | Decision-1 dentro de un agente | 2–3 min | `0` y clic en el flujo |
-| Laboratorio con un ejemplo del cliente | 3 min | `L` |
+| Segunda pestaña · OpenAI Decisions API (opcional) | 10–12 min | `T` |
+| Laboratorio con un ejemplo del cliente | 3 min | `L` (desde la segunda pestaña, `T` y `L`) |
 | Preguntas | 5 min | |
 
 Con un público de un solo sector, haz su caso con calma, sigue con los casos 4 y 5, que aplican a cualquier empresa, y termina en el laboratorio con un texto suyo. El caso 6 es el más visual y hace de puente hacia el bloque de agentes: si vas justo de tiempo, recorta casos de sector antes que este.
 
-| Público | Empieza por | Sigue con |
-|---|---|---|
-| Energía y utilities | 1 · Triage de tickets | 4, 5 y 6 |
-| Cadenas hoteleras | 2 · Voz del huésped | 3, 4, 5 y 6 |
-| Turoperadores, agencias y receptivos | 3 · Asistencia 24/7 | 2, 4, 5 y 6 |
-| Equipos de IA, plataforma o desarrollo | 4 · Router | 5, 6 y el bloque de agentes |
+La segunda pestaña es opcional: llévala cuando el cliente trabaje con fotos o documentos, o pregunte por imágenes. Si vas justo de tiempo, basta con su caso 1, la cascada (3–4 minutos).
+
+| Público | Empieza por | Sigue con | En la segunda pestaña |
+|---|---|---|---|
+| Energía y utilities | 1 · Triage de tickets | 4, 5 y 6 | 4 · Inspección de seguridad y 5 · Contratos |
+| Cadenas hoteleras | 2 · Voz del huésped | 3, 4, 5 y 6 | 4 · Inspección de seguridad (fotos de un hotel) y 2 · Gastos |
+| Turoperadores, agencias y receptivos | 3 · Asistencia 24/7 | 2, 4, 5 y 6 | 3 · Control de marca y 1 · Reclamaciones |
+| Equipos de IA, plataforma o desarrollo | 4 · Router | 5, 6 y el bloque de agentes | 1 · Reclamaciones en cascada |
+
+Para retail, e-commerce y seguros, empieza la segunda pestaña por el caso 1; para finanzas, legal y compras, por el 2 y el 5.
 
 ## 0 · Introducción
 
@@ -223,6 +233,131 @@ En la llamada de ejemplo, señala las probabilidades: 99 % «Averías», urgenci
 
 Las siete plantillas de agentes se inspiran en los casos de uso del vídeo de AI Labs [*Insane Jev Use Cases You Need To Use Right Now*](https://www.youtube.com/watch?v=2nc_QMuNp18) (28/09/2026).
 
+## Segunda pestaña · OpenAI Decisions API
+
+La OpenAI Decisions API sigue el mismo paradigma que Decision-1, preguntas cerradas y respuestas con probabilidad, pero la entrada puede llevar imágenes y documentos. En la demo la sirve el despliegue `gpt-6-luna`. Sus cinco casos aplican a casi cualquier empresa y no repiten los de la primera pestaña.
+
+### 0 · Introducción
+
+**Qué enseñar.** `T` y, si no se abre en ella, `0`. De arriba abajo: las dos tarjetas que comparan Decision-1 con la Decisions API, «📈 Datos del lanzamiento», «🔬 Medido en esta demo», «🔗 Una cascada de decisiones» y «🧩 Así es una llamada».
+
+**Frase de arranque.** «Decision-1 decide sobre texto. Pero muchas decisiones de una empresa empiezan con una foto o un documento: un tique, un paquete roto, un pasillo, un contrato. Esta API decide también sobre eso, y una decisión puede elegir la siguiente.»
+
+**Mensajes clave**
+
+1. **Mismo paradigma, ahora con imágenes.** Preguntas cerradas y una probabilidad por respuesta, con hasta 128 imágenes (32 MB) y 400 preguntas por llamada. Según el anuncio, es unas 10 veces más rápida que pedir lo mismo a GPT-6 Luna con la Responses API.
+2. **Decisiones en cascada.** La respuesta de un paso elige el siguiente: solo se pregunta lo necesario y el recorrido queda explicado paso a paso.
+3. **La caché abarata lo que se repite.** La política, la guía de marca o el contrato van al principio de la petición. A partir de 1.024 tokens repetidos se cobran a 0,01 $ por millón en lugar de 0,10 $, y la salida no se cobra.
+4. **Complementa a Decision-1, no lo sustituye.** Decision-1, para texto a gran volumen y en tiempo real (0,3–1 s). La Decisions API, cuando hay que mirar una imagen o leer un documento (1–3 s por llamada con imagen).
+
+En «Así es una llamada» (el paso C de la reclamación de Marta P.: 2,42 s y 1.419 tokens), señala las probabilidades de la gravedad: «Moderada» 0,52 frente a «Inutilizable» 0,46. «No solo contesta: dice cuánto duda.»
+
+### Caso 1 · Reclamaciones en cascada
+
+**Sector:** retail, e-commerce, seguros, garantías y posventa. **En pantalla:** 6 reclamaciones de clientes de Northwind Hogar, cada una con la foto que envió el cliente, y el recorrido de la cascada: A ¿La foto sirve? → B ¿Es el producto vendido? → C ¿Qué daño hay? → D ¿Llegó dañado? o D2 ¿Lo resuelve el cliente? → E ¿Reponemos sin revisión?
+
+**Qué pulsar**
+
+1. Con la reclamación de **Marta P.** (un juego de 6 copas de cristal; llegaron 3 rotas) seleccionada, pulsa `Espacio`. En unos 7 s aparecen los pasos uno a uno: A con su foto, B con la foto y el catálogo, C con la foto y su relato, y D con la foto que hizo el transportista al entregar. Resultado: 🚚 reposición y cargo al transportista, porque la caja llegó aplastada.
+2. Señala la leyenda (imagen, texto, JSON y regla determinista) y una tarjeta: la respuesta con su probabilidad y, debajo, «↳» el paso siguiente y el motivo. «📤 Petición» enseña exactamente lo que se envió.
+3. «⏩ Resolver todas»: las otras cinco avanzan a la vez, cada una por su camino, en unos 10 s. Recorre los finales:
+   - **Daniel R.** (mesa rayada, caja intacta): llega al paso E, que lee en JSON el pedido, su historial y los pasos anteriores → 📦 reposición inmediata.
+   - **Lucía M.** (robot aspirador con una luz roja): no hay daño físico, así que la cascada cambia de rama y D2 consulta el manual → 🛠️ solución guiada: se le envían los pasos.
+   - **Andrés G.** (foto borrosa): se para en A → 📷 pedir otra foto. Una llamada en lugar de cuatro o cinco.
+   - **Sergio T.**: la lámpara de la foto no es la que se vendió → 🚩 revisión antifraude en el paso B.
+   - **Raúl V.** (monitor agrietado): la foto y la entrega cuadran, pero reclama 41 días después de la entrega → 👤 revisión humana. Lo decide una regla, no el modelo.
+4. Enseña la fila de métricas: 4 de 6 resueltas sin intervención, 21 llamadas y unos 0,002 € en total.
+
+**Qué decir**
+
+- «Cada respuesta elige la siguiente pregunta. Si la foto no sirve, no se gasta ni una llamada más.»
+- «Se alternan imagen y texto, como haría una persona de posventa: la foto del cliente, el catálogo, la foto de la entrega, el manual y el historial. Aquí tarda unos segundos.»
+- «El modelo responde y el código decide: el plazo de 30 días es una regla de negocio, no una opinión del modelo.»
+- Si una respuesta que decide el camino no llega a 0,7 de confianza, la reclamación va a revisión humana (o, si la duda es sobre la foto, se pide otra).
+- Proyección por defecto (20.000 reclamaciones al mes, 8 min cada una, 28 €/h): unas 1.780 horas y ~50.000 € al mes de tiempo liberado; la API cuesta unos 6 € al mes.
+
+> Para un público técnico: el recorrido no lo improvisa un LLM. Es un grafo fijo, definido en `src/dx/01-reclamaciones.json`, y cada respuesta elige la rama. Por eso se puede auditar y probar paso a paso.
+
+### Caso 2 · Notas de gastos con foto
+
+**Sector:** finanzas y administración de cualquier empresa. **En pantalla:** 9 tiques de dos empleados de Fabrikam, cada uno con los datos que declaró, y «📄 Política de gastos».
+
+**Qué pulsar**
+
+1. `Espacio`. Cada tique se compara a la vez con lo declarado y con la política, en unos 2 s por tique.
+2. Abre la comida de **Javier Ruiz** (86,40 €): 🍷 incluye alcohol → 👤 REVISAR.
+3. Abre su tique de material (149,99 €): es una compra personal → ⛔ RECHAZADO.
+4. Señala su parking (21,00 €), cuyo importe no coincide con el declarado, y la comida de 20,00 € de **Laura Gómez**, cuya fecha no coincide: van a revisión con el motivo marcado.
+5. La comida de 32,00 € de Laura es ilegible → 📷 PEDIR ORIGINAL. Su hotel (120,00 €) sale ✅ APROBADO y con 🧾 IVA deducible.
+6. Señala el 💾 junto a la latencia de cada tarjeta: la política se lee de la caché.
+
+**Qué decir**
+
+- «Foto, datos declarados y política en una sola llamada: si cuadra, si cumple y qué tiene de raro.»
+- «La política, unos 2.600 tokens, es igual en cada llamada y se lee de la caché: el 68 % de los tokens sale a 0,01 $ por millón y el coste baja un 61 %.»
+- 6 de 9 tiques se resuelven sin intervención; los 3 que van a revisión llegan con el motivo marcado.
+- Proyección por defecto (15.000 tiques al mes, 4 min cada uno, 35 €/h): unas 670 horas y ~23.000 € al mes; la API, unos 2 € al mes.
+
+### Caso 3 · Control de marca
+
+**Sector:** marketing, agencias y cualquier empresa que publique creatividades. **En pantalla:** 8 creatividades de Contoso Viajes y «📄 Guía de marca», con el logotipo oficial y la paleta como imágenes de referencia.
+
+**Qué pulsar**
+
+1. `Espacio`.
+2. Abre **Calas de Mallorca**: logotipo deformado y recoloreado → ✏️ CORREGIR. **Sevilla flash**: colores fuera de paleta y poco contraste → ✏️ CORREGIR.
+3. **Black Friday Baleares**: oferta sin texto legal → ⚖️ LEGAL. **Tu verano empieza aquí**: sale una persona reconocible y hay que comprobar los derechos de imagen → ⚖️ LEGAL.
+4. **Lisboa en otoño** y **Dolomitas** (una historia en 9:16) se publican. Abre Lisboa: en la ejecución de referencia, confianza 0,77, por encima del umbral de 0,7 pero justa. Buen momento para hablar del umbral.
+
+**Qué decir**
+
+- «Compara cada pieza con imágenes de referencia: el logotipo oficial y la paleta van en la misma petición, como un revisor con la guía al lado.»
+- «La guía y las referencias se leen de la caché: el 65 % de los tokens y un 59 % menos de coste.»
+- Las 8 piezas se resuelven sin intervención y coinciden con la referencia.
+- Proyección por defecto (3.000 piezas al mes, 6 min cada una, 45 €/h): 300 horas y 13.500 € al mes; la API, menos de 1 € al mes.
+
+### Caso 4 · Inspección de seguridad
+
+**Sector:** operaciones y prevención de riesgos en hoteles, almacenes, plantas, oficinas y obras. **En pantalla:** 8 fotos de rondas de seguridad de Fabrikam y la tarjeta «📷 Prueba con tu foto».
+
+**Qué pulsar**
+
+1. `Espacio`.
+2. **Hotel Málaga · Vestíbulo**: trabajo en altura sin protección, con una persona expuesta → ⛔ PARAR.
+3. Abre **Almacén de Getafe · Muelle de carga**. El modelo dijo «Grave», pero hay una salida de emergencia bloqueada y la política la sube como mínimo a «Crítico» → ⚠️ URGENTE. Es el mejor momento del caso.
+4. **Oficinas de Madrid · Planta 3** (riesgo de tropiezo): leve → 🗓️ PROGRAMAR. **Hotel Málaga · Pasillo de servicio**: ✅ SIN ACCIONES.
+5. «📷 Prueba con tu foto»: arrastra una foto o pulsa para elegirla. Se evalúa al momento.
+
+**Qué decir**
+
+- «Una foto de la ronda y, en unos 2 segundos, qué riesgos hay, cómo de graves son y qué hacer.»
+- «El modelo ve; la matriz de riesgos de la empresa decide. La gravedad mínima de cada riesgo es una regla en código, y el modelo no la puede rebajar.»
+- Proyección por defecto (8.000 fotos al mes, 3 min cada una, 30 €/h): 400 horas y 12.000 € al mes; la API, unos 2 € al mes.
+
+> Si subes una foto, que no tenga personas identificables ni datos sensibles. El navegador la reduce a 1024 px y la envía a Azure; la web no la guarda.
+
+### Caso 5 · Revisión de contratos
+
+**Sector:** legal, compras, privacidad y finanzas de cualquier empresa. **En pantalla:** 3 contratos de proveedores de Fabrikam y 3 listas de 20 comprobaciones cada una: ⚖️ Legal, 🔐 Privacidad y seguridad, y 💶 Finanzas y compras.
+
+**Qué pulsar**
+
+1. «📄 Leer el contrato» en **Litware** (CRM en la nube, 36 meses, 84.000 €): es el contrato completo, no un resumen.
+2. `Espacio` («▶ Revisar 3 contratos»). En cada contrato, la primera lista escribe el contrato en la caché y las otras dos lo leen en paralelo: 9 llamadas en unos 6 s.
+3. Señala la matriz: 180 casillas, 157 en verde y 23 en rojo. Pulsa una roja para ver la pregunta, la respuesta y su probabilidad.
+4. **Litware**, 13 en rojo: permanencia bloqueada, ley aplicable fuera de la UE, transferencias internacionales sin garantías, subidas de precio libres, pago por adelantado y un SLA sin compensación por incumplimiento, entre otras.
+5. **Proseware** (limpieza, 24 meses a 4.500 € al mes) solo tiene 2: una cláusula de no captación de personal y un importe total por encima de 100.000 €, que necesita la aprobación del consejo. **Lucerne** (agencia de marketing, 150.000 €) tiene 8, entre ellas la exclusividad y que los entregables no son de Fabrikam.
+
+**Qué decir**
+
+- «60 comprobaciones por contrato en segundos. El abogado empieza por las casillas rojas, no por la página 1.»
+- «Son tres equipos (legal, privacidad y compras) leyendo el mismo contrato a la vez. Gracias a la caché, el contrato solo se paga entero una vez.»
+- Proyección por defecto (300 contratos al mes, 90 min cada uno, 70 €/h): unas 390 horas y ~27.500 € al mes; la API, unos 0,30 € al mes.
+
+> No sustituye al abogado: le dice por dónde empezar. Lo que el modelo no tiene claro sale como 🟡 dudosa y lo revisa una persona.
+
+**Cierre de la pestaña.** «Decision-1 decide sobre texto en tiempo real; la Decisions API, cuando hay que mirar una foto o leer un documento. Las dos con la misma idea: preguntas cerradas, probabilidades y las reglas de la empresa en código.» Para seguir con el laboratorio, `T` y `L`.
+
 ## Laboratorio con un ejemplo del cliente
 
 1. `L` y elige una plantilla de negocio (calidad de llamadas, datos personales, relevancia para RAG, moderación de redes) o «Desde cero».
@@ -263,6 +398,20 @@ Las siete plantillas de agentes se inspiran en los casos de uso del vídeo de AI
 
 **¿Se puede ajustar?** Cambiando las preguntas, las instrucciones y los criterios, en lenguaje natural. El efecto se mide con `scripts/evaluar.py` sobre ejemplos etiquetados.
 
+### Segunda pestaña · OpenAI Decisions API
+
+**¿En qué se diferencia de Decision-1?** Las dos responden preguntas cerradas con probabilidades. Decision-1 trabaja con texto, contesta en 0,3–1 s y cuesta 0,042 $ por millón de tokens de entrada. La Decisions API acepta además imágenes (hasta 128 y 32 MB por llamada) y hasta 400 preguntas por llamada; tarda unos 2 s con imagen y cuesta 0,10 $ por millón, o 0,01 $ si los tokens se leen de la caché.
+
+**¿Por qué en cascada y no todo en una llamada?** Porque cada paso solo se ejecuta si hace falta (una foto borrosa cuesta una llamada, no cinco), cada paso recibe solo lo que necesita (la foto de la entrega solo se usa si hay daño) y el recorrido queda explicado. Cuando todo llega a la vez, como en los casos 2 a 4, basta una llamada por foto con todas las preguntas.
+
+**¿Cuánto tarda y cuánto cuesta?** Entre 1 y 3 s por llamada con imagen o documento, y medio segundo en los pasos solo de texto. La salida no se cobra. Recorrer los cinco casos son 55 llamadas y cuesta alrededor de un céntimo de dólar (0,0102 $; sin caché serían 0,0162 $).
+
+**¿Qué precisión tiene?** En esta demo coincide con la referencia en las 211 decisiones: los 6 recorridos de la cascada, las 25 fotos de los casos 2 a 4 y las 180 casillas de los contratos. En inglés da los mismos resultados en los cinco casos.
+
+**¿Qué modelo hay detrás?** La demo llama a la Decisions API con el despliegue `gpt-6-luna`, el mismo que hace de rival en el caso 6, y los dos comparten su límite de tokens por minuto.
+
+**¿Dónde se procesan las imágenes?** `gpt-6-luna` se despliega en GlobalStandard, así que el procesamiento puede salir de la UE, también el de la foto que subas en el caso 4. Para mantenerlo dentro de la UE, despliega con `azd env set GAME_SKU DataZoneStandard` (necesita cuota DataZone de GPT-6 Luna). La web no guarda las fotos que subes.
+
 ## Si algo falla
 
 | Síntoma | Qué hacer |
@@ -275,6 +424,10 @@ Las siete plantillas de agentes se inspiran en los casos de uso del vídeo de AI
 | La web tarda hasta 30 s en abrir | Plan gratuito F1: se duerme tras unos 20 minutos sin tráfico. Ábrela unos minutos antes de presentar |
 | La web sale en el idioma que no quieres | Pulsa la bandera de la esquina superior derecha, o abre el enlace con `?lang=es` o `?lang=en`. El navegador recuerda la última elección |
 | La web pide un código de acceso | Vuelve a abrir el enlace con `?code=` |
+| La segunda pestaña da un error 404 (`DeploymentNotFound`) | Falta el despliegue `gpt-6-luna`. Consulta «Configuración» en el README |
+| Un paso de la segunda pestaña tarda más de 10 s | Se ha agotado el límite de tokens por minuto de `gpt-6-luna` (100.000, compartidos con el rival del caso 6) y el servidor reintenta solo durante 45 s como máximo. Una revisión de contratos usa unos 55.000 tokens: no la repitas seguida ni la juntes con una partida del caso 6 |
+| Error 429 en la segunda pestaña | Han pasado esos 45 s sin cuota. Espera un minuto y vuelve a pulsar ▶ |
+| Han desaparecido los resultados de la segunda pestaña | Has cambiado de idioma: en esa pestaña se borran. Vuelve a procesar el caso |
 | No hay conexión | Enseña las capturas de una ejecución real (lista debajo) |
 
 Capturas de una ejecución real en Azure, por si no hay conexión:
@@ -288,3 +441,7 @@ Capturas de una ejecución real en Azure, por si no hay conexión:
 - [Caso 6 · Space Invaders en directo, a mitad de partida (×2)](img/07-invaders-partida.png)
 - [Caso 6 · Comparativa final: Decision-1 contra GPT-6 Luna](img/08-invaders-comparativa.png)
 - [Plantilla «Reglas del proyecto» en el laboratorio](img/06-agente-reglas.png)
+- [Segunda pestaña · Caso 1 · Reclamaciones en cascada](img/10-dx-cascada.png)
+- [Segunda pestaña · Caso 2 · Notas de gastos con foto](img/11-dx-gastos.png)
+- [Segunda pestaña · Caso 4 · Inspección de seguridad](img/12-dx-seguridad.png)
+- [Segunda pestaña · Caso 5 · Revisión de contratos](img/13-dx-contratos.png)

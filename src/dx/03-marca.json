@@ -1,0 +1,119 @@
+{
+  "id": "marca",
+  "order": 3,
+  "icon": "🎨",
+  "kind": "creatives",
+  "title": "Control de marca",
+  "sector": "Marketing",
+  "brand": "Contoso Viajes",
+  "headline": "Cada anuncio revisado contra la guía de marca antes de publicarse: logotipo, colores, contraste y textos legales.",
+  "item_label": "creatividad",
+  "item_label_plural": "creatividades",
+  "threshold": 0.7,
+  "developer": "Eres el revisor de marca de Contoso Viajes. Revisas creatividades publicitarias antes de publicarlas y las comparas con la guía de marca que sigue y con el logotipo y la paleta oficiales, que se adjuntan como imágenes de referencia.",
+  "context_file": "guia-marca.md",
+  "context_label": "Guía de marca",
+  "references_text": "Referencias oficiales de marca: el logotipo de Contoso Viajes y su paleta de colores.",
+  "references": [
+    { "image": "marca/logo.png", "label": "Logotipo oficial" },
+    { "image": "marca/paleta.png", "label": "Paleta oficial" }
+  ],
+  "image_text": "Creatividad que hay que revisar ({format}, {channel}):",
+  "low_outcome": "revisar",
+  "rules": [
+    { "id": "legal", "any": ["falta_legal", "persona"], "outcome": "legal", "reason": "Oferta sin texto legal o persona reconocible: Legal tiene prioridad (guía, 7.3, 8.2 y 10)." },
+    { "id": "diseno", "any": ["logo_presente", "logo_deformado", "logo_recoloreado", "paleta", "legible"], "outcome": "corregir", "reason": "Logotipo, colores o contraste fuera de la guía: vuelve a Diseño (guía, 3, 4, 6 y 10)." },
+    { "id": "cumple", "outcome": "publicar", "reason": "Cumple todas las comprobaciones de la guía de marca." }
+  ],
+  "questions": {
+    "logo_presente": {
+      "type": "predicate",
+      "label": "Lleva logotipo",
+      "instructions": "¿Aparece el logotipo de Contoso Viajes en la creatividad?",
+      "good": true,
+      "flag": "🚫 Sin logotipo"
+    },
+    "logo_deformado": {
+      "type": "predicate",
+      "label": "Logotipo deformado",
+      "instructions": "Fíjate solo en el logotipo y compáralo con el de referencia. ¿Está estirado o aplastado? Por ejemplo, el círculo se ve como un óvalo o las letras, más anchas o más estrechas de lo normal.",
+      "good": false,
+      "flag": "↔️ Logotipo deformado"
+    },
+    "logo_recoloreado": {
+      "type": "predicate",
+      "label": "Logotipo recoloreado",
+      "instructions": "Fíjate solo en el logotipo (el círculo con la ola y el nombre), no en el resto de la creatividad. ¿Tiene el círculo un color distinto del teal, la ola un color distinto del blanco, o el nombre un color distinto del navy o del blanco?",
+      "good": false,
+      "flag": "🖍️ Logotipo recoloreado"
+    },
+    "paleta": {
+      "type": "score",
+      "label": "Fidelidad a la paleta",
+      "instructions": "¿Cuánto se ajustan los colores de los textos, rótulos y elementos gráficos a la paleta oficial? No tengas en cuenta los colores de la fotografía de fondo.",
+      "good": [1, 2],
+      "flag": "🎨 Colores fuera de paleta",
+      "levels": [
+        { "label": "Fuera de paleta", "description": "Colores ajenos a la marca, como neones o fluorescentes." },
+        { "label": "Parcial", "description": "Mezcla colores de la paleta con otros ajenos." },
+        { "label": "Fiel", "description": "Solo usa colores de la paleta oficial." }
+      ]
+    },
+    "legible": {
+      "type": "score",
+      "label": "Legibilidad",
+      "instructions": "¿Con qué facilidad se leen, sobre su fondo, los textos que aparecen en la creatividad?",
+      "good": [1, 2],
+      "flag": "👓 Contraste insuficiente",
+      "levels": [
+        { "label": "Difícil", "description": "Algún texto cuesta leerlo: poco contraste con el fondo, por ejemplo, texto claro sobre una zona clara." },
+        { "label": "Aceptable", "description": "Todo se lee, aunque algún texto podría tener más contraste." },
+        { "label": "Fácil", "description": "Todos los textos se leen sin esfuerzo." }
+      ]
+    },
+    "precio": {
+      "type": "predicate",
+      "label": "Anuncia precio o descuento",
+      "instructions": "¿Muestra la creatividad un precio en euros o un porcentaje de descuento?",
+      "info": "💶 Anuncia precio o descuento"
+    },
+    "falta_legal": {
+      "type": "predicate",
+      "label": "Falta el texto legal",
+      "instructions": "¿Muestra la creatividad un precio en euros o un porcentaje de descuento sin la línea legal que empieza por «Precio final por persona»? Si no muestra ningún precio ni descuento, responde que no.",
+      "good": false,
+      "flag": "⚖️ Oferta sin texto legal"
+    },
+    "persona": {
+      "type": "predicate",
+      "label": "Persona reconocible",
+      "instructions": "¿Aparece una persona reconocible, con la cara visible con claridad?",
+      "good": false,
+      "flag": "🧑 Persona reconocible: derechos de imagen"
+    }
+  },
+  "outcomes": {
+    "publicar": { "icon": "✅", "stamp": "PUBLICAR", "tone": "ok", "auto": true },
+    "corregir": { "icon": "✏️", "stamp": "CORREGIR", "tone": "warn", "auto": true },
+    "legal": { "icon": "⚖️", "stamp": "LEGAL", "tone": "bad", "auto": true },
+    "revisar": { "icon": "👤", "stamp": "REVISAR", "tone": "info", "auto": false }
+  },
+  "items": [
+    { "id": "k1", "image": "marca/k1.jpg", "title": "Lisboa en otoño", "format": "feed 1:1", "channel": "Instagram", "expected": "publicar" },
+    { "id": "k2", "image": "marca/k2.jpg", "title": "Calas de Mallorca", "format": "feed 1:1", "channel": "Facebook", "expected": "corregir" },
+    { "id": "k3", "image": "marca/k3.jpg", "title": "París al atardecer", "format": "feed 1:1", "channel": "Instagram", "expected": "corregir" },
+    { "id": "k4", "image": "marca/k4.jpg", "title": "Sevilla flash", "format": "feed 1:1", "channel": "TikTok", "expected": "corregir" },
+    { "id": "k5", "image": "marca/k5.jpg", "title": "Black Friday Baleares", "format": "feed 1:1", "channel": "Facebook", "expected": "legal" },
+    { "id": "k6", "image": "marca/k6.jpg", "title": "Santorini", "format": "feed 1:1", "channel": "Display", "expected": "corregir" },
+    { "id": "k7", "image": "marca/k7.jpg", "title": "Tu verano empieza aquí", "format": "feed 1:1", "channel": "Instagram", "expected": "legal" },
+    { "id": "k8", "image": "marca/k8.jpg", "title": "Dolomitas", "format": "story 9:16", "channel": "Instagram", "expected": "publicar" }
+  ],
+  "notes": {
+    "reto": "Los equipos de marketing producen cientos de piezas a la semana entre agencias, filiales y herramientas generativas. Revisar cada una contra la guía de marca lleva **unos 6 minutos** y es un cuello de botella antes de cada campaña.",
+    "solucion": "Una llamada por creatividad con la **guía de marca en texto**, el **logotipo y la paleta oficiales como imágenes de referencia** y la pieza que hay que revisar. Ocho preguntas detectan logotipos deformados o recoloreados, colores fuera de paleta, contraste bajo, ofertas sin texto legal y personas reconocibles; **la prioridad de la guía, escrita en código, decide** si se publica, se corrige o va a Legal.",
+    "paradigma": "La guía y las imágenes de referencia forman un **prefijo fijo que la API guarda en caché**: cada pieza nueva solo paga su propia imagen. Revisar todo lo que se publica, también lo generado con IA, pasa a costar céntimos y un segundo.",
+    "aplica_a": ["Marketing y agencias", "Retail y gran consumo", "Turismo y hoteles", "Banca y seguros: publicidad regulada", "Franquicias y redes comerciales", "Marketplaces: fotos de vendedores"],
+    "capacidades": ["🖼️ Varias imágenes por petición", "🖼️ Imágenes de referencia en caché", "📏 Normas de marca en lenguaje natural", "⚖️ Detección de riesgos legales"],
+    "savings": { "volume_month": 3000, "minutes_per_item": 6, "eur_hour": 45 }
+  }
+}

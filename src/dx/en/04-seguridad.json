@@ -1,0 +1,94 @@
+{
+  "title": "Safety inspection",
+  "sector": "Operations · health and safety",
+  "headline": "One photo of the workplace and, in a second, what hazards there are, how serious they are and what to do.",
+  "item_label": "photo",
+  "item_label_plural": "photos",
+  "developer": "You are an occupational health and safety technician at Fabrikam. You analyse inspection photos of warehouses, hotels, offices and plant rooms. Report only what can be seen in the photo, without assuming what does not appear.",
+  "image_text": "Inspection photo ({site} · {zone}):",
+  "policy": {
+    "label": "Risk matrix",
+    "floor_text": "{flag} ⇒ at least «{level}»",
+    "rules": [
+      { "reason": "Critical with someone exposed: the work stops." },
+      { "reason": "Serious or critical: fixed today and the site manager is notified." },
+      { "reason": "Minor: fixed in the next maintenance round." },
+      { "reason": "No risk: nothing needs fixing." }
+    ]
+  },
+  "questions": {
+    "salida_bloqueada": {
+      "label": "Blocked exit",
+      "instructions": "Is there an emergency exit door with boxes, pallets or other objects placed in front of it?",
+      "flag": "🚪 Emergency exit blocked"
+    },
+    "extintor_obstruido": {
+      "label": "Obstructed extinguisher",
+      "instructions": "Is a fire extinguisher, a fire hose or other firefighting equipment covered, obstructed or inaccessible?",
+      "flag": "🧯 Extinguisher inaccessible"
+    },
+    "tropiezo": {
+      "label": "Trip hazard",
+      "instructions": "Are there cables, boxes or other loose objects in a walkway that could cause someone to trip?",
+      "flag": "🧵 Trip hazard"
+    },
+    "derrame": {
+      "label": "Wet floor",
+      "instructions": "Is there spilled liquid or a wet floor without a warning sign?",
+      "flag": "💧 Unsigned wet floor"
+    },
+    "altura": {
+      "label": "Unsafe work at height",
+      "instructions": "Is someone working at height (ladder, scaffold or shelving) without protection or in an unsafe way?",
+      "flag": "🪜 Work at height without protection"
+    },
+    "electrico": {
+      "label": "Electrical hazard",
+      "instructions": "Is there an open electrical panel, bare wires or exposed live parts?",
+      "flag": "⚡ Electrical hazard"
+    },
+    "carga_inestable": {
+      "label": "Unstable load",
+      "instructions": "Are there loads stacked unstably, sticking out or likely to fall?",
+      "flag": "📦 Unstable load"
+    },
+    "persona_expuesta": {
+      "label": "Person exposed",
+      "instructions": "Can you see anyone exposed right now to a serious hazard, for example standing on a ladder without protection or handling an open electrical panel?",
+      "info": "👷 Person exposed now"
+    },
+    "gravedad": {
+      "label": "Severity",
+      "instructions": "Which level of the company's severity matrix applies to this photo?",
+      "levels": [
+        { "label": "No risk", "description": "Facility in normal use and in order: walkways and exits clear, emergency equipment accessible and loads properly placed. Full, properly loaded shelving is not a hazard." },
+        { "label": "Minor", "description": "Untidiness or a minor breach that would at most cause a minor injury; for example, cables or a power strip on an office floor." },
+        { "label": "Serious", "description": "Could cause a significant injury or hinder the response to an emergency; for example, an unsigned wet floor, a covered extinguisher or badly stacked boxes that could fall." },
+        { "label": "Critical", "description": "Imminent danger of very serious injury, electrocution, a fall from height or being unable to evacuate; for example, a blocked emergency exit, an open electrical panel or someone working at height without protection." }
+      ]
+    }
+  },
+  "outcomes": {
+    "ok": { "stamp": "NO ACTION" },
+    "programar": { "stamp": "SCHEDULE" },
+    "urgente": { "stamp": "URGENT" },
+    "parar": { "stamp": "STOP" }
+  },
+  "items": [
+    { "id": "s1", "site": "Getafe warehouse", "zone": "Loading dock" },
+    { "id": "s2", "site": "Hotel Málaga", "zone": "Kitchen" },
+    { "id": "s3", "site": "Madrid offices", "zone": "3rd floor" },
+    { "id": "s4", "site": "Hotel Málaga", "zone": "Lobby" },
+    { "id": "s5", "site": "Zaragoza plant", "zone": "Plant room" },
+    { "id": "s6", "site": "Hotel Málaga", "zone": "Service corridor" },
+    { "id": "s7", "site": "Hotel Málaga", "zone": "2nd-floor corridor" },
+    { "id": "s8", "site": "Getafe warehouse", "zone": "Picking area" }
+  ],
+  "notes": {
+    "reto": "Safety rounds produce hundreds of photos that nobody reviews in time: a blocked exit or a covered extinguisher can go unfixed for days, and each manual review takes **about 3 minutes**.",
+    "solucion": "Each photo is assessed in a single call: **seven yes/no hazards**, whether **anyone is exposed** and the **severity** on an ordered scale. The model does not choose the action: it comes from the **company's risk matrix**, which also sets minimums (a blocked exit is always critical).",
+    "paradigma": "Any employee with a phone becomes an inspector. There is no need to train a custom vision model: hazards are described in natural language and changed by editing a sentence.",
+    "aplica_a": ["Hotels and restaurants", "Logistics and warehouses", "Manufacturing", "Shops and back rooms", "Construction", "Facility management"],
+    "capacidades": ["🖼️ Photo as input", "✅ Eight yes/no questions in one call", "📶 Severity on an ordered scale", "📐 Deterministic risk matrix", "📷 Try it with your own photo"]
+  }
+}

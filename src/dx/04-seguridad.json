@@ -1,0 +1,126 @@
+{
+  "id": "seguridad",
+  "order": 4,
+  "icon": "🦺",
+  "kind": "safety",
+  "title": "Inspección de seguridad",
+  "sector": "Operaciones · prevención de riesgos",
+  "brand": "Fabrikam",
+  "headline": "Una foto del centro de trabajo y, en un segundo, qué riesgos hay, cómo de graves son y qué hacer.",
+  "item_label": "foto",
+  "item_label_plural": "fotos",
+  "threshold": 0.7,
+  "developer": "Eres técnico de prevención de riesgos laborales de Fabrikam. Analizas fotos de inspección de almacenes, hoteles, oficinas y salas técnicas. Señala solo lo que se ve en la foto, sin suponer lo que no aparece.",
+  "image_text": "Foto de inspección ({site} · {zone}):",
+  "upload": true,
+  "policy": {
+    "q": "gravedad",
+    "label": "Matriz de riesgos",
+    "floor_text": "{flag} ⇒ como mínimo «{level}»",
+    "rules": [
+      { "levels": [3], "if": "persona_expuesta", "outcome": "parar", "reason": "Crítico y con una persona expuesta: se para la actividad." },
+      { "levels": [2, 3], "outcome": "urgente", "reason": "Grave o crítico: se corrige hoy y se avisa al responsable del centro." },
+      { "levels": [1], "outcome": "programar", "reason": "Leve: se corrige en la próxima ronda de mantenimiento." },
+      { "levels": [0], "outcome": "ok", "reason": "Sin riesgo: no hay nada que corregir." }
+    ]
+  },
+  "questions": {
+    "salida_bloqueada": {
+      "type": "predicate",
+      "label": "Salida bloqueada",
+      "instructions": "¿Hay una puerta de salida de emergencia con cajas, palés u otros objetos colocados delante?",
+      "good": false,
+      "flag": "🚪 Salida de emergencia bloqueada",
+      "floor": 3
+    },
+    "extintor_obstruido": {
+      "type": "predicate",
+      "label": "Extintor obstruido",
+      "instructions": "¿Hay un extintor, una boca de incendio u otro equipo contra incendios tapado, obstruido o inaccesible?",
+      "good": false,
+      "flag": "🧯 Extintor inaccesible",
+      "floor": 2
+    },
+    "tropiezo": {
+      "type": "predicate",
+      "label": "Riesgo de tropiezo",
+      "instructions": "¿Hay cables, cajas u otros objetos sueltos en una zona de paso que puedan provocar tropiezos?",
+      "good": false,
+      "flag": "🧵 Riesgo de tropiezo",
+      "floor": 1
+    },
+    "derrame": {
+      "type": "predicate",
+      "label": "Suelo mojado",
+      "instructions": "¿Hay líquido derramado o suelo mojado sin señalizar?",
+      "good": false,
+      "flag": "💧 Suelo mojado sin señalizar",
+      "floor": 2
+    },
+    "altura": {
+      "type": "predicate",
+      "label": "Trabajo en altura inseguro",
+      "instructions": "¿Hay alguien trabajando en altura (escalera, andamio o estantería) sin protección o de forma insegura?",
+      "good": false,
+      "flag": "🪜 Trabajo en altura sin protección",
+      "floor": 3
+    },
+    "electrico": {
+      "type": "predicate",
+      "label": "Riesgo eléctrico",
+      "instructions": "¿Hay un cuadro eléctrico abierto, cables pelados o partes con tensión al descubierto?",
+      "good": false,
+      "flag": "⚡ Riesgo eléctrico",
+      "floor": 3
+    },
+    "carga_inestable": {
+      "type": "predicate",
+      "label": "Carga inestable",
+      "instructions": "¿Hay cargas apiladas de forma inestable, que sobresalen o que pueden caer?",
+      "good": false,
+      "flag": "📦 Carga inestable",
+      "floor": 2
+    },
+    "persona_expuesta": {
+      "type": "predicate",
+      "label": "Persona expuesta",
+      "instructions": "¿Se ve a alguna persona expuesta ahora mismo a un peligro grave, por ejemplo subida a una escalera sin protección o manipulando un cuadro eléctrico abierto?",
+      "info": "👷 Persona expuesta ahora"
+    },
+    "gravedad": {
+      "type": "score",
+      "label": "Gravedad",
+      "instructions": "¿Qué nivel de la matriz de gravedad de la empresa corresponde a esta foto?",
+      "levels": [
+        { "label": "Sin riesgo", "description": "Instalación en uso normal y en orden: zonas de paso y salidas despejadas, equipos de emergencia accesibles y la carga bien colocada. Unas estanterías llenas y bien cargadas no son un riesgo." },
+        { "label": "Leve", "description": "Desorden o incumplimiento menor que, como mucho, causaría una lesión leve; por ejemplo, cables o una regleta en el suelo de una oficina." },
+        { "label": "Grave", "description": "Puede causar una lesión importante o dificultar la respuesta a una emergencia; por ejemplo, suelo mojado sin señalizar, un extintor tapado o cajas mal apiladas que pueden caer." },
+        { "label": "Crítico", "description": "Peligro inminente de lesión muy grave, electrocución, caída de altura o de no poder evacuar; por ejemplo, una salida de emergencia bloqueada, un cuadro eléctrico abierto o una persona trabajando en altura sin protección." }
+      ]
+    }
+  },
+  "outcomes": {
+    "ok": { "icon": "✅", "stamp": "SIN ACCIONES", "tone": "ok", "auto": true },
+    "programar": { "icon": "🗓️", "stamp": "PROGRAMAR", "tone": "info", "auto": true },
+    "urgente": { "icon": "⚠️", "stamp": "URGENTE", "tone": "warn", "auto": true },
+    "parar": { "icon": "⛔", "stamp": "PARAR", "tone": "bad", "auto": true }
+  },
+  "items": [
+    { "id": "s1", "image": "seguridad/s1-salida.jpg", "site": "Almacén de Getafe", "zone": "Muelle de carga", "expected": { "gravedad": 3, "outcome": "urgente" } },
+    { "id": "s2", "image": "seguridad/s2-cocina.jpg", "site": "Hotel Málaga", "zone": "Cocina", "expected": { "gravedad": 2, "outcome": "urgente" } },
+    { "id": "s3", "image": "seguridad/s3-oficina.jpg", "site": "Oficinas de Madrid", "zone": "Planta 3", "expected": { "gravedad": 1, "outcome": "programar" } },
+    { "id": "s4", "image": "seguridad/s4-escalera.jpg", "site": "Hotel Málaga", "zone": "Vestíbulo", "expected": { "gravedad": 3, "outcome": "parar" } },
+    { "id": "s5", "image": "seguridad/s5-cuadro.jpg", "site": "Planta de Zaragoza", "zone": "Sala técnica", "expected": { "gravedad": 3, "outcome": "urgente" } },
+    { "id": "s6", "image": "seguridad/s6-ok.jpg", "site": "Hotel Málaga", "zone": "Pasillo de servicio", "expected": { "gravedad": 0, "outcome": "ok" } },
+    { "id": "s7", "image": "seguridad/s7-pasillo.jpg", "site": "Hotel Málaga", "zone": "Pasillo de la 2.ª planta", "expected": { "gravedad": 2, "outcome": "urgente" } },
+    { "id": "s8", "image": "seguridad/s8-almacen.jpg", "site": "Almacén de Getafe", "zone": "Zona de picking", "expected": { "gravedad": 2, "outcome": "urgente" } }
+  ],
+  "notes": {
+    "reto": "Las rondas de seguridad generan cientos de fotos que nadie revisa a tiempo: una salida bloqueada o un extintor tapado pueden pasar días sin corregirse, y cada revisión manual lleva **unos 3 minutos**.",
+    "solucion": "Cada foto se evalúa en una sola llamada: **siete riesgos sí/no**, si hay **alguien expuesto** y la **gravedad** en una escala ordenada. La acción no la elige el modelo: sale de la **matriz de riesgos de la empresa**, que además fija mínimos (una salida bloqueada siempre es crítica).",
+    "paradigma": "Cualquier empleado con un móvil se convierte en inspector. No hay que entrenar un modelo de visión a medida: los riesgos se describen en lenguaje natural y se cambian editando una frase.",
+    "aplica_a": ["Hoteles y restauración", "Logística y almacenes", "Industria", "Tiendas y trastiendas", "Construcción", "Facility management"],
+    "capacidades": ["🖼️ Foto como entrada", "✅ Ocho preguntas sí/no en una llamada", "📶 Gravedad en escala ordenada", "📐 Matriz de riesgos determinista", "📷 Prueba con tu propia foto"],
+    "savings": { "volume_month": 8000, "minutes_per_item": 3, "eur_hour": 30 }
+  }
+}

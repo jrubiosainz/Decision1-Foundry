@@ -4,8 +4,9 @@ import { S, errorText } from './core.js';
 import { t, tx } from './i18n.js';
 import { valid } from './views/common.js';
 
-const D1_COLOR = '#0f6cbd';
-const LLM_COLOR = '#7c3aed';
+// Con una marca aplicada (brand.css), Decision-1 toma el color de los ribetes y el rival un gris del texto.
+const D1_COLOR = 'var(--b-accent, #0f6cbd)';
+const LLM_COLOR = 'var(--b-rv, #7c3aed)';
 
 /** Nombre del rival en el idioma activo: el estado guarda solo el id y /api/config lo sirve ya traducido. */
 export const rivalLabel = (model) => S.config?.comparisons?.find((c) => c.id === model)?.label ?? model;

@@ -42,10 +42,10 @@ export default {
 
   // app.js · barra superior
   'Región donde se ejecutó la última inferencia (cabecera de la respuesta)': 'Region where the last inference ran (response header)',
-  '🧠 Inferencia: ': '🧠 Inference: ',
+  'Inferencia: ': 'Inference: ',
   'Peticiones por minuto disponibles para Decision-1 (estimación)': 'Requests per minute available for Decision-1 (estimate)',
   'Mostrar u ocultar las notas (N)': 'Show or hide the notes (N)',
-  '📝 Notas': '📝 Notes',
+  'Notas': 'Notes',
   'Región del recurso de Microsoft Foundry': 'Microsoft Foundry resource region',
   'Foundry · ': 'Foundry · ',
   'Sin configurar · ': 'Not configured · ',

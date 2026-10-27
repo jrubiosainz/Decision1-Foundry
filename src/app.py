@@ -3,17 +3,23 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
+import hashlib
 import hmac
+import html
 import json
 import logging
 import math
 import os
+import re
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -40,6 +46,23 @@ GAME_D1_ID = "decision-1"
 GAME_LLM_TOKENS = 256  # sin razonamiento la respuesta son ~20 tokens; con razonamiento hace falta más margen
 GAME_LLM_REASONING_TOKENS = 4000
 D1_PRICE_KEY = "Microsoft-Decision-1"
+
+# Marca del cliente (logotipo, nombre, colores y tipografía). En App Service, /home es almacenamiento
+# persistente: la marca sobrevive a reinicios y a nuevos despliegues.
+BRAND_FILE = Path(
+    os.environ.get("BRAND_FILE")
+    or ("/home/data/brand.json" if os.environ.get("WEBSITE_SITE_NAME") else demo.BASE.parent / ".data" / "brand.json")
+)
+LOGO_FILE = BRAND_FILE.with_name("brand-logo.png")
+DEFAULT_BRAND = {"name": "", "text": "#0f172a", "background": "#ffffff", "accent": "#0f6cbd", "font": ""}
+BRAND_COLORS = ("text", "background", "accent")
+HEX = re.compile(r"#[0-9a-fA-F]{6}")
+FONT = re.compile(r"""[\w ,.'"-]{1,160}""")
+MAX_BRAND_NAME = 60
+MAX_LOGO_BYTES = 600_000
+MAX_LOGO_SIDE = 4096
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+INDEX_FILE = demo.BASE / "static" / "index.html"
 
 SCENARIOS_BY_LANG = {lang: demo.load_scenarios(lang=lang) for lang in demo.LANGS}
 LABS = {lang: demo.load_lab(lang) for lang in demo.LANGS}
@@ -72,6 +95,10 @@ MESSAGES = {
         "unknown_dx_checklist": "Lista de comprobación desconocida: {id}",
         "dx_upload_type": "La foto debe ser una imagen JPEG, PNG o WebP.",
         "dx_upload_size": "La foto admite hasta {max} MB.",
+        "brand_name": "El nombre admite hasta {max} caracteres.",
+        "brand_color": "Los colores deben tener el formato #RRGGBB.",
+        "brand_font": "Nombre de fuente no válido: usa letras, números, espacios, comas y comillas.",
+        "brand_logo": "El logotipo debe ser una imagen PNG de hasta {max} KB y {side} px por lado.",
     },
     "en": {
         "bad_code": "Wrong access code",
@@ -93,6 +120,10 @@ MESSAGES = {
         "unknown_dx_checklist": "Unknown checklist: {id}",
         "dx_upload_type": "The photo must be a JPEG, PNG or WebP image.",
         "dx_upload_size": "The photo accepts up to {max} MB.",
+        "brand_name": "The name accepts up to {max} characters.",
+        "brand_color": "Colors must use the #RRGGBB format.",
+        "brand_font": "Invalid font name: use letters, numbers, spaces, commas and quotes.",
+        "brand_logo": "The logo must be a PNG image of up to {max} KB and {side} px per side.",
     },
 }
 
@@ -286,6 +317,223 @@ class DxIn(BaseModel):
 @app.get("/healthz")
 async def healthz() -> dict:
     return {"ok": True}
+
+
+# ---------- Marca del cliente: logotipo, nombre, colores y tipografía ----------
+
+_brand_cache: dict[str, Any] = {"key": None, "brand": None}
+
+
+def _valid_font(font: str) -> bool:
+    return bool(FONT.fullmatch(font)) and font.count('"') % 2 == 0 and font.count("'") % 2 == 0
+
+
+def _clean_brand(data: dict) -> dict:
+    """Valores guardados saneados: lo que no sea válido vuelve al de Microsoft Foundry."""
+    brand = dict(DEFAULT_BRAND)
+    name = data.get("name")
+    if isinstance(name, str):
+        brand["name"] = " ".join(name.split())[:MAX_BRAND_NAME]
+    for key in BRAND_COLORS:
+        value = data.get(key)
+        if isinstance(value, str) and HEX.fullmatch(value):
+            brand[key] = value.lower()
+    font = data.get("font")
+    if isinstance(font, str) and _valid_font(font):
+        brand["font"] = font
+    logo = data.get("logo")
+    brand["logo"] = logo if isinstance(logo, str) and re.fullmatch(r"[0-9a-f]{12}", logo) else None
+    return brand
+
+
+def _read_brand() -> tuple[dict, bool]:
+    """Marca guardada y si hay alguna; se relee cuando cambia el archivo."""
+    try:
+        st = BRAND_FILE.stat()
+    except FileNotFoundError:
+        return {**DEFAULT_BRAND, "logo": None}, False
+    except OSError as exc:
+        log.warning("No se pudo leer %s: %s", BRAND_FILE, exc)
+        return {**DEFAULT_BRAND, "logo": None}, False
+    key = (st.st_mtime_ns, st.st_size)
+    if _brand_cache["key"] != key:
+        try:
+            data = json.loads(BRAND_FILE.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            log.warning("No se pudo leer %s: %s", BRAND_FILE, exc)
+            return {**DEFAULT_BRAND, "logo": None}, False
+        _brand_cache.update(key=key, brand=_clean_brand(data if isinstance(data, dict) else {}))
+    return dict(_brand_cache["brand"]), True
+
+
+def _rgb(color: str) -> tuple[int, ...]:
+    return tuple(int(color[i : i + 2], 16) for i in (1, 3, 5))
+
+
+def _luminance(color: str) -> float:
+    def lin(c: float) -> float:
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (lin(c / 255) for c in _rgb(color))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast(a: str, b: str) -> float:
+    hi, lo = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def _mix(a: str, b: str, weight: float) -> str:
+    """Como color-mix(in srgb, a weight, b). Redondea igual que Math.round en la web."""
+    return "#" + "".join(f"{math.floor(x * weight + y * (1 - weight) + 0.5):02x}" for x, y in zip(_rgb(a), _rgb(b)))
+
+
+def _on_accent(accent: str) -> str:
+    """Texto sobre el acento (botones principales): blanco si se lee bien; si no, el que más contraste."""
+    if _contrast("#ffffff", accent) >= 4.5:
+        return "#ffffff"
+    return max(("#ffffff", "#111111"), key=lambda c: _contrast(c, accent))
+
+
+def _accent_text(accent: str, text: str, background: str) -> str:
+    """El acento usado como texto, acercado al color del texto hasta leerse bien (AA) sobre el fondo,
+    los paneles (en el tema oscuro, un 6 % del texto) y los realces del acento (hasta un 20 %), como en brand.css."""
+    panel = _mix(text, background, 0.06)
+    surfaces = (background, panel, _mix(accent, background, 0.2), _mix(accent, panel, 0.2))
+    for step in range(11):
+        color = _mix(accent, text, 1 - step / 10)
+        if min(_contrast(color, s) for s in surfaces) >= 4.5:
+            return color
+    return text
+
+
+def _brand_public(brand: dict, configured: bool) -> dict:
+    return {
+        "configured": configured,
+        "themed": any(brand[k] != DEFAULT_BRAND[k] for k in BRAND_COLORS),
+        "scheme": "dark" if _luminance(brand["background"]) < 0.18 else "light",
+        **{k: brand[k] for k in ("name", *BRAND_COLORS, "font")},
+        "onAccent": _on_accent(brand["accent"]),
+        "accentText": _accent_text(brand["accent"], brand["text"], brand["background"]),
+        "logo": f"/api/brand/logo?v={brand['logo']}" if brand.get("logo") else None,
+    }
+
+
+@app.get("/api/brand")
+async def get_brand() -> dict:
+    """Sin código de acceso, como la propia página: la marca se ve antes de entrar."""
+    return _brand_public(*_read_brand())
+
+
+@app.get("/api/brand/logo")
+async def get_brand_logo(v: str = "") -> Response:
+    brand, _ = _read_brand()
+    try:
+        data = LOGO_FILE.read_bytes() if brand["logo"] else b""
+    except OSError:
+        data = b""
+    if not data:
+        raise HTTPException(404, "Sin logotipo")
+    cache = "public, max-age=31536000, immutable" if v == brand["logo"] else "no-cache"
+    return Response(data, media_type="image/png", headers={"Cache-Control": cache, "X-Content-Type-Options": "nosniff"})
+
+
+class BrandIn(BaseModel):
+    name: str = ""
+    text: str
+    background: str
+    accent: str
+    font: str = ""
+    # data:image/png;base64,… para cambiar el logotipo y null para quitarlo; si no se envía, se conserva.
+    logo: str | None = None
+
+
+def _decode_logo(data_url: str, lang: str) -> bytes:
+    prefix = "data:image/png;base64,"
+    error = fail(400, lang, "brand_logo", max=MAX_LOGO_BYTES // 1000, side=MAX_LOGO_SIDE)
+    if not data_url.startswith(prefix) or len(data_url) > len(prefix) + (MAX_LOGO_BYTES + 2) // 3 * 4:
+        raise error
+    try:
+        data = base64.b64decode(data_url[len(prefix) :], validate=True)
+    except (binascii.Error, ValueError):
+        raise error from None
+    if len(data) > MAX_LOGO_BYTES or not data.startswith(PNG_MAGIC) or data[12:16] != b"IHDR":
+        raise error
+    width, height = int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+    if not (0 < width <= MAX_LOGO_SIDE and 0 < height <= MAX_LOGO_SIDE):
+        raise error
+    return data
+
+
+def _write_atomic(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)
+
+
+@app.post("/api/brand", dependencies=[Depends(require_code)])
+async def set_brand(request: Request, body: BrandIn) -> dict:
+    lang = lang_of(request)
+    name = " ".join(body.name.split())
+    if len(name) > MAX_BRAND_NAME:
+        raise fail(400, lang, "brand_name", max=MAX_BRAND_NAME)
+    colors = {k: getattr(body, k).strip().lower() for k in BRAND_COLORS}
+    if not all(HEX.fullmatch(v) for v in colors.values()):
+        raise fail(400, lang, "brand_color")
+    font = " ".join(body.font.split())
+    if font and not _valid_font(font):
+        raise fail(400, lang, "brand_font")
+    logo = _read_brand()[0]["logo"]
+    png = None
+    if "logo" in body.model_fields_set:
+        png = _decode_logo(body.logo, lang) if body.logo else None
+        logo = hashlib.sha256(png).hexdigest()[:12] if png else None
+    brand = {"name": name, **colors, "font": font, "logo": logo}
+    if brand == {**DEFAULT_BRAND, "logo": None}:
+        # Igual que Microsoft Foundry: se borra la marca y la demo recupera su aspecto original.
+        for path in (BRAND_FILE, LOGO_FILE):
+            path.unlink(missing_ok=True)
+        log.info("Marca restablecida")
+        return _brand_public(*_read_brand())
+    if png:
+        _write_atomic(LOGO_FILE, png)
+    _write_atomic(BRAND_FILE, json.dumps(brand, ensure_ascii=False, indent=2).encode("utf-8"))
+    if not logo:
+        LOGO_FILE.unlink(missing_ok=True)
+    st = BRAND_FILE.stat()
+    _brand_cache.update(key=(st.st_mtime_ns, st.st_size), brand=brand)
+    log.info("Marca guardada: %s", name or "(sin nombre)")
+    return _brand_public(brand, True)
+
+
+BRAND_MARK = re.compile(r"(<!--brand-->).*?(<!--/brand-->)", re.S)
+
+
+def _brand_mark(pub: dict) -> str:
+    """Logotipo y nombre del cliente en lugar del de Microsoft Foundry ("" si no hay ninguno)."""
+    parts = []
+    if pub["logo"]:
+        alt = html.escape(pub["name"] or "Logo", quote=True)
+        parts.append(f'<img class="brand-logo" src="{html.escape(pub["logo"], quote=True)}" alt="{alt}" />')
+    if pub["name"]:
+        parts.append(f'<span class="brand-name">{html.escape(pub["name"])}</span>')
+    return "".join(parts)
+
+
+def _brand_vars(pub: dict) -> str:
+    decls = []
+    if pub["themed"]:
+        decls += [
+            f"--brand-text:{pub['text']}",
+            f"--brand-bg:{pub['background']}",
+            f"--brand-accent:{pub['accent']}",
+            f"--brand-on-accent:{pub['onAccent']}",
+            f"--brand-accent-text:{pub['accentText']}",
+        ]
+    if pub["font"]:
+        decls.append(f"--font:{pub['font']}")
+    return f":root{{{';'.join(decls)}}}" if decls else ""
 
 
 @app.get("/api/config")
@@ -489,6 +737,21 @@ async def dx_decide(body: DxIn, request: Request) -> dict:
     else:
         out["assessment"] = dx.assess(case, item, answers, lang)
     return out
+
+
+@app.get("/", include_in_schema=False)
+@app.get("/index.html", include_in_schema=False)
+async def index() -> HTMLResponse:
+    """index.html con la marca ya aplicada: la página sale con los colores del cliente desde el primer fotograma."""
+    page = INDEX_FILE.read_text(encoding="utf-8")
+    pub = _brand_public(*_read_brand())
+    if pub["themed"]:
+        page = page.replace("<html ", f'<html data-brand="{pub["scheme"]}" ', 1)
+    page = page.replace("</head>", f'  <style id="brand-vars">{_brand_vars(pub)}</style>\n  </head>', 1)
+    mark = _brand_mark(pub)
+    if mark:
+        page = BRAND_MARK.sub(lambda m: m.group(1) + mark + m.group(2), page, count=1)
+    return HTMLResponse(page, headers={"Cache-Control": "no-cache"})
 
 
 app.mount("/", StaticFiles(directory=demo.BASE / "static", html=True), name="static")

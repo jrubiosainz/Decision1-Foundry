@@ -11,8 +11,12 @@ import { COLS, RULES, createGame, seconds } from './game/engine.js';
 import { describeState, shipLane } from './game/observe.js';
 import { Match, Player } from './game/match.js';
 import { BoardView } from './game/render.js';
+import { boardAccent } from './brand.js';
 
-const COLORS = { d1: '#0f6cbd', rv: '#7c3aed' };
+// Las tarjetas siguen la marca por CSS (brand.css); el lienzo necesita un color real que se vea sobre el tablero oscuro.
+const COLORS = { d1: 'var(--b-accent, #0f6cbd)', rv: 'var(--b-rv, #7c3aed)' };
+const BOARD_COLORS = { d1: '#0f6cbd', rv: '#7c3aed' };
+const boardColor = (side) => (side === 'd1' ? boardAccent() : document.documentElement.dataset.brand ? '#94a3b8' : null) || BOARD_COLORS[side];
 const WARM_TTL = 60_000;
 const OVER_BANNER = { won: N_('¡VICTORIA!'), lost: N_('SIN VIDAS'), invaded: N_('INVADIDOS'), timeout: N_('TIEMPO') };
 
@@ -136,7 +140,7 @@ function buildCard(side, name, sub, caption) {
       stat(t('💶 Coste'), c.cost),
     ),
   );
-  c.view = new BoardView(c.canvas, COLORS[side]);
+  c.view = new BoardView(c.canvas, boardColor(side));
   return c;
 }
 
@@ -453,6 +457,13 @@ function syncControls() {
 }
 
 // ---------- Bucle de fotogramas ----------
+
+// La ventana de marca cambia los colores en vivo: se repintan los tableros aunque la partida esté en pausa.
+window.addEventListener('d1:brand', () => {
+  if (!ui) return;
+  for (const c of ui.cards) c.view.accent = boardColor(c.side);
+  kick();
+});
 
 function kick() {
   if (ui && !raf) raf = requestAnimationFrame(tick);

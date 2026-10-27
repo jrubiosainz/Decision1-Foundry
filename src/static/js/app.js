@@ -9,6 +9,7 @@ import { mountIntro } from './intro.js';
 import { mountLab, unmountLab, labRun } from './lab.js';
 import { mountArcade, unmountArcade, arcadeAction, arcadeFlags, isArcade } from './arcade.js';
 import { isDx, dxReady, dxPages, dxCase, loadDx, mountDx, unmountDx, dxAction, dxFlags } from './dx/index.js';
+import { openBrand, initBrand } from './brand.js';
 
 const stage = $('#stage');
 const notes = $('#notes');
@@ -124,20 +125,42 @@ function updateTabs() {
     if (tab === current) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
   }
+  fitTopbar();
 }
+
+// Si la cabecera no cabe (portátil, nombre o logotipo largo del cliente), se compacta por niveles hasta que cabe:
+// primero los textos accesorios y después las píldoras menos importantes (reglas .fit1…fit7 en styles.css).
+const FIT_LEVELS = 7;
+function fitTopbar() {
+  const bar = $('.topbar');
+  const st = $('#status');
+  const over = () => st.scrollWidth > st.clientWidth || bar.scrollWidth > bar.clientWidth;
+  for (let i = 1; i <= FIT_LEVELS; i++) bar.classList.remove(`fit${i}`);
+  for (let i = 1; i <= FIT_LEVELS && over(); i++) bar.classList.add(`fit${i}`);
+}
+let fitFrame = 0;
+window.addEventListener('resize', () => {
+  fitFrame ||= requestAnimationFrame(() => {
+    fitFrame = 0;
+    fitTopbar();
+  });
+});
+// La marca cambia de anchura al cargarse el logotipo o al editarla; .fit* no la modifica, así que no hay bucle.
+window.addEventListener('d1:brand', () => fitTopbar());
+new ResizeObserver(() => fitTopbar()).observe($('#brand-mark'));
 
 function buildStatus() {
   const d = S.config?.decision || {};
   const ok = !!S.config?.configured;
   status.region = h('b', null, '—');
-  status.regionPill = h('span', { class: 'pill d1-only', title: t('Región donde se ejecutó la última inferencia (cabecera de la respuesta)'), hidden: true }, t('🧠 Inferencia: '), status.region);
+  status.regionPill = h('span', { class: 'pill infer d1-only', title: t('Región donde se ejecutó la última inferencia (cabecera de la respuesta)'), hidden: true }, h('span', null, '🧠 ', h('span', { class: 'pill-label' }, t('Inferencia: '))), status.region);
   status.gauge = h('i');
   status.q = h('b', null, '—');
   status.quota = h('span', { class: 'pill quota d1-only', title: t('Peticiones por minuto disponibles para Decision-1 (estimación)') }, '⏱ ', h('span', { class: 'gauge' }, status.gauge), status.q);
-  status.notesBtn = h('button', { class: 'btn ghost notes-btn', onclick: () => toggleNotes(), title: t('Mostrar u ocultar las notas (N)') }, t('📝 Notas'));
+  status.notesBtn = h('button', { class: 'btn ghost notes-btn', onclick: () => toggleNotes(), title: t('Mostrar u ocultar las notas (N)'), 'aria-label': t('Notas') }, h('span', null, '📝 ', h('span', { class: 'notes-label' }, t('Notas'))));
   $('#status').replaceChildren(
-    h('span', { class: 'pill', title: t('Región del recurso de Microsoft Foundry') }, h('span', { class: `dot${ok ? '' : ' off'}` }), ok ? t('Foundry · ') : t('Sin configurar · '), h('b', null, regionLabel(d.location))),
-    h('span', { class: 'pill d1-only', title: t('Tipo de despliegue de Decision-1') }, '🛡️ ', h('b', null, skuLabel(d.sku, d.location))),
+    h('span', { class: 'pill', title: t('Región del recurso de Microsoft Foundry') }, h('span', { class: `dot${ok ? '' : ' off'}` }), ok ? h('span', { class: 'pill-label' }, t('Foundry · ')) : t('Sin configurar · '), h('b', null, regionLabel(d.location))),
+    h('span', { class: 'pill sku d1-only', title: t('Tipo de despliegue de Decision-1') }, '🛡️ ', h('b', null, skuLabel(d.sku, d.location))),
     h('span', { class: 'pill dx-only', title: t('Despliegue de Foundry que responde a la Decisions API') }, '🧠 ', h('b', null, S.config?.dx?.model || 'gpt-6-luna')),
     status.regionPill,
     status.quota,
@@ -159,6 +182,7 @@ function updateStatus() {
     status.region.textContent = regionLabel(q.region);
     status.regionPill.hidden = false;
   }
+  fitTopbar();
 }
 
 function toggleNotes(force) {
@@ -367,6 +391,9 @@ function applyStaticTexts() {
   $('#sidebar').setAttribute('aria-label', t('Casos de uso'));
   $('#tabs').setAttribute('aria-label', t('Modelos'));
   $('#notes').setAttribute('aria-label', t('Notas para el presentador'));
+  const brandBtn = $('#brand-btn');
+  brandBtn.title = t('Personalizar la marca');
+  brandBtn.setAttribute('aria-label', t('Personalizar la marca'));
   const bootText = $('#boot-text');
   if (bootText) bootText.textContent = t('Cargando la demo…');
 }
@@ -423,6 +450,8 @@ async function boot() {
   takeCodeFromUrl();
   applyStaticTexts();
   renderLangSwitch(switchLang);
+  $('#brand-btn').onclick = () => openBrand();
+  initBrand();
   S.showNotes = localStorage.getItem('d1-notes') !== '0';
   layout.classList.toggle('no-notes', !S.showNotes);
   try {

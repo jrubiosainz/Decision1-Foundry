@@ -6,9 +6,10 @@ import casepage from './en/case.js';
 import introLab from './en/intro-lab.js';
 import arcade from './en/arcade.js';
 import dx from './en/dx.js';
+import brand from './en/brand.js';
 
 const EN = {};
-for (const part of [core, views, casepage, introLab, arcade, dx]) {
+for (const part of [core, views, casepage, introLab, arcade, dx, brand]) {
   for (const [es, en] of Object.entries(part)) {
     if (es in EN && EN[es] !== en) console.warn(`i18n: traducciones distintas para «${es}»`);
     EN[es] = en;

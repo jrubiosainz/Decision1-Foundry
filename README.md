@@ -24,7 +24,8 @@ Una web de tres columnas pensada para presentar, con dos pestañas arriba: **Mic
 - **Izquierda:** introducción y casos de uso de la pestaña; en la de Decision-1, también el laboratorio.
 - **Centro:** la demo en vivo de cada caso, con KPIs (latencia, coste, automatización y acierto) y una vista visual distinta por caso.
 - **Derecha:** notas visibles para la audiencia. Incluyen el reto, la solución, por qué es un nuevo paradigma, dónde aplica, el resultado de la ejecución y una **proyección mensual de ahorro** con supuestos editables.
-- **Arriba a la derecha:** el selector de idioma, con las banderas de España y del Reino Unido. Cambia toda la demo entre español e inglés (consulta [Idiomas](#idiomas-español-e-inglés)).
+- **Arriba a la derecha:** el selector de idioma, con las banderas de España y del Reino Unido. Cambia toda la demo entre español e inglés (consulta [Idiomas](#idiomas-español-e-inglés)). En pantallas de portátil, la cabecera se compacta sola: oculta etiquetas e indicadores secundarios para no tapar nunca las pestañas ni el botón de notas.
+- **🎨 Marca del cliente:** el botón 🎨 de la cabecera cambia el logotipo, el nombre, los colores y la tipografía por los de la empresa a la que presentas (consulta [Personalizar la marca](#personalizar-la-marca)).
 
 | # | Caso | Sector | Qué decide Decision-1 | Elementos × preguntas | Latencia (1 llamada) | Coste del lote | Acierto |
 |---|---|---|---|---|---|---|---|
@@ -161,6 +162,32 @@ Para añadir o corregir una traducción:
 | Precios y etiquetas de las comparaciones | `source_en` y `label_en` en `src/pricing.json` |
 
 Dos comprobaciones sin red: `node scripts/probar-i18n.mjs` (que no falte ninguna traducción ni quede un texto sin envolver) y `.venv/bin/python scripts/probar-idiomas.py --lang en` (que las traducciones de los casos y del laboratorio mantengan la misma estructura y los mismos identificadores que el original). Para medir el acierto del modelo en inglés, ejecuta `scripts/evaluar.py <caso> --lang en`, o `scripts/evaluar-dx.py <caso> --lang en` en la segunda pestaña (consulta [Adaptar un caso a tu cliente](#adaptar-un-caso-a-tu-cliente)).
+
+## Personalizar la marca
+
+![Ventana «Personalizar la marca» con el logotipo, el nombre, la tipografía y los colores de una cadena hotelera ficticia](docs/img/14-marca.png)
+
+El botón 🎨 de la cabecera abre una ventana para vestir la demo con la marca de la empresa a la que la presentas. Los cambios se ven en vivo mientras editas y, al guardar, quedan para todos los que abran la web.
+
+- **Logotipo.** Arrástralo a la ventana, pégalo con Ctrl+V o ⌘V, o haz clic para elegirlo: PNG, JPG, SVG, WebP o GIF de hasta 8 MB. La web recorta los márgenes transparentes, lo guarda como PNG de hasta 600 KB y lo pone en lugar del logotipo de Microsoft Foundry. Si apenas se distingue del fondo (uno oscuro sobre un fondo oscuro, o uno blanco sobre blanco), se coloca solo sobre una placa del color del texto. Debajo aparecen hasta cinco colores del logotipo: haz clic en uno para usarlo en los ribetes.
+- **Nombre.** Sustituye a «Microsoft Foundry» junto al logotipo, con hasta 60 caracteres. Si lo dejas vacío, solo se ve el logotipo.
+- **Colores.** Bastan tres: texto (fuentes), fondo, y ribetes y líneas. De ellos sale toda la paleta: paneles, bordes, botones, realces y gráficos. Con un fondo oscuro, la web pasa a tema oscuro. Los colores con significado (verde, ámbar, rojo…) se mantienen para que los resultados se lean igual, y en las comparativas el modelo rival pasa de morado a gris para que el color de la marca sea el de Decision-1. Hay seis combinaciones listas (Microsoft Foundry, Negro y oro, Noche, Bronce, Marino y Verde), y la ventana avisa si el texto o los ribetes se leen mal sobre el fondo.
+- **Tipografía.** Segoe UI (la predeterminada), cuatro familias habituales (geométrica, clásica, serif y elegante) u «Otra fuente instalada…», donde escribes el nombre exacto de una fuente instalada en el equipo con el que presentas, por ejemplo Montserrat. Si ese equipo no la tiene, se ve la predeterminada.
+- **Guardar.** Hace falta el código de acceso: si el navegador no lo tiene, la ventana lo pide (en local no se pide). «Restablecer Microsoft Foundry» recupera el aspecto original al guardar, y «Cancelar» descarta los cambios.
+
+La marca se guarda en el servidor, no en el navegador. En App Service va a `/home/data/brand.json`, con el logotipo al lado (`brand-logo.png`), en el almacenamiento persistente de la web, así que sobrevive a reinicios y a nuevos despliegues. En local va a `.data/`, que Git ignora. Para usar otra ruta, define la variable de entorno `BRAND_FILE`. La página sale del servidor con la marca ya aplicada, sin un parpadeo previo con los colores de Microsoft.
+
+También puedes dejarla preparada antes de la reunión sin abrir la web, con `POST /api/brand` y el código de acceso en la cabecera `X-Demo-Code`. Los colores van en hexadecimal (`#rrggbb`). `font` admite una lista de fuentes de CSS, como `Georgia,serif`, y vacía deja la predeterminada. `logo` es un PNG de hasta 600 KB y 4096 px por lado, que se usa tal cual, sin el recorte de la ventana. Si no envías `logo`, se conserva el actual, y con `"logo": null` se quita:
+
+```bash
+URL=$(azd env get-value WEB_URL); CODE=$(azd env get-value DEMO_ACCESS_CODE)
+# Con el logotipo en base64, el JSON puede no caber en un argumento: se escribe en un archivo
+{ printf '{"name":"Brisa Hotels & Resorts","text":"#111111","background":"#ffffff","accent":"#b08d57","font":"","logo":"data:image/png;base64,'
+  base64 < logo.png | tr -d '\n'; printf '"}'; } > marca.json
+curl -fsS "$URL/api/brand" -H "X-Demo-Code: $CODE" -H "Content-Type: application/json" --data @marca.json
+```
+
+`GET /api/brand` devuelve la marca actual. Si guardas los colores de Microsoft Foundry (`#0f172a`, `#ffffff` y `#0f6cbd`) sin nombre, tipografía ni logotipo, la marca se borra y la demo recupera su aspecto original.
 
 ## Despliegue
 
@@ -422,6 +449,7 @@ El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`ll
 - **El código de acceso** solo evita que cualquiera con la URL consuma tu cuota; no autentica a los usuarios. Si la demo va a durar, activa la autenticación de App Service con Entra ID.
 - **Residencia de datos.** Con DataZoneStandard, el procesamiento de Decision-1 y de los LLMs de la carrera se queda dentro de la zona de datos de la UE. GPT-6 Luna (caso 6 y segunda pestaña) se despliega en GlobalStandard por la cuota disponible, así que su procesamiento puede salir de la UE. El juego solo envía el estado de la partida, y la segunda pestaña, imágenes sintéticas y textos de ejemplo; si subes tu propia foto en el caso 4, también se procesa ahí. Para mantenerlo dentro de la UE, ejecuta `azd env set GAME_SKU DataZoneStandard` (necesita cuota DataZone de GPT-6 Luna).
 - **Fotos subidas.** La web solo acepta JPEG, PNG o WebP de hasta 3 MB, comprueba el contenido y no solo la extensión, y no guarda la foto: la envía a Foundry y la descarta.
+- **Marca del cliente.** Cualquiera que abra la web ve la marca guardada, aunque no tenga el código de acceso (`GET /api/brand` es público); solo quien tiene el código puede cambiarla. Si no quieres que se sepa a qué cliente presentas, restablécela al terminar. Antes de insertarla en la página, el servidor valida los colores y la tipografía, limita y escapa el nombre, y solo guarda el logotipo si es un PNG válido de hasta 600 KB y 4096 px por lado.
 
 ## Solución de problemas
 
@@ -441,6 +469,9 @@ El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`ll
 | La web tarda 10–30 s en abrir tras un rato sin uso | Pasa con el plan F1, que se duerme tras unos 20 minutos sin tráfico. Ábrela unos minutos antes de presentar, o usa B1 (`azd env set APP_SERVICE_SKU B1` y `azd provision`) |
 | Con la web en inglés, un texto sigue en español | Falta su traducción. En la consola del navegador, `window.__d1Missing` lista las claves sin traducir; añádelas en `src/static/js/i18n/en/*.js`. Si es un ejemplo o una nota de un caso, falta en `src/scenarios/en/*.json` |
 | Quieres localizar textos sin traducir a simple vista | En la consola, `localStorage.setItem('d1-pseudo', '1')` y recarga: cada texto traducible aparece entre ⟦ ⟧. Lo que se vea sin marcar no pasa por la traducción. Para quitarlo, `localStorage.removeItem('d1-pseudo')` |
+| La cabecera no muestra el indicador ⏱ | En pantallas de menos de unos 1440 px de ancho, la cabecera se compacta para no tapar las pestañas y lo oculta. Amplía la ventana o baja el zoom del navegador |
+| El logotipo del cliente aparece sobre una placa | Es automático: el logotipo apenas se distingue del fondo elegido y la web lo pone sobre una placa del color del texto para que se lea. Para quitarla, sube una versión del logotipo que contraste con el fondo o cambia el fondo |
+| No se ve la tipografía de «Otra fuente instalada…» | La fuente tiene que estar instalada, con ese nombre exacto, en el equipo que abre la web; si no, se usa la predeterminada. Para no depender del equipo, elige una familia de la lista |
 
 ## Estructura
 
@@ -457,7 +488,7 @@ El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`ll
 │   ├── probar-i18n.mjs         # comprueba que la interfaz no deja textos sin traducir
 │   └── probar-idiomas.py       # valida las traducciones de src/scenarios/en y src/lab.en.json
 ├── src/
-│   ├── app.py                  # API (FastAPI) y web estática
+│   ├── app.py                  # API (FastAPI), web estática y marca del cliente
 │   ├── decision_client.py      # cliente de Foundry (Decision-1, Decisions API y LLMs) con Entra ID
 │   ├── demo.py                 # peticiones, lotes y costes; carga los casos en el idioma pedido
 │   ├── dx.py                   # segunda pestaña: peticiones a la Decisions API, cascada, reglas y costes
@@ -470,6 +501,7 @@ El caso 6 (`06-invaders.json`) es de otro tipo, `kind: game`: define `game` (`ll
 │   └── static/                 # web en HTML, CSS y JavaScript, sin compilación (el juego, en js/game/)
 │       ├── js/dx/, css/dx.css  # vistas de la segunda pestaña
 │       ├── img/dx/             # sus imágenes sintéticas
+│       ├── js/brand.js         # ventana 🎨 para la marca del cliente (estilos en css/brand.css)
 │       └── js/i18n.js, i18n/   # selector de idioma (langswitch.js) y diccionario en inglés (i18n/en/*.js)
 └── docs/
     ├── GUION-DEMO.md           # guion para presentar la demo

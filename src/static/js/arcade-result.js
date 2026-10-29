@@ -1,4 +1,4 @@
-// Comparativa final de una partida: quién ganó, por qué y qué midió cada modelo.
+// Final comparison of a game: who won, why and what was measured for each model.
 import { h, fmt, rich } from './util.js';
 import { eur } from './core.js';
 import { t, N_ } from './i18n.js';
@@ -6,7 +6,7 @@ import { OVER_LABEL, clock, speedText } from './arcade-shared.js';
 
 const ms = (s) => (s == null ? null : s * 1000);
 
-// Las etiquetas y ayudas se traducen con t() al pintar la tabla.
+// Labels and hints are translated with t() when the table is rendered.
 const ROWS = [
   { label: N_('Resultado'), get: (r) => (OVER_LABEL[r.over] ? t(OVER_LABEL[r.over]) : '—') },
   { label: N_('Puntos'), get: (r) => r.score, show: fmt.int, better: 'high' },
@@ -88,7 +88,7 @@ function insights(res, ses) {
   return out;
 }
 
-/** `act` = { again, nextSeed, faster } (acciones de la barra); `faster` es null si ya está a la máxima velocidad. */
+/** `act` = { again, nextSeed, faster } (bar actions); `faster` is null if already at top speed. */
 export function renderResult(ses, res, act) {
   const [a, b] = res.rows;
   const tone = res.winner === 0 ? 'd1' : res.winner === 1 ? 'rv' : 'tie';

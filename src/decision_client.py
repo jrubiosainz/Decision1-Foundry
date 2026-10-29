@@ -1,12 +1,12 @@
-"""Cliente mínimo y sin claves (Entra ID) para Microsoft-Decision-1, la OpenAI Decisions API y los LLMs de comparación en Microsoft Foundry.
+"""Minimal keyless (Entra ID) client for Microsoft-Decision-1, the OpenAI Decisions API and the comparison LLMs on Microsoft Foundry.
 
-Microsoft-Decision-1 habla el protocolo "System One":
+Microsoft-Decision-1 speaks the "System One" protocol:
     POST {endpoint}/providers/microsoft/v1/systemone
-    {"model": "<deployment>", "state": <texto u objeto>, "questions": {"<nombre>": {"type": "choice"|"score"|"noul", ...}}}
+    {"model": "<deployment>", "state": <text or object>, "questions": {"<name>": {"type": "choice"|"score"|"noul", ...}}}
 
-La OpenAI Decisions API acepta texto, imágenes y JSON como entrada:
+The OpenAI Decisions API accepts text, images and JSON as input:
     POST {endpoint}/openai/v1/decisions
-    {"model": "<deployment>", "input": <texto o mensajes>, "questions": [{"type": "predicate"|"choice"|"score", "name": ..., ...}]}
+    {"model": "<deployment>", "input": <text or messages>, "questions": [{"type": "predicate"|"choice"|"score", "name": ..., ...}]}
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ class FoundryError(Exception):
 
 
 def _make_credential():
-    # En App Service usamos la managed identity; en local, `az login` / `azd auth login`.
+    # On App Service we use the managed identity; locally, `az login` / `azd auth login`.
     if os.environ.get("IDENTITY_ENDPOINT") or os.environ.get("MSI_ENDPOINT"):
         return ManagedIdentityCredential(client_id=os.environ.get("AZURE_CLIENT_ID"))
     return DefaultAzureCredential(
@@ -91,7 +91,7 @@ class FoundryClient:
         return self._token  # type: ignore[return-value]
 
     async def warmup(self) -> None:
-        """Obtiene el token y abre la conexión TLS sin consumir cuota de Decision-1."""
+        """Gets the token and opens the TLS connection without using Decision-1 quota."""
         token = await self._bearer()
         try:
             await self._http.get(f"{self.endpoint}/openai/v1/models", headers={"Authorization": f"Bearer {token}"})
@@ -99,10 +99,10 @@ class FoundryClient:
             pass
 
     async def _post(self, path: str, body: dict, max_wait_s: float | None = None) -> dict:
-        """POST con reintentos ante 429 (respetando retry-after-ms) y 5xx.
+        """POST with retries on 429 (honoring retry-after-ms) and 5xx.
 
-        Devuelve el JSON y métricas: latency_ms (solo el intento bueno), wait_ms (espera por cuota) y attempts.
-        `max_wait_s` sustituye al máximo de espera por cuota (0 = sin reintentos, para llamadas en tiempo real).
+        Returns the JSON and metrics: latency_ms (successful attempt only), wait_ms (time spent waiting for quota) and attempts.
+        `max_wait_s` overrides the maximum quota wait (0 = no retries, for real-time calls).
         """
         limit_s = self.max_rate_wait_s if max_wait_s is None else max_wait_s
         attempts, waited = 0, 0.0
@@ -177,7 +177,7 @@ class FoundryClient:
             "raw": data,
         }
 
-    # ---------- LLM generativo equivalente (para la carrera) ----------
+    # ---------- Equivalent generative LLM (for the race) ----------
 
     async def chat_json(
         self,
@@ -189,7 +189,7 @@ class FoundryClient:
         max_tokens: int = 4000,
         max_wait_s: float | None = None,
     ) -> dict:
-        """Chat completions con salida estructurada (json_schema estricto). Devuelve el JSON ya parseado."""
+        """Chat completions with structured output (strict json_schema). Returns the parsed JSON."""
         body: dict[str, Any] = {
             "model": deployment,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -240,13 +240,13 @@ class FoundryClient:
 
 
 def short_label(text: Any) -> str:
-    """'Alta: impacto relevante…' -> 'Alta'."""
+    """'High: significant impact…' -> 'High'."""
     s = text if isinstance(text, str) else json.dumps(text, ensure_ascii=False)
     return s.split(":", 1)[0].strip() if ":" in s[:40] else s[:40]
 
 
 def normalize_answers(answers: dict[str, dict], questions: dict[str, dict]) -> dict[str, dict]:
-    """Respuesta de Decision-1 -> forma uniforme para la interfaz (también usada para el LLM)."""
+    """Decision-1 response -> uniform shape for the UI (also used for the LLM)."""
     out: dict[str, dict] = {}
     for name, q in questions.items():
         a = answers.get(name)
@@ -307,10 +307,10 @@ PROMPT_TEXTS = {
 
 
 def normalize_decisions(answers: list[dict], questions: list[dict]) -> dict[str, dict]:
-    """Respuestas de la Decisions API por nombre de pregunta, con el mismo vocabulario para los tres tipos.
+    """Decisions API answers by question name, with the same vocabulary for all three types.
 
-    predicate → value (bool) y p; choice → value y probs ordenadas; score → value (índice del nivel), label y expected.
-    `confidence` es la probabilidad de la respuesta elegida.
+    predicate → value (bool) and p; choice → value and sorted probs; score → value (level index), label and expected.
+    `confidence` is the probability of the chosen answer.
     """
     by_name = {a.get("name"): a for a in answers if isinstance(a, dict)}
     out: dict[str, dict] = {}

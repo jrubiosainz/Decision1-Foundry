@@ -1,14 +1,14 @@
-// Carrera: Decision-1 contra un LLM generativo con el mismo lote y las mismas preguntas.
+// Race: Decision-1 against a generative LLM with the same batch and the same questions.
 import { h, fmt } from './util.js';
 import { S, errorText } from './core.js';
 import { t, tx } from './i18n.js';
 import { valid } from './views/common.js';
 
-// Con una marca aplicada (brand.css), Decision-1 toma el color de los ribetes y el rival un gris del texto.
+// With a brand applied (brand.css), Decision-1 takes the trim color and the opponent a gray from the text color.
 const D1_COLOR = 'var(--b-accent, #0f6cbd)';
 const LLM_COLOR = 'var(--b-rv, #7c3aed)';
 
-/** Nombre del rival en el idioma activo: el estado guarda solo el id y /api/config lo sirve ya traducido. */
+/** Opponent name in the active language: the state stores only the id and /api/config serves it already translated. */
 export const rivalLabel = (model) => S.config?.comparisons?.find((c) => c.id === model)?.label ?? model;
 
 export function raceStats(sc, st) {
@@ -91,7 +91,7 @@ function statsText(side, sc, st) {
 const progressText = (r) =>
   r.d1 ? t('⏳ Decision-1 ya ha terminado; {modelo} sigue generando…', { modelo: rivalLabel(r.model) }) : t('⏳ Las dos llamadas salen a la vez…');
 
-/** Actualiza barras y tiempos sin rehacer el DOM (se llama en cada frame mientras corre). */
+/** Updates bars and times without rebuilding the DOM (called on every frame while running). */
 export function tickRace(box, sc, st) {
   const r = st.race;
   if (!box || !r) return;

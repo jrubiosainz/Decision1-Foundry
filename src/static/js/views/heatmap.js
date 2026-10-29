@@ -1,4 +1,4 @@
-// Caso 2 · Voz del huésped: acciones, mapa de calor hotel × tema y reseñas ordenadas.
+// Case 2 · Voice of the guest: actions, hotel × topic heatmap and sorted reviews.
 import { h, fmt } from '../util.js';
 import { t } from '../i18n.js';
 import { ans, primary, processedItems, card, tile, sectionTitle, suggestion, yes, expected } from './common.js';
@@ -8,7 +8,7 @@ const ORDER = ['escalar', 'responder', 'agradecer', 'archivar'];
 const REVIEW_COLOR = '#d97706';
 const short = (hotel) => String(hotel || '').replace(/^Brisa\s+/, '');
 const emojiOf = (x) => (x == null ? '·' : EMOJI[Math.max(0, Math.min(4, Math.round(x)))]);
-// Saldo neto (-1..1) -> tono: rojo, ámbar, verde.
+// Net balance (-1..1) -> tone: red, amber, green.
 const hue = (net) => (net < 0 ? 45 + 45 * net : 45 + 85 * net);
 const sentiment = (ctx, id) => expected(ans(ctx, id, ctx.sc.severity));
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);

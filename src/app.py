@@ -1,4 +1,4 @@
-"""Web de la demo de Microsoft-Decision-1: API (FastAPI) y web estática."""
+"""Microsoft-Decision-1 demo web app: API (FastAPI) and static site."""
 
 from __future__ import annotations
 
@@ -43,12 +43,12 @@ LAB_MAX_STATE_CHARS = 20_000
 LAB_MAX_QUESTIONS = 32
 GAME_MAX_STATE_CHARS = 6_000
 GAME_D1_ID = "decision-1"
-GAME_LLM_TOKENS = 256  # sin razonamiento la respuesta son ~20 tokens; con razonamiento hace falta más margen
+GAME_LLM_TOKENS = 256  # without reasoning the answer is ~20 tokens; with reasoning it needs more headroom
 GAME_LLM_REASONING_TOKENS = 4000
 D1_PRICE_KEY = "Microsoft-Decision-1"
 
-# Marca del cliente (logotipo, nombre, colores y tipografía). En App Service, /home es almacenamiento
-# persistente: la marca sobrevive a reinicios y a nuevos despliegues.
+# Client brand (logo, name, colors and font). On App Service, /home is persistent storage:
+# the brand survives restarts and new deployments.
 BRAND_FILE = Path(
     os.environ.get("BRAND_FILE")
     or ("/home/data/brand.json" if os.environ.get("WEBSITE_SITE_NAME") else demo.BASE.parent / ".data" / "brand.json")
@@ -70,10 +70,10 @@ PRICING = demo.Pricing(demo.load_json("pricing.json"))
 DX_BY_LANG = {lang: dx.load_cases(lang) for lang in demo.LANGS}
 DX_PRICE = PRICING.data["decisions_api"]
 
-# Los juegos mandan al modelo siempre el mismo texto en español: no dependen del idioma de la interfaz.
+# Games always send the model the same Spanish text: they don't depend on the UI language.
 GAMES = SCENARIOS_BY_LANG[demo.DEFAULT_LANG]
 
-# Mensajes de error que ve el usuario, por idioma de la interfaz (cabecera X-Demo-Lang).
+# User-facing error messages, by UI language (X-Demo-Lang header).
 MESSAGES = {
     "es": {
         "bad_code": "Código de acceso incorrecto",
@@ -142,7 +142,7 @@ def loc_label(item: dict, lang: str) -> str:
 
 
 def _comparisons() -> dict[str, dict]:
-    """LLMs disponibles para la carrera: solo los desplegados (COMPARISON_DEPLOYMENTS)."""
+    """LLMs available for the race: only the deployed ones (COMPARISON_DEPLOYMENTS)."""
     configured = PRICING.data.get("comparisons", [])
     out = [c for c in configured if c["deployment"] in ALLOWED_LLMS]
     known = {c["deployment"] for c in configured}
@@ -151,16 +151,16 @@ def _comparisons() -> dict[str, dict]:
 
 
 COMPARISONS = _comparisons()
-WARM_IDLE_S = 180  # tras unos minutos sin llamadas, la primera decisión tarda ~3 s en lugar de <1 s
+WARM_IDLE_S = 180  # after a few minutes without calls, the first decision takes ~3 s instead of <1 s
 
 
 async def _prime_model(app: FastAPI) -> None:
-    """Una decisión mínima para despertar el modelo antes de que el presentador pulse «Procesar»."""
+    """A minimal decision to wake up the model before the presenter clicks "Process"."""
     try:
         await app.state.client.decide("Hola, buenos días.", {"saludo": {"type": "noul", "instructions": "¿El mensaje es un saludo?"}})
-        log.info("Decision-1 calentado")
-    except Exception as exc:  # noqa: BLE001 - calentar es opcional
-        log.warning("No se pudo calentar Decision-1: %s", exc)
+        log.info("Decision-1 warmed up")
+    except Exception as exc:  # noqa: BLE001 - warm-up is optional
+        log.warning("Could not warm up Decision-1: %s", exc)
 
 
 @asynccontextmanager
@@ -175,10 +175,10 @@ async def lifespan(app: FastAPI):
     if client:
         try:
             await client.warmup()
-        except Exception as exc:  # noqa: BLE001 - la web debe arrancar aunque falle el calentamiento
-            log.warning("No se pudo calentar la conexión con Foundry: %s", exc)
+        except Exception as exc:  # noqa: BLE001 - the web app must start even if the warm-up fails
+            log.warning("Could not warm up the connection to Foundry: %s", exc)
     else:
-        log.warning("Falta AZURE_AI_ENDPOINT: la web arranca, pero no podrá llamar al modelo.")
+        log.warning("AZURE_AI_ENDPOINT is not set: the web app starts, but it can't call the model.")
     yield
     if client:
         await client.close()
@@ -195,7 +195,7 @@ app = FastAPI(
 
 @app.exception_handler(FoundryError)
 async def _foundry_error(_: Request, exc: FoundryError) -> JSONResponse:
-    # 401/403 de Foundry son de permisos de la identidad, no del código de acceso de la demo.
+    # Foundry 401/403 errors are about the identity's permissions, not the demo access code.
     status = exc.status if exc.status in (400, 404, 413, 422, 429) else 502
     return JSONResponse({"error": "foundry", "status": exc.status, "detail": exc.detail}, status_code=status)
 
@@ -225,7 +225,7 @@ def client_of(request: Request) -> FoundryClient:
 
 
 def quota(client: FoundryClient) -> dict:
-    """Peticiones disponibles estimadas: última cabecera de cuota + recarga lineal (límite por minuto)."""
+    """Estimated available requests: last quota header + linear refill (per-minute limit)."""
     rate = client.last_rate or {}
     limit = rate.get("limit") or DEFAULT_RPM
     remaining = rate.get("remaining")
@@ -319,7 +319,7 @@ async def healthz() -> dict:
     return {"ok": True}
 
 
-# ---------- Marca del cliente: logotipo, nombre, colores y tipografía ----------
+# ---------- Client brand: logo, name, colors and font ----------
 
 _brand_cache: dict[str, Any] = {"key": None, "brand": None}
 
@@ -329,7 +329,7 @@ def _valid_font(font: str) -> bool:
 
 
 def _clean_brand(data: dict) -> dict:
-    """Valores guardados saneados: lo que no sea válido vuelve al de Microsoft Foundry."""
+    """Sanitized saved values: anything invalid falls back to the Microsoft Foundry value."""
     brand = dict(DEFAULT_BRAND)
     name = data.get("name")
     if isinstance(name, str):
@@ -347,20 +347,20 @@ def _clean_brand(data: dict) -> dict:
 
 
 def _read_brand() -> tuple[dict, bool]:
-    """Marca guardada y si hay alguna; se relee cuando cambia el archivo."""
+    """Saved brand and whether there is one; reread when the file changes."""
     try:
         st = BRAND_FILE.stat()
     except FileNotFoundError:
         return {**DEFAULT_BRAND, "logo": None}, False
     except OSError as exc:
-        log.warning("No se pudo leer %s: %s", BRAND_FILE, exc)
+        log.warning("Could not read %s: %s", BRAND_FILE, exc)
         return {**DEFAULT_BRAND, "logo": None}, False
     key = (st.st_mtime_ns, st.st_size)
     if _brand_cache["key"] != key:
         try:
             data = json.loads(BRAND_FILE.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
-            log.warning("No se pudo leer %s: %s", BRAND_FILE, exc)
+            log.warning("Could not read %s: %s", BRAND_FILE, exc)
             return {**DEFAULT_BRAND, "logo": None}, False
         _brand_cache.update(key=key, brand=_clean_brand(data if isinstance(data, dict) else {}))
     return dict(_brand_cache["brand"]), True
@@ -384,20 +384,20 @@ def _contrast(a: str, b: str) -> float:
 
 
 def _mix(a: str, b: str, weight: float) -> str:
-    """Como color-mix(in srgb, a weight, b). Redondea igual que Math.round en la web."""
+    """Like color-mix(in srgb, a weight, b). Rounds the same way as Math.round in the browser."""
     return "#" + "".join(f"{math.floor(x * weight + y * (1 - weight) + 0.5):02x}" for x, y in zip(_rgb(a), _rgb(b)))
 
 
 def _on_accent(accent: str) -> str:
-    """Texto sobre el acento (botones principales): blanco si se lee bien; si no, el que más contraste."""
+    """Text on the accent (primary buttons): white if it reads well; otherwise, the one with the most contrast."""
     if _contrast("#ffffff", accent) >= 4.5:
         return "#ffffff"
     return max(("#ffffff", "#111111"), key=lambda c: _contrast(c, accent))
 
 
 def _accent_text(accent: str, text: str, background: str) -> str:
-    """El acento usado como texto, acercado al color del texto hasta leerse bien (AA) sobre el fondo,
-    los paneles (en el tema oscuro, un 6 % del texto) y los realces del acento (hasta un 20 %), como en brand.css."""
+    """The accent used as text, moved toward the text color until it reads well (AA) on the background,
+    the panels (in the dark theme, 6% of the text color) and the accent highlights (up to 20%), as in brand.css."""
     panel = _mix(text, background, 0.06)
     surfaces = (background, panel, _mix(accent, background, 0.2), _mix(accent, panel, 0.2))
     for step in range(11):
@@ -421,7 +421,7 @@ def _brand_public(brand: dict, configured: bool) -> dict:
 
 @app.get("/api/brand")
 async def get_brand() -> dict:
-    """Sin código de acceso, como la propia página: la marca se ve antes de entrar."""
+    """No access code needed, like the page itself: the brand is visible before you enter."""
     return _brand_public(*_read_brand())
 
 
@@ -433,7 +433,7 @@ async def get_brand_logo(v: str = "") -> Response:
     except OSError:
         data = b""
     if not data:
-        raise HTTPException(404, "Sin logotipo")
+        raise HTTPException(404, "No logo")
     cache = "public, max-age=31536000, immutable" if v == brand["logo"] else "no-cache"
     return Response(data, media_type="image/png", headers={"Cache-Control": cache, "X-Content-Type-Options": "nosniff"})
 
@@ -444,7 +444,7 @@ class BrandIn(BaseModel):
     background: str
     accent: str
     font: str = ""
-    # data:image/png;base64,… para cambiar el logotipo y null para quitarlo; si no se envía, se conserva.
+    # data:image/png;base64,… to change the logo and null to remove it; if omitted, it's kept.
     logo: str | None = None
 
 
@@ -491,10 +491,10 @@ async def set_brand(request: Request, body: BrandIn) -> dict:
         logo = hashlib.sha256(png).hexdigest()[:12] if png else None
     brand = {"name": name, **colors, "font": font, "logo": logo}
     if brand == {**DEFAULT_BRAND, "logo": None}:
-        # Igual que Microsoft Foundry: se borra la marca y la demo recupera su aspecto original.
+        # Same as Microsoft Foundry: the brand is deleted and the demo returns to its original look.
         for path in (BRAND_FILE, LOGO_FILE):
             path.unlink(missing_ok=True)
-        log.info("Marca restablecida")
+        log.info("Brand reset")
         return _brand_public(*_read_brand())
     if png:
         _write_atomic(LOGO_FILE, png)
@@ -503,7 +503,7 @@ async def set_brand(request: Request, body: BrandIn) -> dict:
         LOGO_FILE.unlink(missing_ok=True)
     st = BRAND_FILE.stat()
     _brand_cache.update(key=(st.st_mtime_ns, st.st_size), brand=brand)
-    log.info("Marca guardada: %s", name or "(sin nombre)")
+    log.info("Brand saved: %s", name or "(no name)")
     return _brand_public(brand, True)
 
 
@@ -511,7 +511,7 @@ BRAND_MARK = re.compile(r"(<!--brand-->).*?(<!--/brand-->)", re.S)
 
 
 def _brand_mark(pub: dict) -> str:
-    """Logotipo y nombre del cliente en lugar del de Microsoft Foundry ("" si no hay ninguno)."""
+    """Client logo and name instead of Microsoft Foundry's ("" if there is neither)."""
     parts = []
     if pub["logo"]:
         alt = html.escape(pub["name"] or "Logo", quote=True)
@@ -552,7 +552,7 @@ async def config(request: Request) -> dict:
             "location": LOCATION,
             "rpm": DEFAULT_RPM,
         },
-        # Cadencia de decisión de los juegos: el límite de Decision-1 con un 5 % de margen. Los dos modelos usan la misma.
+        # Decision cadence for games: the Decision-1 limit with a 5% margin. Both models use the same one.
         "game": {"cadence_ms": max(1000, math.ceil(60_000 / max(1, DEFAULT_RPM) * 1.05))},
         "dx": {"model": DX_DEPLOYMENT},
         "comparisons": [{"id": c["id"], "label": loc_label(c, lang), "deployment": c["deployment"]} for c in COMPARISONS.values()],
@@ -575,7 +575,7 @@ async def get_quota(request: Request) -> dict:
 
 @app.post("/api/warm", dependencies=[Depends(require_code)])
 async def warm(request: Request) -> dict:
-    """Calienta el modelo en segundo plano si lleva un rato sin llamadas (consume 1 petición de la cuota)."""
+    """Warms up the model in the background after a while without calls (uses 1 request from the quota)."""
     client, state = client_of(request), request.app.state
     now = time.time()
     if now - max(client.last_rate_ts, state.primed_at) < WARM_IDLE_S or (state.prime_task and not state.prime_task.done()):
@@ -587,7 +587,7 @@ async def warm(request: Request) -> dict:
 
 @app.post("/api/decide", dependencies=[Depends(require_code)])
 async def decide(body: DecideIn, request: Request) -> dict:
-    """Una llamada a Decision-1: un elemento de un escenario o un estado libre (laboratorio)."""
+    """One call to Decision-1: an item from a scenario or a free-form state (Lab)."""
     client = client_of(request)
     lang = lang_of(request)
     if body.scenario:
@@ -603,9 +603,9 @@ async def decide(body: DecideIn, request: Request) -> dict:
 
 @app.post("/api/game/decide", dependencies=[Depends(require_code)])
 async def game_decide(body: GameIn, request: Request) -> dict:
-    """Una decisión en tiempo real: mismo estado y mismas preguntas para Decision-1 o para el LLM rival.
+    """A real-time decision: same state and same questions for Decision-1 or for the opponent LLM.
 
-    No reintenta ante 429: en un juego una respuesta tardía vale menos que ninguna; el cliente se salta ese turno.
+    No retries on 429: in a game a late answer is worth less than none; the client skips that turn.
     """
     client = client_of(request)
     lang = lang_of(request)
@@ -638,7 +638,7 @@ async def game_decide(body: GameIn, request: Request) -> dict:
 
 @app.post("/api/decide-batch", dependencies=[Depends(require_code)])
 async def decide_batch(body: BatchIn, request: Request) -> dict:
-    """Todos los elementos en una sola llamada (o en pocas, si superan 250 preguntas)."""
+    """All items in a single call (or a few, if they exceed 250 questions)."""
     client = client_of(request)
     lang = lang_of(request)
     sc = scenario(body.scenario, lang)
@@ -650,7 +650,7 @@ async def decide_batch(body: BatchIn, request: Request) -> dict:
 
 @app.post("/api/compare", dependencies=[Depends(require_code)])
 async def compare(body: CompareIn, request: Request) -> dict:
-    """Mismo elemento y mismas preguntas con un LLM generativo y salida estructurada."""
+    """Same item and same questions with a generative LLM and structured output."""
     client = client_of(request)
     lang = lang_of(request)
     cmp = comparison(body.model, lang)
@@ -673,7 +673,7 @@ async def compare_batch(body: CompareIn, request: Request) -> dict:
     return {**res, "label": loc_label(cmp, lang), "cost": PRICING.cost(cmp["deployment"], res["usage"])}
 
 
-# ---------- OpenAI Decisions API (segunda pestaña) ----------
+# ---------- OpenAI Decisions API (second tab) ----------
 
 
 def dx_case(case_id: str, lang: str) -> dict:
@@ -697,7 +697,7 @@ async def dx_cases(request: Request) -> dict:
 
 @app.post("/api/dx/decide", dependencies=[Depends(require_code)])
 async def dx_decide(body: DxIn, request: Request) -> dict:
-    """Una llamada a la OpenAI Decisions API: un elemento de un caso, un paso de la cascada o una lista de un contrato."""
+    """One call to the OpenAI Decisions API: an item of a case, a step of the cascade or a checklist of a contract."""
     client = client_of(request)
     lang = lang_of(request)
     case = dx_case(body.case, lang)
@@ -742,7 +742,7 @@ async def dx_decide(body: DxIn, request: Request) -> dict:
 @app.get("/", include_in_schema=False)
 @app.get("/index.html", include_in_schema=False)
 async def index() -> HTMLResponse:
-    """index.html con la marca ya aplicada: la página sale con los colores del cliente desde el primer fotograma."""
+    """index.html with the brand already applied: the page shows the client's colors from the first frame."""
     page = INDEX_FILE.read_text(encoding="utf-8")
     pub = _brand_public(*_read_brand())
     if pub["themed"]:

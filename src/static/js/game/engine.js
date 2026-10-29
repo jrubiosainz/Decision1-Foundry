@@ -1,30 +1,30 @@
-// Space Invaders determinista por ticks (20 por segundo), sin DOM.
-// Misma semilla + mismas órdenes en los mismos ticks = misma partida, en el navegador y en Node.
-// La nave tiene piloto automático: el modelo solo elige el carril objetivo; la nave se mueve hacia él y dispara sola.
+// Tick-based deterministic Space Invaders (20 ticks per second), with no DOM.
+// Same seed + same commands on the same ticks = same game, in the browser and in Node.
+// The ship has an autopilot: the model only picks the target lane; the ship moves toward it and fires on its own.
 
 export const COLS = 13;
 export const ROWS = 16;
 export const SHIP_ROW = ROWS - 1;
 export const TICK_MS = 50;
 
-/** Reglas y dificultad. Un solo sitio para calibrar (los barridos de pruebas lo modifican en memoria). */
+/** Rules and difficulty. A single place to calibrate (the test sweeps modify it in memory). */
 export const RULES = {
   lives: 5,
   formRows: 5,
   formCols: 9,
   rowPoints: [30, 20, 20, 10, 10],
-  maxTicks: 1800, // 90 s de partida como máximo
-  shipSpeed: 0.4, // carriles por tick (8 carriles/s)
-  bulletSpeed: 0.8, // filas por tick
-  bombSpeed: 0.2, // filas por tick (4 filas/s)
+  maxTicks: 1800, // 90 s per game at most
+  shipSpeed: 0.4, // lanes per tick (8 lanes/s)
+  bulletSpeed: 0.8, // rows per tick
+  bombSpeed: 0.2, // rows per tick (4 rows/s)
   fireCooldown: 10,
-  invuln: 40, // ticks sin poder ser alcanzada tras un impacto
+  invuln: 40, // ticks during which the ship can't be hit after a hit
   maxBombs: 5,
-  bombGap: 18, // ticks mínimos entre bombas
-  bombJitter: 28, // + hasta estos ticks al azar
-  aimed: 0.3, // proporción de bombas dirigidas al carril de la nave
-  stepSlow: 40, // ticks entre pasos de la formación con todos los invasores
-  stepFast: 8, // ... y con el último
+  bombGap: 18, // minimum ticks between bombs
+  bombJitter: 28, // + up to this many random ticks
+  aimed: 0.3, // share of bombs aimed at the ship's lane
+  stepSlow: 40, // ticks between formation steps with all the invaders
+  stepFast: 8, // ... and with the last one
 };
 
 export function rng(seed) {
@@ -38,7 +38,7 @@ export function rng(seed) {
   };
 }
 
-/** Calendario de bombas fijado por la semilla: no depende de cómo juegue cada agente. */
+/** Bomb schedule fixed by the seed: it doesn't depend on how each agent plays. */
 function bombSchedule(seed) {
   const r = rng((seed ^ 0x9e3779b9) >>> 0);
   const out = [];
@@ -52,7 +52,7 @@ function bombSchedule(seed) {
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-/** Ticks entre pasos de la formación: cuantos menos invasores quedan, más rápido van. */
+/** Ticks between formation steps: the fewer invaders are left, the faster they go. */
 export function stepTicks(g) {
   const { stepSlow, stepFast, formRows, formCols } = RULES;
   return clamp(Math.round(stepFast + ((stepSlow - stepFast) * g.form.alive) / (formRows * formCols)), stepFast, stepSlow);
@@ -87,7 +87,7 @@ export function createGame(seed = 1) {
   return g;
 }
 
-/** Invasores del carril: nº de vivos y fila (absoluta) del más bajo. */
+/** Invaders in the lane: number alive and (absolute) row of the lowest one. */
 export function laneAliens(g, lane) {
   const f = g.form;
   const c = lane - f.ox;
@@ -119,7 +119,7 @@ function aliveExtent(g) {
   return { min, max, low };
 }
 
-/** Dispara si habrá un invasor en el carril cuando llegue la bala (anticipa el siguiente paso de la formación). */
+/** Fires if there will be an invader in the lane when the bullet arrives (anticipates the formation's next step). */
 function wantsFire(g, lane) {
   if (laneAliens(g, lane).count > 0) return true;
   const f = g.form;
@@ -143,7 +143,7 @@ function spawnBomb(g, entry) {
   if (best) g.bombs.push({ lane: best.lane, y: best.row + 1 });
 }
 
-/** Avanza un tick. `target` (opcional) es el carril al que debe ir la nave. */
+/** Advances one tick. `target` (optional) is the lane the ship should go to. */
 export function step(g, target) {
   g.events.length = 0;
   if (g.over) return g;
@@ -151,7 +151,7 @@ export function step(g, target) {
   if (target != null) ship.target = clamp(Math.round(target), 0, COLS - 1);
   g.t++;
 
-  // Nave
+  // Ship
   ship.x += clamp(ship.target - ship.x, -RULES.shipSpeed, RULES.shipSpeed);
   if (ship.cooldown > 0) ship.cooldown--;
   if (ship.invuln > 0) ship.invuln--;
@@ -163,7 +163,7 @@ export function step(g, target) {
     g.events.push({ type: 'shot', lane });
   }
 
-  // Balas
+  // Bullets
   const f = g.form;
   g.bullets = g.bullets.filter((b) => {
     b.y -= RULES.bulletSpeed;
@@ -181,7 +181,7 @@ export function step(g, target) {
     return true;
   });
 
-  // Formación
+  // Formation
   if (f.alive > 0 && --f.timer <= 0) {
     const { min, max } = aliveExtent(g);
     if ((f.dir > 0 && f.ox + max >= COLS - 1) || (f.dir < 0 && f.ox + min <= 0)) {
@@ -193,7 +193,7 @@ export function step(g, target) {
     f.timer = stepTicks(g);
   }
 
-  // Bombas
+  // Bombs
   while (g.si < g.schedule.length && g.schedule[g.si].tick <= g.t) spawnBomb(g, g.schedule[g.si++]);
   g.bombs = g.bombs.filter((b) => {
     b.y += RULES.bombSpeed;
@@ -207,7 +207,7 @@ export function step(g, target) {
     return true;
   });
 
-  // Final de partida
+  // End of game
   if (f.alive === 0) g.over = 'won';
   else if (f.oy + aliveExtent(g).low >= SHIP_ROW - 1) {
     g.lives = 0;

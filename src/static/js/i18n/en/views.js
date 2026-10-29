@@ -1,4 +1,4 @@
-// Traducciones: vistas (views/*.js).
+// Translations: views (views/*.js).
 export default {
   // common.js
   'Sin mención': 'Not mentioned',

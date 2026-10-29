@@ -1,5 +1,5 @@
-// Lo que "ven" los modelos y cómo se mide si decidieron bien.
-// describeState() es lo único que se envía a los modelos. El oráculo (lookahead) solo mide: nunca se les muestra.
+// What the models "see" and how we measure whether they decided well.
+// describeState() is the only thing sent to the models. The oracle (lookahead) only measures: it is never shown to them.
 
 import { COLS, ROWS, SHIP_ROW, TICK_MS, RULES, laneAliens, step } from './engine.js';
 
@@ -16,14 +16,14 @@ export function cloneGame(g) {
 
 export const shipLane = (g) => Math.max(0, Math.min(COLS - 1, Math.round(g.ship.x)));
 
-/** Fila del invasor más bajo de toda la formación (o -1). */
+/** Row of the lowest invader in the whole formation (or -1). */
 export function lowestAlienRow(g) {
   let low = -1;
   for (let r = 0; r < RULES.formRows; r++) if (g.form.grid[r].some(Boolean)) low = g.form.oy + r;
   return low;
 }
 
-/** Sensores por carril: invasores vivos, fila del más bajo y filas que le faltan a la bomba más cercana para llegar a la nave. */
+/** Sensors per lane: invaders alive, row of the lowest one and rows the nearest bomb still needs to reach the ship. */
 export function laneSensors(g) {
   const here = shipLane(g);
   return Array.from({ length: COLS }, (_, lane) => {
@@ -46,7 +46,7 @@ export function laneSensors(g) {
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
-/** Estado del juego en texto, tal y como se envía a Decision-1 y a gpt-6-luna. */
+/** Game state as text, exactly as it is sent to Decision-1 and to gpt-6-luna. */
 export function describeState(g, { bombs = 'filas' } = {}) {
   const f = g.form;
   const here = shipLane(g);
@@ -77,7 +77,7 @@ export function describeState(g, { bombs = 'filas' } = {}) {
   return lines.join('\n');
 }
 
-/** Tablero en ASCII (para pintar y para probar otra codificación): A invasor, v bomba, | bala, N nave. */
+/** ASCII board (for rendering and for testing another encoding): A invader, v bomb, | bullet, N ship. */
 export function boardText(g) {
   const rows = Array.from({ length: ROWS }, () => Array(COLS).fill('.'));
   const f = g.form;
@@ -90,7 +90,7 @@ export function boardText(g) {
   return rows.map((r) => r.join('')).join('\n');
 }
 
-/** Resultado de mandar la nave a `lane` y dejar pasar `ticks` sin más órdenes. */
+/** Result of sending the ship to `lane` and letting `ticks` pass with no further commands. */
 export function lookahead(g, lane, ticks = 50) {
   const c = cloneGame(g);
   const score0 = c.score;
@@ -99,7 +99,7 @@ export function lookahead(g, lane, ticks = 50) {
   return { score: c.score - score0, hits: lives0 - c.lives, over: c.over };
 }
 
-/** Valor de cada carril según el oráculo: puntos ganados menos penalización por vidas perdidas. */
+/** Value of each lane according to the oracle: points won minus a penalty for lives lost. */
 export function laneValues(g, ticks = 50) {
   return Array.from({ length: COLS }, (_, lane) => {
     const r = lookahead(g, lane, ticks);
@@ -107,7 +107,7 @@ export function laneValues(g, ticks = 50) {
   });
 }
 
-/** Mejor carril según el oráculo (desempata por cercanía a la nave). */
+/** Best lane according to the oracle (ties broken by closeness to the ship). */
 export function oracleLane(g, ticks = 50, vals = laneValues(g, ticks)) {
   const here = g.ship.x;
   return vals.reduce((best, v) =>
@@ -115,7 +115,7 @@ export function oracleLane(g, ticks = 50, vals = laneValues(g, ticks)) {
   , null).lane;
 }
 
-/** Calidad de una decisión (0 a 1): dónde cae el carril elegido entre el peor y el mejor según el oráculo. */
+/** Quality of a decision (0 to 1): where the chosen lane falls between the worst and the best according to the oracle. */
 export function decisionQuality(g, lane, ticks = 50) {
   const vals = laneValues(g, ticks);
   const values = vals.map((v) => v.value);

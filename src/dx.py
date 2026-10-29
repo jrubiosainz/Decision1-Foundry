@@ -1,8 +1,8 @@
-"""OpenAI Decisions API: los cinco casos de la segunda pestaña.
+"""OpenAI Decisions API: the five cases of the second tab.
 
-El contenido está en src/dx/*.json (traducciones en src/dx/<idioma>/) y los textos largos en src/dx/textos/. Este módulo
-construye las peticiones con imágenes, texto y JSON, decide el siguiente paso de la cascada, aplica las reglas
-deterministas y calcula el coste teniendo en cuenta la caché.
+The content lives in src/dx/*.json (translations in src/dx/<lang>/) and the long texts in src/dx/textos/. This module
+builds the requests with images, text and JSON, decides the next step of the cascade, applies the deterministic
+rules and computes the cost taking the cache into account.
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ TEXTS = {
     },
 }
 
-# Claves del JSON que ve el modelo, traducidas para que la petición se lea en el idioma de la interfaz.
+# Keys of the JSON the model sees, translated so the request reads in the UI language.
 JSON_KEYS = {
     "en": {
         "pedido": "order",
@@ -80,14 +80,14 @@ JSON_KEYS = {
 
 
 class DxError(Exception):
-    """Error de la petición; `key` es un mensaje de app.MESSAGES."""
+    """Request error; `key` is a message in app.MESSAGES."""
 
     def __init__(self, status: int, key: str, **params: Any):
         super().__init__(key)
         self.status, self.key, self.params = status, key, params
 
 
-# ---------- Contenido ----------
+# ---------- Content ----------
 
 
 def load_cases(lang: str = demo.DEFAULT_LANG) -> dict[str, dict]:
@@ -107,7 +107,7 @@ _texts: dict[tuple[str, str], str] = {}
 
 
 def text(name: str, lang: str) -> str:
-    """Un texto largo (política, guía, manual, contrato) en el idioma pedido o, si no está traducido, en español."""
+    """A long text (policy, guidelines, manual, contract) in the requested language or, if not translated, in Spanish."""
     key = (name, lang)
     if key not in _texts:
         path = TEXT_DIR / lang / name
@@ -122,18 +122,18 @@ _image_names: dict[str, str] = {}
 
 
 def image(rel: str) -> str:
-    """Imagen de src/static/img/dx/ como data URL (en memoria tras el primer uso)."""
+    """Image from src/static/img/dx/ as a data URL (in memory after first use)."""
     if rel not in _images:
         path = (IMG_DIR / rel).resolve()
         if IMG_DIR.resolve() not in path.parents or path.suffix.lower() not in MIME:
-            raise ValueError(f"imagen no válida: {rel}")
+            raise ValueError(f"invalid image: {rel}")
         url = f"data:{MIME[path.suffix.lower()]};base64,{base64.b64encode(path.read_bytes()).decode()}"
         _images[rel], _image_names[url] = url, rel
     return _images[rel]
 
 
 def uploaded(data_url: str | None) -> str:
-    """Valida una foto subida (JPEG, PNG o WebP de hasta 3 MB) y la devuelve como data URL normalizada."""
+    """Validates an uploaded photo (JPEG, PNG or WebP up to 3 MB) and returns it as a normalized data URL."""
     head, _, payload = (data_url or "").partition(",")
     mime = head.removeprefix("data:").removesuffix(";base64")
     if not head.startswith("data:") or not head.endswith(";base64") or mime not in ("image/jpeg", "image/png", "image/webp"):
@@ -153,7 +153,7 @@ def uploaded(data_url: str | None) -> str:
 
 
 def docs(case: dict, lang: str) -> dict[str, str]:
-    """Textos largos del caso para que la web pueda enseñarlos."""
+    """Long texts of the case so the web app can show them."""
     names = [case.get("context_file")]
     names += [p.get("manual") for p in (case.get("products") or {}).values()]
     names += [it.get("file") for it in case.get("items") or []]
@@ -170,68 +170,68 @@ def _validate(case: dict, source: str, lang: str) -> None:
             raise ValueError(f"dx/{source} ({lang}): {msg}")
 
     for key in ("id", "kind", "title", "items", "notes"):
-        need(key in case, f"falta '{key}'")
-    need(case["kind"] in KINDS, f"kind desconocido: {case['kind']}")
+        need(key in case, f"missing '{key}'")
+    need(case["kind"] in KINDS, f"unknown kind: {case['kind']}")
     ids = [it["id"] for it in case["items"]]
-    need(len(ids) == len(set(ids)) and UPLOAD_ID not in ids, "ids de elementos repetidos o reservados")
+    need(len(ids) == len(set(ids)) and UPLOAD_ID not in ids, "duplicate or reserved item ids")
     for rel in _image_refs(case):
-        need((IMG_DIR / rel).is_file(), f"no existe la imagen {rel}")
+        need((IMG_DIR / rel).is_file(), f"image not found: {rel}")
     for name in docs_names(case):
-        need((TEXT_DIR / name).is_file(), f"no existe el texto {name}")
+        need((TEXT_DIR / name).is_file(), f"text not found: {name}")
     if case["kind"] == "cascade":
         steps = {s["id"]: s for s in case["steps"]}
         outcomes = case["outcomes"]
-        need("revision" in outcomes, "falta el resultado 'revision'")
+        need("revision" in outcomes, "missing outcome 'revision'")
         for s in case["steps"]:
             for r in s["route"]:
-                need(r.get("next") in steps if "next" in r else r.get("outcome") in outcomes, f"{s['id']}: destino desconocido {r}")
-                need("q" not in r or r["q"] in s["questions"], f"{s['id']}: pregunta desconocida {r.get('q')}")
-                need(r.get("low_outcome", "revision") in outcomes, f"{s['id']}: low_outcome desconocido")
+                need(r.get("next") in steps if "next" in r else r.get("outcome") in outcomes, f"{s['id']}: unknown target {r}")
+                need("q" not in r or r["q"] in s["questions"], f"{s['id']}: unknown question {r.get('q')}")
+                need(r.get("low_outcome", "revision") in outcomes, f"{s['id']}: unknown low_outcome")
         for it in case["items"]:
-            need(it["product"] in case["products"], f"{it['id']}: producto desconocido")
-            need(all(p in steps for p in it["expected"]["path"]), f"{it['id']}: camino esperado con pasos desconocidos")
+            need(it["product"] in case["products"], f"{it['id']}: unknown product")
+            need(all(p in steps for p in it["expected"]["path"]), f"{it['id']}: expected path has unknown steps")
     elif case["kind"] == "contracts":
         lists = case.get("checklists") or []
-        need(bool(lists) and bool(case["items"]), "faltan contratos o listas de comprobación")
+        need(bool(lists) and bool(case["items"]), "missing contracts or checklists")
         for cl in lists:
             for name, q in cl["questions"].items():
                 good = q.get("good", True)
                 if q["type"] == "predicate":
-                    need(isinstance(good, bool), f"{cl['id']}.{name}: 'good' debe ser true o false")
+                    need(isinstance(good, bool), f"{cl['id']}.{name}: 'good' must be true or false")
                 else:
-                    need(isinstance(good, list) and bool(good) and all(_valid_answer(q, g) for g in good), f"{cl['id']}.{name}: 'good' debe listar respuestas válidas")
+                    need(isinstance(good, list) and bool(good) and all(_valid_answer(q, g) for g in good), f"{cl['id']}.{name}: 'good' must list valid answers")
         for it in case["items"]:
-            need(bool(it.get("file")), f"{it['id']}: falta el texto del contrato")
+            need(bool(it.get("file")), f"{it['id']}: missing contract text")
             exp = it.get("expected") or {}
             for cl in lists:
                 given = exp.get(cl["id"]) or {}
-                need(set(given) == set(cl["questions"]), f"{it['id']}.{cl['id']}: faltan o sobran respuestas esperadas")
+                need(set(given) == set(cl["questions"]), f"{it['id']}.{cl['id']}: missing or extra expected answers")
                 for name, v in given.items():
-                    need(_valid_answer(cl["questions"][name], v), f"{it['id']}.{cl['id']}.{name}: respuesta esperada no válida {v!r}")
+                    need(_valid_answer(cl["questions"][name], v), f"{it['id']}.{cl['id']}.{name}: invalid expected answer {v!r}")
     elif case.get("policy"):
         pol, qs = case["policy"], case["questions"]
         sq = qs.get(pol.get("q"))
-        need(bool(sq) and sq["type"] == "score", "policy.q debe ser una pregunta de tipo score")
+        need(bool(sq) and sq["type"] == "score", "policy.q must be a score question")
         n = len(sq["levels"])
         for r in pol["rules"]:
-            need(r.get("outcome") in case["outcomes"], f"policy: resultado desconocido {r.get('outcome')}")
-            need(bool(r["levels"]) and all(0 <= lv < n for lv in r["levels"]), f"policy: niveles fuera de rango {r['levels']}")
-            need("if" not in r or qs.get(r["if"], {}).get("type") == "predicate", f"policy: la condición {r.get('if')} debe ser sí/no")
-        need({lv for r in pol["rules"] if "if" not in r for lv in r["levels"]} == set(range(n)), "policy: cada nivel necesita una regla sin condición")
+            need(r.get("outcome") in case["outcomes"], f"policy: unknown outcome {r.get('outcome')}")
+            need(bool(r["levels"]) and all(0 <= lv < n for lv in r["levels"]), f"policy: levels out of range {r['levels']}")
+            need("if" not in r or qs.get(r["if"], {}).get("type") == "predicate", f"policy: condition {r.get('if')} must be yes/no")
+        need({lv for r in pol["rules"] if "if" not in r for lv in r["levels"]} == set(range(n)), "policy: each level needs a rule without a condition")
         for name, q in qs.items():
-            need("floor" not in q or (q["type"] == "predicate" and 0 < q["floor"] < n and "flag" in q and "floor_text" in pol), f"{name}: mínimo no válido")
+            need("floor" not in q or (q["type"] == "predicate" and 0 < q["floor"] < n and "flag" in q and "floor_text" in pol), f"{name}: invalid floor")
     else:
         rules, qs = case.get("rules") or [], case["questions"]
-        need(bool(rules) and "any" not in rules[-1], "faltan las reglas o la última no es la regla por defecto")
-        need(len({r["id"] for r in rules}) == len(rules), "ids de reglas repetidos")
-        need(case.get("low_outcome") in case["outcomes"], "low_outcome desconocido")
+        need(bool(rules) and "any" not in rules[-1], "rules are missing or the last one is not the default rule")
+        need(len({r["id"] for r in rules}) == len(rules), "duplicate rule ids")
+        need(case.get("low_outcome") in case["outcomes"], "unknown low_outcome")
         for r in rules:
-            need(r.get("outcome") in case["outcomes"] and bool(r.get("reason")), f"regla {r['id']}: resultado desconocido o sin motivo")
-            need(r is rules[-1] or bool(r.get("any")), f"regla {r['id']}: sin condiciones")
+            need(r.get("outcome") in case["outcomes"] and bool(r.get("reason")), f"rule {r['id']}: unknown outcome or missing reason")
+            need(r is rules[-1] or bool(r.get("any")), f"rule {r['id']}: no conditions")
             for name in r.get("any", []):
                 q = qs.get(name) or {}
                 flaggable = isinstance(q.get("good"), bool) if q.get("type") == "predicate" else bool(q.get("compare") or q.get("good"))
-                need(flaggable and "flag" in q, f"regla {r['id']}: {name} no es una comprobación con alerta")
+                need(flaggable and "flag" in q, f"rule {r['id']}: {name} is not a check with a flag")
 
 
 def docs_names(case: dict) -> list[str]:
@@ -249,7 +249,7 @@ def _valid_answer(q: dict, v: Any) -> bool:
 
 
 def is_good(q: dict, v: Any) -> bool:
-    """¿Es aceptable esta respuesta? `good` es true/false en las preguntas sí/no y una lista de opciones o niveles en las demás."""
+    """Is this answer acceptable? `good` is true/false for yes/no questions and a list of choices or levels for the others."""
     good = q.get("good", True)
     return v is good if q["type"] == "predicate" else v in good
 
@@ -262,7 +262,7 @@ def _image_refs(case: dict) -> list[str]:
     return refs
 
 
-# ---------- Peticiones ----------
+# ---------- Requests ----------
 
 
 def _txt(value: str) -> dict:
@@ -289,7 +289,7 @@ def _keys(obj: Any, lang: str) -> Any:
 
 
 def api_questions(questions: dict[str, dict], refs: dict[str, str] | None = None) -> list[dict]:
-    """Preguntas del contenido → lista de la API. `ref_image` añade una imagen de referencia a las instrucciones."""
+    """Content questions → API list. `ref_image` adds a reference image to the instructions."""
     out = []
     for name, q in questions.items():
         item: dict[str, Any] = {"type": q["type"], "name": name, "instructions": q["instructions"]}
@@ -318,7 +318,7 @@ def days_since_delivery(item: dict) -> int:
 
 
 def prior_answers(case: dict, prior: Any) -> dict:
-    """Respuestas de los pasos anteriores que manda la web, validadas contra las preguntas de cada paso."""
+    """Answers from previous steps sent by the web app, validated against each step's questions."""
     out: dict[str, Any] = {}
     if not isinstance(prior, dict):
         return out
@@ -338,7 +338,7 @@ def prior_answers(case: dict, prior: Any) -> dict:
 
 
 def plan(case: dict, item: dict, lang: str, step: str | None = None, checklist: str | None = None, prior: Any = None, upload: str | None = None) -> dict:
-    """Petición para un elemento: {"input", "questions", "defs", "step"?} o {"skip": decisión sin llamar al modelo}."""
+    """Request for an item: {"input", "questions", "defs", "step"?} or {"skip": decision without calling the model}."""
     kind = case["kind"]
     if kind == "cascade":
         return _plan_cascade(case, item, step or case["steps"][0]["id"], prior, lang)
@@ -404,7 +404,7 @@ def _plan_cascade(case: dict, item: dict, step_id: str, prior: Any, lang: str) -
                 "decisiones_previas": prior_answers(case, prior),
             }
             content += [_txt(P["json"]), _json(_keys(data, lang))]
-        # «catalogo» va dentro de la pregunta como imagen de referencia y «regla» se evalúa aquí, sin modelo.
+        # "catalogo" goes inside the question as a reference image and "regla" is evaluated here, without the model.
     if missing:
         label = case["inputs"][missing]["label"]
         return {"step": step, "skip": {"outcome": "revision", "reason": T["missing_input"].format(label=label), "checks": []}}
@@ -419,7 +419,7 @@ def _plan_contract(case: dict, item: dict, checklist: str | None, lang: str) -> 
     if not cl:
         raise DxError(404, "unknown_dx_checklist", id=checklist)
     developer = case["developer"]
-    # El contrato va primero y siempre igual: es el prefijo que la API guarda en caché para las tres listas.
+    # The contract goes first and never changes: it's the prefix the API caches for the three checklists.
     content = [_txt(f"{TEXTS[lang]['contract_text']}\n\n{text(item['file'], lang)}")]
     messages = [{"role": "developer", "content": developer}, {"role": "user", "content": content}]
     if cl.get("developer"):
@@ -427,7 +427,7 @@ def _plan_contract(case: dict, item: dict, checklist: str | None, lang: str) -> 
     return {"checklist": cl, "input": messages, "questions": api_questions(cl["questions"]), "defs": cl["questions"]}
 
 
-# ---------- Decisiones ----------
+# ---------- Decisions ----------
 
 
 def _p_condition(answer: dict, rule: dict) -> float | None:
@@ -445,9 +445,9 @@ def _target(rule: dict) -> dict:
 
 
 def route(case: dict, step: dict, item: dict, answers: dict, lang: str) -> dict:
-    """Recorre las reglas del paso en orden: reglas deterministas, condiciones sobre las respuestas y destino por defecto.
+    """Walks the step's rules in order: deterministic rules, conditions on the answers and the default target.
 
-    Si la probabilidad de una condición no es concluyente (por debajo del umbral en un sentido o en otro), decide una persona.
+    If the probability of a condition is inconclusive (below the threshold either way), a person decides.
     """
     T = TEXTS[lang]
     threshold = case.get("threshold", 0.7)
@@ -477,7 +477,7 @@ def route(case: dict, step: dict, item: dict, answers: dict, lang: str) -> dict:
 
 
 def assess(case: dict, item: dict, answers: dict, lang: str) -> dict:
-    """Alertas de cada respuesta, reglas deterministas y resultado final de los casos de una sola llamada."""
+    """Flags for each answer, deterministic rules and final outcome of the single-call cases."""
     flags, infos, checks = [], [], []
     for name, q in case["questions"].items():
         a = answers.get(name) or {}
@@ -504,7 +504,7 @@ def assess(case: dict, item: dict, answers: dict, lang: str) -> dict:
 
 
 def _p_bad(q: dict, a: dict, item: dict | None = None) -> float | None:
-    """Probabilidad de que la respuesta sea mala: fuera de `good` o distinta de lo declarado (`compare`)."""
+    """Probability that the answer is bad: outside `good` or different from the declared value (`compare`)."""
     if a.get("type") != q["type"]:
         return None
     if q["type"] == "predicate":
@@ -522,10 +522,10 @@ def _p_bad(q: dict, a: dict, item: dict | None = None) -> float | None:
 
 
 def _rules(case: dict, item: dict, answers: dict, flagged: set[str], lang: str) -> dict:
-    """Las reglas de la política, en orden: gana la primera con alguna alerta y la última es el resultado por defecto.
+    """The policy rules, in order: the first one with a flag wins and the last one is the default outcome.
 
-    El modelo no elige la acción: solo responde las comprobaciones. La confianza es la probabilidad de que gane esa
-    misma regla según las probabilidades de cada comprobación (tratadas como independientes).
+    The model doesn't choose the action: it only answers the checks. The confidence is the probability that this
+    same rule wins, given the probabilities of each check (treated as independent).
     """
     T, qs = TEXTS[lang], case["questions"]
     p_bad = {n: _p_bad(qs[n], answers.get(n) or {}, item) for r in case["rules"] for n in r.get("any", [])}
@@ -559,10 +559,10 @@ def _rules(case: dict, item: dict, answers: dict, flagged: set[str], lang: str) 
 
 
 def _policy(case: dict, answers: dict, lang: str) -> dict:
-    """Matriz de riesgos: el modelo puntúa la gravedad, cada riesgo detectado fija un mínimo y la acción sale de las reglas.
+    """Risk matrix: the model scores the severity, each detected risk sets a floor and the action comes from the rules.
 
-    La confianza es la probabilidad de la acción elegida, sumando sobre la gravedad que da el modelo, los riesgos sí/no
-    que fijan mínimos y las preguntas sí/no que condicionan las reglas (tratadas como independientes).
+    The confidence is the probability of the chosen action, summing over the severity the model gives, the yes/no risks
+    that set floors and the yes/no questions that condition the rules (treated as independent).
     """
     pol, qs = case["policy"], case["questions"]
     sq = qs[pol["q"]]
@@ -626,7 +626,7 @@ def _policy(case: dict, answers: dict, lang: str) -> dict:
 
 
 def review(case: dict, plan_: dict, answers: dict) -> dict:
-    """Contratos: qué comprobaciones salen en rojo (una respuesta fuera de las aceptables) y con qué probabilidad."""
+    """Contracts: which checks come out red (an answer outside the acceptable ones) and with what probability."""
     cl = plan_["checklist"]
     threshold = case.get("threshold", 0.7)
     cells = []
@@ -640,7 +640,7 @@ def review(case: dict, plan_: dict, answers: dict) -> dict:
     return {"checklist": cl["id"], "cells": cells, "red": sum(c["status"] == "bad" for c in cells), "doubt": sum(c["status"] == "doubt" for c in cells)}
 
 
-# ---------- Costes y vista de la petición ----------
+# ---------- Costs and request view ----------
 
 
 def cost(usage: dict, price: dict, usd_to_eur: float) -> dict:
@@ -654,7 +654,7 @@ def cost(usage: dict, price: dict, usd_to_eur: float) -> dict:
 
 
 def view(obj: Any, lang: str) -> Any:
-    """La petición tal cual, pero con las imágenes y los textos largos abreviados para poder leerla en pantalla."""
+    """The request as is, but with images and long texts shortened so it can be read on screen."""
     T = TEXTS[lang]
     if isinstance(obj, dict):
         out = {}

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// Comprueba las traducciones de la interfaz (src/static/js/i18n/en/*.js) contra el código.
+// Checks the UI translations (src/static/js/i18n/en/*.js) against the code.
 //
-//   node scripts/probar-i18n.mjs            # informe completo
-//   node scripts/probar-i18n.mjs --quiet    # solo errores y recuentos
+//   node scripts/check-i18n.mjs            # full report
+//   node scripts/check-i18n.mjs --quiet    # only errors and counts
 //
-// Errores (código de salida 1): clave sin traducción, traducción sin uso, placeholders {x} o **negritas**
-// distintos, t() con interpolación `${}`, traducciones repetidas con valores distintos.
-// Avisos: textos en español sin envolver en t()/tx()/tn()/N_() y llamadas t(variable) que conviene revisar.
-// Para ignorar un literal a propósito, añade `// i18n-ok` en su línea.
+// Errors (exit code 1): key with no translation, unused translation, mismatched {x} placeholders or **bold**
+// markers, t() with `${}` interpolation, repeated translations with different values.
+// Warnings: Spanish texts not wrapped in t()/tx()/tn()/N_() and t(variable) calls worth reviewing.
+// To ignore a literal on purpose, add `// i18n-ok` on its line.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative, dirname, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,10 +15,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const JS = join(ROOT, 'src/static/js');
 const QUIET = process.argv.includes('--quiet');
-// El texto que se envía a los modelos en el caso 6 es en español en ambos idiomas.
+// The text sent to the models in case 6 is in Spanish in both languages.
 const SKIP_FILES = new Set(['game/observe.js']);
 
-// ---------- Lector de JavaScript (literales, plantillas, llamadas) ----------
+// ---------- JavaScript reader (literals, templates, calls) ----------
 
 const PUNCT_BEFORE_REGEX = new Set(['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '<', '>', '~', '^']);
 const KW_BEFORE_REGEX = new Set(['return', 'typeof', 'case', 'in', 'of', 'delete', 'void', 'throw', 'new', 'else', 'do', 'instanceof', 'yield', 'await']);
@@ -125,7 +125,7 @@ function regexAllowed(p) {
 const isP = (t, v) => t?.type === 'p' && t.value === v;
 const isLit = (t) => t?.type === 'str' || (t?.type === 'tpl' && t.exprs.length === 0);
 
-/** Recorre una lista de tokens (y las expresiones de las plantillas) buscando llamadas de traducción. */
+/** Walks a token list (and the template expressions) looking for translation calls. */
 function scan(toks, file, out) {
   for (let k = 0; k < toks.length; k++) {
     const tk = toks[k];
@@ -139,9 +139,9 @@ function scan(toks, file, out) {
         a.isKey = true;
         out.keys.push({ key: a.value, file, pos: a.pos, fn });
       } else if (a?.type === 'tpl' && a.exprs.length) {
-        out.errors.push({ file, pos: a.pos, msg: `${fn}() con interpolación \`\${}\`; usa {parámetros}` });
+        out.errors.push({ file, pos: a.pos, msg: `${fn}() with \`\${}\` interpolation; use {parameters}` });
       } else if (a && (a.type === 'str' || a.type === 'tpl')) {
-        out.errors.push({ file, pos: a.pos, msg: `${fn}() con un literal seguido de operador; la clave debe ser un único literal` });
+        out.errors.push({ file, pos: a.pos, msg: `${fn}() with a literal followed by an operator; the key must be a single literal` });
       } else if (fn !== 'N_') {
         out.dynamic.push({ file, pos: tk.pos, fn });
       }
@@ -162,12 +162,12 @@ function scan(toks, file, out) {
           l.isKey = true;
           out.keys.push({ key: l.value, file, pos: l.pos, fn });
         }
-      } else out.errors.push({ file, pos: tk.pos, msg: 'tn(n, singular, plural): las claves deben ser dos literales' });
+      } else out.errors.push({ file, pos: tk.pos, msg: 'tn(n, singular, plural): the keys must be two literals' });
     }
   }
 }
 
-/** Todos los literales de una lista de tokens, incluidos los de las plantillas. */
+/** All the literals in a token list, including those in templates. */
 function* literals(toks) {
   for (let k = 0; k < toks.length; k++) {
     const tk = toks[k];
@@ -176,7 +176,7 @@ function* literals(toks) {
   }
 }
 
-// ---------- Heurística de texto en español ----------
+// ---------- Spanish text heuristic ----------
 
 const ACCENTS = /[áéíóúñüÁÉÍÓÚÑ¿¡]/;
 const STRONG = new Set(
@@ -199,7 +199,7 @@ function spanishSignal(s) {
   return 0;
 }
 
-// ---------- Ejecución ----------
+// ---------- Run ----------
 
 function walk(dir) {
   const files = [];
@@ -242,7 +242,7 @@ for (const path of walk(JS).sort()) {
   for (const m of src.matchAll(/import\s*\{([^}]*)\}\s*from\s*['"][^'"]*i18n\.js['"]/g)) {
     for (const part of m[1].split(',')) imported.add(part.trim().split(/\s+as\s+/).pop());
   }
-  for (const fn of out.used) if (!imported.has(fn)) errors.push(`${file}: usa ${fn}() sin importarlo de i18n.js`);
+  for (const fn of out.used) if (!imported.has(fn)) errors.push(`${file}: uses ${fn}() without importing it from i18n.js`);
   const fix = (r) => ({ ...r, line: at(r.pos) });
   keys.push(...out.keys.map(fix));
   dynamic.push(...out.dynamic.map(fix));
@@ -259,7 +259,7 @@ for (const path of walk(JS).sort()) {
   }
 }
 
-// Diccionario: cada fragmento por separado (para detectar conflictos) y el agregado.
+// Dictionary: each fragment separately (to detect conflicts) and the merged one.
 const fragDir = join(JS, 'i18n/en');
 const fragments = {};
 for (const f of readdirSync(fragDir).filter((n) => n.endsWith('.js')).sort()) {
@@ -269,7 +269,7 @@ const EN = {};
 const owner = {};
 for (const [f, dict] of Object.entries(fragments)) {
   for (const [es, en] of Object.entries(dict)) {
-    if (es in EN && EN[es] !== en) errors.push(`traducciones distintas para «${es}»: ${owner[es]} y ${f}`);
+    if (es in EN && EN[es] !== en) errors.push(`different translations for "${es}": ${owner[es]} and ${f}`);
     EN[es] = en;
     owner[es] ??= f;
   }
@@ -279,34 +279,34 @@ const used = new Set(keys.map((k) => k.key));
 const names = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
 const bolds = (s) => (s.match(/\*\*/g) || []).length;
 for (const k of keys) {
-  if (!(k.key in EN)) errors.push(`${k.file}:${k.line} sin traducción: «${k.key}»`);
+  if (!(k.key in EN)) errors.push(`${k.file}:${k.line} missing translation: "${k.key}"`);
 }
 for (const [es, en] of Object.entries(EN)) {
-  if (typeof en !== 'string' || !en.trim()) errors.push(`${owner[es]}: traducción vacía para «${es}»`);
+  if (typeof en !== 'string' || !en.trim()) errors.push(`${owner[es]}: empty translation for "${es}"`);
   else {
-    if (names(es) !== names(en)) errors.push(`${owner[es]}: placeholders distintos en «${es}» → «${en}»`);
-    if (bolds(es) !== bolds(en)) errors.push(`${owner[es]}: marcas ** distintas en «${es}» → «${en}»`);
+    if (names(es) !== names(en)) errors.push(`${owner[es]}: mismatched placeholders in "${es}" → "${en}"`);
+    if (bolds(es) !== bolds(en)) errors.push(`${owner[es]}: mismatched ** markers in "${es}" → "${en}"`);
   }
-  if (!used.has(es)) errors.push(`${owner[es]}: traducción sin uso en el código: «${es}»`);
+  if (!used.has(es)) errors.push(`${owner[es]}: translation not used in the code: "${es}"`);
 }
 
 const fmtPos = (r) => `${r.file}:${r.line}`;
 if (!QUIET) {
   const sorted = leaks.sort((a, b) => b.sig - a.sig || a.file.localeCompare(b.file) || a.line - b.line);
   if (sorted.length) {
-    console.log(`\nPosibles textos en español sin envolver (${sorted.length}):`);
+    console.log(`\nPossible unwrapped Spanish texts (${sorted.length}):`);
     for (const l of sorted) console.log(`  ${l.sig === 1 ? '?' : '!'} ${fmtPos(l)}  ${JSON.stringify(l.text)}`);
   }
   if (dynamic.length) {
-    console.log(`\nLlamadas t(variable) a revisar a mano (${dynamic.length}): solo son válidas con constantes marcadas con N_().`);
+    console.log(`\nt(variable) calls to review by hand (${dynamic.length}): they are only valid with constants marked with N_().`);
     for (const d of dynamic) console.log(`  ${fmtPos(d)}  ${d.fn}(…)`);
   }
 }
 if (errors.length) {
-  console.log(`\nErrores (${errors.length}):`);
+  console.log(`\nErrors (${errors.length}):`);
   for (const e of errors) console.log(`  ✗ ${typeof e === 'string' ? e : e.msg}`);
 }
 console.log(
-  `\ni18n: ${used.size} claves usadas, ${Object.keys(EN).length} traducciones, ${leaks.length} posibles textos sin envolver, ${dynamic.length} llamadas dinámicas, ${errors.length} errores.`,
+  `\ni18n: ${used.size} keys used, ${Object.keys(EN).length} translations, ${leaks.length} possible unwrapped texts, ${dynamic.length} dynamic calls, ${errors.length} errors.`,
 );
 process.exit(errors.length ? 1 : 0);

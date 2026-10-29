@@ -1,12 +1,12 @@
-// Partida comparada en tiempo real, sin DOM: sirve igual en el navegador y en Node (scripts/partida.mjs).
-// El reloj del juego avanza solo, así que mientras un modelo piensa la partida sigue: una respuesta lenta llega con el mundo ya cambiado.
+// Head-to-head real-time match, with no DOM: works the same in the browser and in Node (scripts/play-match.mjs).
+// The game clock runs on its own, so the match goes on while a model thinks: a slow answer arrives when the world has already changed.
 
 import { COLS, TICK_MS, createGame, seconds, step } from './engine.js';
 import { cloneGame, decisionQuality, describeState } from './observe.js';
 
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 
-/** Lee la respuesta del backend (misma forma para Decision-1 y para los LLM). */
+/** Reads the backend answer (same shape for Decision-1 and for the LLMs). */
 export function readAnswer(answers) {
   const c = answers?.carril;
   const lane = Number.parseInt(c?.value, 10);
@@ -22,7 +22,7 @@ export function readAnswer(answers) {
   return { lane, confidence: c.confidence ?? null, probs, danger: answers.peligro?.p ?? null };
 }
 
-/** Fallo propio del bucle (`timeout`, `no-lane`): lleva un código estable y sus parámetros; la interfaz lo traduce al pintarlo. */
+/** Failure of the loop itself (`timeout`, `no-lane`): carries a stable code and its parameters; the UI translates it when rendering it. */
 export class PlayError extends Error {
   constructor(code, params = null) {
     super(code);
@@ -31,9 +31,9 @@ export class PlayError extends Error {
   }
 }
 
-/** Un jugador: su partida y el bucle con el que consulta al modelo (sin solapar peticiones y con una cadencia mínima). */
+/** A player: its game and the loop it uses to query the model (with no overlapping requests and a minimum cadence). */
 export class Player {
-  /** `decide(texto)` devuelve la respuesta de /api/game/decide: { answers, latency_ms, usage, cost }. */
+  /** `decide(text)` returns the /api/game/decide answer: { answers, latency_ms, usage, cost }. */
   constructor({ id, label, decide, cadenceMs, timeoutMs = 20000 }) {
     this.id = id;
     this.label = label;
@@ -62,7 +62,7 @@ export class Player {
     if (onEvents && this.g.events.length) onEvents(this, this.g.events);
   }
 
-  /** Pide una decisión si ha pasado la cadencia y no hay otra en curso. `now` en ms (performance.now). */
+  /** Requests a decision if the cadence has elapsed and none is in flight. `now` in ms (performance.now). */
   maybeDecide(now) {
     if (this.g.over || this.inflight || now - this.lastStart < this.cadenceMs) return;
     this.lastStart = now;
@@ -117,7 +117,7 @@ export class Player {
     this.error = { status: e?.status ?? null, code: own ? e.code : null, params: own ? e.params : null, message: e?.message || String(e), cause: e, at: performance.now() };
   }
 
-  /** Resumen para la tabla final. */
+  /** Summary for the final table. */
   summary() {
     const g = this.g;
     const s = this.stats;
@@ -143,7 +143,7 @@ export class Player {
   }
 }
 
-/** Ganador de una partida: pasarse el juego > más puntos > más vidas > menos tiempo. -1 = empate. */
+/** Winner of a match: beating the game > more points > more lives > less time. -1 = tie. */
 export function verdict(a, b) {
   const order = (x, y) => (x === y ? 0 : x > y ? 1 : -1);
   const c =
@@ -151,7 +151,7 @@ export function verdict(a, b) {
   return c === 0 ? -1 : c > 0 ? 0 : 1;
 }
 
-/** Dos o más jugadores con el mismo reloj, la misma semilla y las mismas reglas. */
+/** Two or more players with the same clock, the same seed and the same rules. */
 export class Match {
   constructor({ players, seed = 7, speed = 1 }) {
     this.players = players;
@@ -184,12 +184,12 @@ export class Match {
     if (this.status === 'running') this.status = 'paused';
   }
 
-  /** Fracción del tick en curso (0 a 1): sirve para pintar con suavidad entre dos ticks. */
+  /** Fraction of the current tick (0 to 1): used to render smoothly between two ticks. */
   get alpha() {
     return this.acc / TICK_MS;
   }
 
-  /** Avanza el reloj hasta `now` (ms). Se llama una vez por fotograma. */
+  /** Advances the clock up to `now` (ms). Called once per frame. */
   frame(now, onEvents) {
     if (this.status !== 'running') return;
     const dt = Math.min(now - this.last, 250);

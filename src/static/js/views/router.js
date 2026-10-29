@@ -1,4 +1,4 @@
-// Caso 4 · Router de modelos GenAI: cada petición al destino más barato que la resuelve bien.
+// Case 4 · GenAI model router: each request goes to the cheapest destination that handles it well.
 import { h, fmt } from '../util.js';
 import { t, tx, tn } from '../i18n.js';
 import { ans, primary, processedItems, card, lane, inboxBlock, sevBadge, flagChip, yes, sectionTitle, scoreLabel } from './common.js';
@@ -11,7 +11,7 @@ export function routeOf(ctx, id) {
   return p.low || !ctx.sc.routes[p.key] ? { key: FALLBACK, fallback: true } : { key: p.key, fallback: false };
 }
 
-/** Coste y latencia de esta ejecución frente a mandarlo todo al modelo grande. */
+/** Cost and latency of this run compared with sending everything to the large model. */
 export function economics(ctx) {
   const { sc, st } = ctx;
   const done = processedItems(ctx);

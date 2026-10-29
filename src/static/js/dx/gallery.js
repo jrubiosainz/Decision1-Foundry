@@ -1,11 +1,11 @@
-// Casos 2, 3 y 4 · Una llamada por imagen: tiques de gastos, creatividades de marca y fotos de inspección.
-// El modelo responde las comprobaciones; las reglas de la empresa (política, guía o matriz de riesgos) eligen la acción.
+// Cases 2, 3 and 4 · One call per image: expense receipts, brand creatives and inspection photos.
+// The model answers the checks; the company's rules (policy, brand guidelines or risk matrix) pick the action.
 import { h, fmt, pool, toast, openModal } from '../util.js';
 import { api, errorText } from '../core.js';
 import { t, tn, locale } from '../i18n.js';
 import { DX, changed, img, cap, freshRun, startRun, endRun, track, reportError, caseHead, toolbar, paintTimer, kpi, runKpis, answerBlock, stamp, verdictMark, callFoot, caseNotes, paintNotes, docButton, thumb, zoom } from './common.js';
 
-const CONCURRENCY = 4; // tras la primera llamada, que escribe la caché
+const CONCURRENCY = 4; // after the first call, which writes the cache
 const UPLOAD = 'upload';
 const MAX_SIDE = 1024;
 const MAX_BYTES = 3 * 1024 * 1024;
@@ -14,7 +14,7 @@ const state = (sc) => (DX.st[sc.id] ||= { run: freshRun(), res: {}, busy: {}, er
 const dayFmt = (iso) => new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${iso}T12:00:00`));
 const outcomeOf = (sc, res) => sc.outcomes[res?.assessment?.outcome] || null;
 
-/** ¿Coincide con lo esperado? En seguridad cuentan la gravedad y la acción. */
+/** Does it match what was expected? In safety, the severity and the action are what count. */
 function hitOf(sc, it, res) {
   const a = res?.assessment;
   if (!a || it.expected == null) return null;
@@ -22,7 +22,7 @@ function hitOf(sc, it, res) {
   return a.outcome === it.expected;
 }
 
-/** Título y subtítulo de cada elemento según el caso. */
+/** Title and subtitle of each item, depending on the case. */
 function caption(sc, it) {
   if (it.id === UPLOAD) return [t('Tu foto'), t('Subida desde este navegador')];
   if (sc.kind === 'receipts') {
@@ -34,7 +34,7 @@ function caption(sc, it) {
   return [it.site, it.zone];
 }
 
-// ---------- Llamadas (fuera de la vista: siguen aunque se cambie de página) ----------
+// ---------- Calls (outside the view: they keep going even if the page changes) ----------
 
 async function decideOne(sc, st, it) {
   if (DX.st[sc.id] !== st) return;
@@ -64,7 +64,7 @@ async function runAll(sc, st) {
   startRun(st.run);
   changed(sc.id);
   try {
-    // La primera llamada escribe en caché el contexto común (política, guía, referencias); las demás lo leen.
+    // The first call writes the shared context (policy, guidelines, references) to the cache; the rest read it.
     const [first, ...rest] = todo;
     await decideOne(sc, st, first);
     if (DX.st[sc.id] === st) await pool(rest, CONCURRENCY, (it) => decideOne(sc, st, it));
@@ -97,7 +97,7 @@ async function decideUpload(sc, st, src) {
   }
 }
 
-/** Reduce la foto a 1024 px de lado como JPEG: menos tokens, menos espera y por debajo del límite de 3 MB. */
+/** Shrinks the photo to 1024 px on its longest side, as JPEG: fewer tokens, less waiting and under the 3 MB limit. */
 async function shrink(file) {
   if (!file?.type?.startsWith('image/')) throw new Error(t('El archivo no es una imagen.'));
   const bmp = await createImageBitmap(file).catch(() => {
@@ -112,7 +112,7 @@ async function shrink(file) {
   return url;
 }
 
-// ---------- Detalle de un elemento ----------
+// ---------- Item detail ----------
 
 function declaredBlock(sc, it, a) {
   const d = it.declared;
@@ -143,7 +143,7 @@ function declaredBlock(sc, it, a) {
   );
 }
 
-/** Reglas en orden: gana la primera con alguna alerta; la última es el resultado por defecto. */
+/** Rules in order: the first one with any alert wins; the last one is the default outcome. */
 function chainBlock(sc, a) {
   if (!a.chain?.length) return null;
   const chosen = a.chain.findIndex((r) => r.fired);
@@ -174,7 +174,7 @@ function chainBlock(sc, a) {
   );
 }
 
-/** Matriz de riesgos: gravedad del modelo, mínimos que fijan los riesgos detectados y la acción resultante. */
+/** Risk matrix: the model's severity, the minimums set by the detected risks and the resulting action. */
 function policyBlock(sc, a) {
   const pol = sc.policy;
   const sev = a.severity;
@@ -281,7 +281,7 @@ export function mountGallery(sc, stage, notes) {
     changed(sc.id);
   };
 
-  // ---------- Contexto: lo que viaja en cada llamada y las acciones posibles ----------
+  // ---------- Context: what travels in each call and the possible actions ----------
   function context() {
     const inputs = [h('span', { class: 'dx-media m-image' }, `🖼️ ${cap(sc.item_label)}`)];
     if (sc.kind === 'receipts') inputs.push(h('span', { class: 'dx-media m-json' }, t('{ } Datos declarados')));
@@ -295,7 +295,7 @@ export function mountGallery(sc, stage, notes) {
     );
   }
 
-  // ---------- Tarjetas (se construyen una vez; solo cambia su estado) ----------
+  // ---------- Cards (built once; only their state changes) ----------
   function card(it) {
     const [title, sub] = caption(sc, it);
     const c = (cards[it.id] = { over: h('span', { class: 'dxg-over' }), mark: h('span', { class: 'dxg-mark' }), foot: h('span', { class: 'dxg-foot' }) });
@@ -379,7 +379,7 @@ export function mountGallery(sc, stage, notes) {
     c.foot.replaceChildren(...foot.filter(Boolean));
   }
 
-  // ---------- Resumen, KPI y notas ----------
+  // ---------- Summary, KPIs and notes ----------
   function summary() {
     const done = sc.items.filter((it) => st.res[it.id]);
     const outs = done.map((it) => st.res[it.id].assessment?.outcome);

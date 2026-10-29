@@ -1,6 +1,6 @@
-/* OpenAI Decisions API · segunda pestaña. Reutiliza el esqueleto de Decision-1 con acento violeta. */
+/* OpenAI Decisions API · second tab. Reuses the Decision-1 skeleton with a violet accent. */
 
-/* ---------- Pestañas de la barra superior ---------- */
+/* ---------- Top bar tabs ---------- */
 .tabs { display: flex; align-self: stretch; gap: 2px; flex: none; }
 .tab { display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border-bottom: 2px solid transparent; color: var(--muted); font-size: 13.5px; font-weight: 650; text-decoration: none; white-space: nowrap; transition: color 0.15s, border-color 0.15s, background-color 0.15s; }
 .tab:hover { color: var(--ink); background: var(--b-soft, #f8fafc); }
@@ -9,7 +9,7 @@
 .tab.active .tab-badge { background: var(--b-accent, #6d28d9); color: var(--b-on-accent, #fff); }
 body.tab-dx .d1-only, body:not(.tab-dx) .dx-only { display: none !important; }
 
-/* ---------- Acento violeta en la pestaña de la Decisions API ---------- */
+/* ---------- Violet accent on the Decisions API tab ---------- */
 body.tab-dx { --accent: var(--b-accent, #6d28d9); --accent-2: var(--b-accent-2, #5b21b6); --accent-soft: var(--b-accent-soft, #f3efff); }
 body.tab-dx .nav-item.active, body.tab-dx .lang-btn[aria-pressed="true"] { border-color: var(--b-accent-line, #ddd3fb); }
 body.tab-dx .scanning { border-color: var(--b-accent-line-2, #c4b5fd) !important; }
@@ -22,7 +22,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dx-case { min-width: 0; }
 .lat.cached { color: var(--b-teal-ink, #0f766e); font-weight: 600; }
 
-/* ---------- Tipo de cada entrada: imagen, texto, JSON o regla ---------- */
+/* ---------- Type of each input: image, text, JSON or rule ---------- */
 .m-image { --mc: var(--b-orange-ink, #c2410c); --mb: var(--b-orange-soft, #fff7ed); --ml: var(--b-orange-line, #fed7aa); }
 .m-text { --mc: var(--b-info-ink, #1d4ed8); --mb: var(--b-info-soft, #eff6ff); --ml: var(--b-info-line, #bfdbfe); }
 .m-json { --mc: var(--b-teal-ink, #0f766e); --mb: var(--b-teal-soft, #f0fdfa); --ml: var(--b-teal-line, #99f6e4); }
@@ -34,7 +34,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dx-media small { font-weight: 500; opacity: 0.8; }
 .dx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 
-/* ---------- Sellos de decisión y tonos ---------- */
+/* ---------- Decision stamps and tones ---------- */
 .tone-ok { --tc: var(--b-ok-ink, #047857); --tb: var(--b-ok-soft, #ecfdf5); --tl: var(--b-ok-line, #a7f3d0); }
 .tone-warn { --tc: var(--b-warn-ink, #b45309); --tb: var(--b-warn-soft, #fffbeb); --tl: var(--b-warn-line-2, #fcd34d); }
 .tone-bad { --tc: var(--b-bad-ink, #b91c1c); --tb: var(--b-bad-soft, #fef2f2); --tl: var(--b-bad-line, #fecaca); }
@@ -49,7 +49,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 @keyframes dx-blink { 50% { opacity: 0.45; } }
 @keyframes dx-glow { 0% { box-shadow: 0 0 0 0 var(--b-accent-a45, rgba(109, 40, 217, 0.45)); } 100% { box-shadow: 0 0 0 8px var(--b-accent-a0, rgba(109, 40, 217, 0)); } }
 
-/* ---------- Respuestas del modelo ---------- */
+/* ---------- Model answers ---------- */
 .dx-ans { display: grid; grid-template-columns: minmax(0, 1fr) auto 64px 38px; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
 .dx-ans-q { min-width: 0; color: var(--ink-2); line-height: 1.3; }
 .dx-ans.key .dx-ans-q { color: var(--ink); font-weight: 700; }
@@ -69,7 +69,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dx-subbars .bar-row { font-size: 12px; }
 .dx-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--line); }
 
-/* ---------- Miniaturas, ampliación y documentos ---------- */
+/* ---------- Thumbnails, zoom and documents ---------- */
 .dx-thumb { display: block; padding: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--b-soft, #f8fafc); cursor: zoom-in; transition: border-color 0.15s, transform 0.15s; }
 .dx-thumb:hover { border-color: var(--accent); transform: translateY(-1px); }
 .dx-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -92,7 +92,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dx-md code { padding: 0 4px; border-radius: 4px; background: var(--b-soft-2, #f1f5f9); font: 12px var(--mono); }
 .dx-md b { color: var(--ink); }
 
-/* ---------- Portada: la cascada del caso 1 ---------- */
+/* ---------- Intro page: the case 1 cascade ---------- */
 .dx-flow { display: flex; align-items: stretch; gap: 6px; }
 .dxf-col { display: flex; flex: 1 1 0; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
 .dxf-node { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 9px 10px 8px; border: 1px solid var(--b-accent-line, #ddd3fb); border-radius: var(--radius); background: var(--b-panel, #fff); box-shadow: var(--shadow); color: inherit; text-decoration: none; transition: border-color 0.15s, transform 0.15s; }
@@ -105,7 +105,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dxf-foot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-top: 10px; }
 .dxf-foot .flow-caption { flex: 1 1 360px; margin: 0; }
 
-/* ---------- Caso 1: cascada de decisiones ---------- */
+/* ---------- Case 1: decision cascade ---------- */
 .dxc-main { display: grid; grid-template-columns: minmax(250px, 310px) minmax(0, 1fr); gap: 12px; align-items: start; }
 .dxc-list { position: sticky; top: 50px; display: flex; flex-direction: column; gap: 6px; }
 .dxc-row { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 10px; background: var(--b-panel, #fff); box-shadow: var(--shadow); text-align: left; transition: border-color 0.15s, background-color 0.15s; }
@@ -131,7 +131,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dxc-who span { color: var(--ink-2); font-size: 12.5px; }
 .dxc-facts { display: flex; flex: 1 1 300px; flex-wrap: wrap; align-content: flex-start; gap: 4px; }
 
-/* Recorrido: una columna por llamada, con el paso en curso iluminado */
+/* Path: one column per call, with the current step highlighted */
 .dxc-map { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--b-panel, #fff); }
 .dxc-col { display: inline-flex; flex-direction: column; gap: 3px; }
 .dxc-node { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--b-soft, #f8fafc); color: var(--muted); font-size: 12px; white-space: nowrap; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
@@ -143,7 +143,7 @@ body.tab-dx .kpi-sub { white-space: normal; }
 .dxc-arrow { color: var(--muted); }
 .dxc-map > .dx-legend { margin-left: auto; }
 
-/* Entradas tal y como las recibe cada paso */
+/* Inputs exactly as each step receives them */
 .dxc-preview { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px dashed var(--line-2); border-radius: var(--radius); background: var(--b-panel, #fff); }
 .dxc-preview-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .dxc-hint { margin: 0; font-size: 13px; }
@@ -157,7 +157,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxc-in-label { color: var(--mc); font-size: 11.5px; font-weight: 650; }
 .dxc-quote { display: -webkit-box; overflow: hidden; color: var(--ink); font-size: 13px; font-style: italic; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
 
-/* Pasos de la cascada */
+/* Cascade steps */
 .dxc-steps { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .dxc-step { position: relative; overflow: hidden; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--b-panel, #fff); box-shadow: var(--shadow); }
 .dxc-step.skipped { background: var(--b-soft, #fbfcfe); box-shadow: none; }
@@ -185,14 +185,14 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxc-next b { padding: 1px 6px; border-radius: 5px; background: var(--accent); color: var(--b-on-accent, #fff); font: 700 11px var(--mono); }
 .dxc-reason { flex: 1 1 200px; min-width: 0; color: var(--ink-2); }
 
-/* Destino final de la reclamación */
+/* Final destination of the claim */
 .dxc-final { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--tl); border-radius: var(--radius); background: var(--tb); box-shadow: var(--shadow); }
 .dxc-final .dx-stamp.lg { background: var(--b-panel, #fff); }
 .dxc-final-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; color: var(--ink); font-size: 13.5px; }
 .dxc-final-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; color: var(--ink-2); font-size: 12.5px; }
 .dxc-error { padding: 10px 14px; border: 1px solid var(--b-bad-line, #fecaca); border-radius: var(--radius); background: var(--b-bad-soft, #fef2f2); color: var(--b-bad-ink, #b91c1c); font-size: 13px; }
 
-/* ---------- Casos 2–4: galería de imágenes ---------- */
+/* ---------- Cases 2–4: image gallery ---------- */
 .dxg-context { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; margin-bottom: 12px; }
 .dxg-ctx-group { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-width: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--b-panel, #fff); box-shadow: var(--shadow); }
 .dxg-ctx-label { width: 100%; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -232,7 +232,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxg-foot .chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .dxg-err { color: var(--bad); font-size: 12px; font-weight: 650; }
 
-/* Tarjeta para probar con una foto propia */
+/* Card for trying your own photo */
 .dxg-upload:not(.has) .dxg-fig, .dxg-upload.has .dxg-drop { display: none; }
 .dxg-upload .dxg-fig { cursor: pointer; }
 .dxg-upload.drag { border-color: var(--accent); }
@@ -240,7 +240,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxg-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin: 8px 8px 0; padding: 8px; aspect-ratio: 3 / 2; border: 2px dashed var(--b-accent-line-2, #c4b5fd); border-radius: 10px; background: var(--accent-soft); text-align: center; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
 .dxg-drop:hover, .dxg-upload.drag .dxg-drop { border-color: var(--accent); background: var(--b-accent-soft-2, #ede9fe); }
 
-/* Detalle de una imagen */
+/* Image detail */
 .dxg-detail { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: start; gap: 20px; }
 .dxg-detail-fig { position: sticky; top: 0; margin: 0; }
 .dxg-detail-fig img { display: block; width: 100%; max-height: calc(100vh - 100px); border: 1px solid var(--line); border-radius: 10px; background: var(--b-soft, #f8fafc); object-fit: contain; }
@@ -272,7 +272,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxg-floors li.fired { color: var(--ink); font-weight: 600; }
 .dxg-floors .chip { margin-left: 6px; }
 
-/* ---------- Caso 5: revisión de contratos ---------- */
+/* ---------- Case 5: contract review ---------- */
 .dxk-contracts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 12px; }
 .dxk-contract { position: relative; display: flex; flex-direction: column; gap: 10px; overflow: hidden; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--b-panel, #fff); box-shadow: var(--shadow); }
 .dxk-ct-head { display: flex; align-items: flex-start; gap: 10px; }
@@ -283,7 +283,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxk-risks { display: flex; flex-wrap: wrap; gap: 4px; }
 .dxk-ct-actions { display: flex; justify-content: space-between; gap: 6px; margin-top: auto; }
 
-/* Una matriz por departamento: preguntas × contratos */
+/* One matrix per department: questions × contracts */
 .dxk-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); align-items: start; gap: 10px; }
 .dxk-list { min-width: 0; padding: 10px 12px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--b-panel, #fff); box-shadow: var(--shadow); }
 .dxk-list-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
@@ -309,7 +309,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxk-tot { justify-self: center; color: var(--muted); font: 700 12px var(--mono); }
 .dxk-tot.bad { color: var(--b-bad-ink, #b91c1c); }
 
-/* Detalle de una casilla */
+/* Cell detail */
 .dxk-detail { display: flex; flex-direction: column; gap: 10px; }
 .dxk-detail h2, .dxk-detail p { margin: 0; }
 .dxk-verdict { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 9px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--b-soft-2, #f1f5f9); color: var(--ink-2); font-size: 14px; }
@@ -318,7 +318,7 @@ figure.dxc-in figcaption { color: var(--mc); font-size: 11.5px; font-weight: 650
 .dxk-verdict.s-doubt { border-color: var(--b-warn-line-2, #fcd34d); background: var(--b-warn-soft, #fffbeb); color: var(--b-warn-ink, #b45309); }
 .dxk-detail-actions { display: flex; gap: 6px; }
 
-/* ---------- Pantallas más estrechas y movimiento reducido ---------- */
+/* ---------- Narrower screens and reduced motion ---------- */
 @container dxstage (max-width: 880px) {
   .dxc-main { grid-template-columns: minmax(0, 1fr); }
   .dxc-list { position: static; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }

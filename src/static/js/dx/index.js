@@ -1,4 +1,4 @@
-// Pestaña «OpenAI Decisions API»: contenido, montaje de cada página y estado para la barra lateral.
+// "OpenAI Decisions API" tab: content, mounting of each page and state for the sidebar.
 import { api, emit } from '../core.js';
 import { DX } from './common.js';
 import { mountDxIntro } from './intro.js';
@@ -21,7 +21,7 @@ export async function loadDx(lang) {
   applyDx(await api('/api/dx', null, lang ? { lang } : {}));
 }
 
-/** Contenido nuevo (al cargar o al cambiar de idioma): los resultados anteriores se descartan. */
+/** New content (on load or on language change): previous results are discarded. */
 export function applyDx(data) {
   DX.data = data;
   DX.cases = [...data.cases].sort((a, b) => a.order - b.order);
@@ -49,7 +49,7 @@ export function unmountDx() {
   current = null;
 }
 
-/** Acciones de teclado sobre la página actual: 'process', 'reset'. Devuelve si la página la admite. */
+/** Keyboard actions on the current page: 'process', 'reset'. Returns whether the page supports it. */
 export function dxAction(action) {
   const fn = current?.view[action];
   if (!fn) return false;

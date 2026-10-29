@@ -1,4 +1,4 @@
-// Laboratorio: Decision-1 con tu propio texto y tus propias preguntas.
+// Lab: Decision-1 with your own text and your own questions.
 import { h, fmt, rich } from './util.js';
 import { S, api, errorText } from './core.js';
 import { t, getLang } from './i18n.js';
@@ -7,14 +7,14 @@ import { answerViz } from './views/answer.js';
 import { sectionTitle, qLabel } from './views/common.js';
 import { showJson, note, noteList } from './notes.js';
 
-// tpl es el id de la plantilla (se busca en S.lab al pintar, ya en el idioma activo); err guarda el error, no su texto.
+// tpl is the template id (looked up in S.lab at render time, already in the active language); err stores the error, not its text.
 const L = { tpl: null, lang: null, edited: false, state: '', questions: '', busy: false, res: null, sent: null, err: null };
 let els = null;
 
 const pretty = (v) => (typeof v === 'string' ? v : JSON.stringify(v, null, 2));
 const current = () => S.lab?.templates?.find((tp) => tp.id === L.tpl) || null;
 
-// Errores de validación del editor: se traducen al pintar para que sigan al idioma activo.
+// Editor validation errors: translated at render time so they follow the active language.
 class LabError extends Error {
   constructor(kind, detail = '') {
     super(detail);
@@ -39,7 +39,7 @@ function load(tpl) {
   L.err = null;
 }
 
-// Carga una plantilla antes de abrir el laboratorio (enlaces de la portada).
+// Loads a template before opening the Lab (links on the intro page).
 export function pickTemplate(id) {
   const tpl = S.lab?.templates?.find((tp) => tp.id === id);
   if (tpl) load(tpl);
@@ -52,7 +52,7 @@ function parse() {
     try {
       state = JSON.parse(raw);
     } catch {
-      // No es JSON válido: se envía como texto.
+      // Not valid JSON: sent as text.
     }
   }
   let questions;
@@ -114,7 +114,7 @@ function formatQuestions() {
 const kpi = (label, value, sub, cls = '') =>
   h('div', { class: `kpi ${cls}` }, h('div', { class: 'kpi-label' }, label), h('div', { class: 'kpi-value' }, value), h('div', { class: 'kpi-sub' }, sub));
 
-// Plantillas con «rank»: las preguntas sí/no se ordenan por probabilidad y se cortan por un umbral.
+// Templates with "rank": yes/no questions are sorted by probability and cut off at a threshold.
 function ranking(sc, answers, cfg) {
   const rk = { title: t('Ranking'), yes: t('Sí'), no: t('No'), threshold: 0.5, ...cfg };
   const rows = Object.entries(answers || {})
@@ -203,7 +203,7 @@ export function unmountLab() {
 export function mountLab(stage, notes) {
   const tpls = S.lab?.templates || [];
   if (!L.tpl && tpls[0]) load(tpls[0]);
-  // Una plantilla sin tocar sigue al idioma activo; lo que el usuario ha escrito se conserva tal cual.
+  // An untouched template follows the active language; whatever the user has typed is kept as is.
   const cur = tpls.find((tp) => tp.id === L.tpl);
   if (cur && !L.edited && L.lang !== getLang()) load(cur);
   const ta = (key, rows, label) =>

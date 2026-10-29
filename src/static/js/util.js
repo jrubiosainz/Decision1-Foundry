@@ -1,10 +1,10 @@
-// Utilidades de interfaz: DOM, formato según el idioma, animaciones y diálogos.
+// UI utilities: DOM, language-aware formatting, animations and dialogs.
 import { t, locale } from './i18n.js';
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-/** Crea un elemento: h('div', {class: 'x', onclick, style: {'--c': 'red'}}, 'texto', otroNodo, [lista]) */
+/** Creates an element: h('div', {class: 'x', onclick, style: {'--c': 'red'}}, 'text', otherNode, [list]) */
 export function h(tag, props, ...children) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
@@ -38,16 +38,16 @@ function add(el, children) {
 const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => escapeMap[c]);
 
-/** Texto con **negritas** -> nodo HTML seguro. */
+/** Text with **bold** -> safe HTML node. */
 export function rich(text) {
   const span = document.createElement('span');
   span.innerHTML = esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
   return span;
 }
 
-// ---------- Formato ----------
+// ---------- Formatting ----------
 
-// Un formateador por idioma y opciones: cambiar de idioma cambia separadores, símbolos de moneda y porcentajes.
+// One formatter per language and options: switching languages changes separators, currency symbols and percentages.
 const nfCache = new Map();
 const nf = (o) => {
   const loc = locale();
@@ -79,7 +79,7 @@ export const fmt = {
   },
   eur: (v) => money(v, 'EUR'),
   usd: (v) => money(v, 'USD'),
-  // «×13» en español y «13×» en inglés.
+  // "×13" in Spanish and "13×" in English.
   times: (r) => {
     if (r == null || !Number.isFinite(r)) return '—';
     const v = r >= 10 ? fmt.int(r) : fmt.num(r, 1);
@@ -87,13 +87,13 @@ export const fmt = {
   },
 };
 
-// Nombres de idioma en su propia lengua (igual en toda la interfaz).
+// Language names in their own language (the same across the whole UI).
 export const LANGS = {
   es: 'Español', ca: 'Català', eu: 'Euskara', gl: 'Galego', pt: 'Português', en: 'English', // i18n-ok
   de: 'Deutsch', fr: 'Français', it: 'Italiano', nl: 'Nederlands',
 };
 
-// Los canales llegan del escenario ya traducido (Llamada → Call, Empleado → Employee, Encuesta → Survey).
+// Channels come from the already translated scenario (Llamada → Call, Empleado → Employee, Encuesta → Survey).
 const CHANNEL_ICONS = {
   email: '✉️', whatsapp: '💬', web: '🌐', 'x / twitter': '𝕏', chat: '💭', llamada: '📞', call: '📞', phone: '📞',
   app: '📱', empleado: '🪪', employee: '🪪', booking: '🛏️', google: '🔎', tripadvisor: '🦉', encuesta: '📝', survey: '📝',
@@ -109,9 +109,9 @@ export const median = (xs) => {
 
 export const plural = (n, one, many) => `${fmt.int(n)} ${n === 1 ? one : many}`;
 
-// ---------- Concurrencia ----------
+// ---------- Concurrency ----------
 
-/** Ejecuta fn sobre items con un máximo de `limit` en paralelo. */
+/** Runs fn over items with at most `limit` in parallel. */
 export async function pool(items, limit, fn) {
   let next = 0;
   const worker = async () => {
@@ -123,13 +123,13 @@ export async function pool(items, limit, fn) {
   await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker));
 }
 
-// ---------- Animación FLIP ----------
+// ---------- FLIP animation ----------
 
 const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * Anima los elementos con [data-flip] desde su posición anterior a la nueva tras `mutate()`.
- * Funciona aunque el DOM se regenere: empareja por el valor de data-flip.
+ * Animates the [data-flip] elements from their previous position to the new one after `mutate()`.
+ * Works even if the DOM is regenerated: elements are matched by their data-flip value.
  */
 export function flip(root, mutate, { duration = 700, stagger = 0, maxDelay = 900 } = {}) {
   if (!root || reduceMotion()) {
@@ -165,7 +165,7 @@ export function flip(root, mutate, { duration = 700, stagger = 0, maxDelay = 900
   }
 }
 
-// ---------- Avisos y diálogos ----------
+// ---------- Toasts and dialogs ----------
 
 export function toast(message, kind = 'info', ms = 4500) {
   const box = $('#toasts');
@@ -206,7 +206,7 @@ export function closeModal() {
 
 export const modalOpen = () => !$('#modal').hidden;
 
-// ---------- JSON coloreado ----------
+// ---------- Colored JSON ----------
 
 export function jsonHtml(value, maxLen = 80000) {
   let s = typeof value === 'string' ? value : JSON.stringify(value, null, 2);

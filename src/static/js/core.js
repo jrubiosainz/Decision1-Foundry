@@ -1,4 +1,4 @@
-// Estado global, llamadas al backend y código de acceso.
+// Global state, backend calls and access code.
 import { h, toast, openModal, closeModal } from './util.js';
 import { t, getLang } from './i18n.js';
 
@@ -61,7 +61,7 @@ export function skuLabel(sku, location) {
   return sku || '—';
 }
 
-// ---------- Código de acceso ----------
+// ---------- Access code ----------
 
 const CODE_KEY = 'd1-code';
 export const getCode = () => localStorage.getItem(CODE_KEY) || '';
@@ -120,7 +120,7 @@ export class ApiError extends Error {
   }
 }
 
-// `lang` fuerza el idioma de esta llamada (el selector pide el contenido nuevo antes de cambiar el idioma de la interfaz).
+// `lang` forces the language of this call (the selector fetches the new content before switching the UI language).
 export async function api(path, body, { retry = true, lang } = {}) {
   const opts = { method: body ? 'POST' : 'GET', headers: { 'X-Demo-Code': getCode(), 'X-Demo-Lang': lang || getLang() } };
   if (body) {

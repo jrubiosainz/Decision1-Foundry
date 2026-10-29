@@ -1,4 +1,4 @@
-// Traducciones: página de caso (casepage.js, notes.js, run.js, race.js, itemmodal.js).
+// Translations: case page (casepage.js, notes.js, run.js, race.js, itemmodal.js).
 export default {
   // casepage.js
   'Procesar (barra espaciadora)': 'Process (spacebar)',

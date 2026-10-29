@@ -1,11 +1,11 @@
-// Piezas comunes del caso 6 (partida en directo): identificadores, textos y estadísticas por jugador.
+// Shared pieces of case 6 (live game): identifiers, texts and per-player stats.
 import { fmt } from './util.js';
 import { N_ } from './i18n.js';
 import { TICK_MS } from './game/engine.js';
 
 export const D1_ID = 'decision-1';
 export const D1_NAME = 'Decision-1';
-// Se traducen con t() al pintarlos.
+// Translated with t() when rendered.
 export const OVER_LABEL = { won: N_('Victoria'), lost: N_('Sin vidas'), invaded: N_('Invadido'), timeout: N_('Tiempo agotado') };
 export const SPEED_LABEL = { 1: N_('normal'), 1.5: N_('rápido'), 2: N_('turbo') };
 
@@ -14,7 +14,7 @@ export const shortName = (label) => String(label || '').split(' · ')[0];
 export const speedText = (v) => `×${fmt.num(v, 1)}`;
 export const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
-/** Lo medido hasta ahora para un jugador (partida en curso o terminada). */
+/** What has been measured so far for a player (game in progress or finished). */
 export function liveStats(p) {
   const s = p.stats;
   return {

@@ -1,4 +1,4 @@
-// Traducciones: núcleo (app.js, core.js, util.js, langswitch.js).
+// Translations: core (app.js, core.js, util.js, langswitch.js).
 export default {
   // util.js
   'Cerrar': 'Close',
@@ -24,7 +24,7 @@ export default {
   'El servicio no está configurado.': 'The service is not configured.',
   'Error {status}': 'Error {status}',
 
-  // app.js · panel izquierdo
+  // app.js · left panel
   'Esta sesión': 'This session',
   'llamadas': 'calls',
   'decisiones': 'decisions',
@@ -40,7 +40,7 @@ export default {
   'Tus datos, tus preguntas': 'Your data, your questions',
   'Notas para el presentador': 'Presenter notes',
 
-  // app.js · barra superior
+  // app.js · top bar
   'Región donde se ejecutó la última inferencia (cabecera de la respuesta)': 'Region where the last inference ran (response header)',
   'Inferencia: ': 'Inference: ',
   'Peticiones por minuto disponibles para Decision-1 (estimación)': 'Requests per minute available for Decision-1 (estimate)',
@@ -51,7 +51,7 @@ export default {
   'Sin configurar · ': 'Not configured · ',
   'Tipo de despliegue de Decision-1': 'Decision-1 deployment type',
 
-  // app.js · atajos de teclado
+  // app.js · keyboard shortcuts
   '⌨️ Atajos de teclado': '⌨️ Keyboard shortcuts',
   'Página anterior / siguiente': 'Previous / next page',
   'Ir a un caso': 'Go to a use case',
@@ -64,7 +64,7 @@ export default {
   'Decidir en el laboratorio': 'Decide in the Lab',
   'Cerrar la ventana': 'Close the dialog',
 
-  // app.js · arranque
+  // app.js · startup
   'Demo de Microsoft-Decision-1 en Microsoft Foundry: seis casos de uso de decisiones rápidas, baratas y calibradas.':
     'Microsoft-Decision-1 demo on Microsoft Foundry: six use cases for fast, cheap, calibrated decisions.',
   'Cargando la demo…': 'Loading the demo…',

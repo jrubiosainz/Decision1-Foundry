@@ -1,11 +1,11 @@
-// Caso 5 · Revisión de contratos: Legal, Privacidad y Finanzas hacen sus 20 preguntas cerradas sobre el mismo contrato.
-// Una llamada por lista; la primera escribe el contrato en caché y las otras dos lo leen en paralelo.
+// Case 5 · Contract review: Legal, Privacy and Finance ask their 20 closed questions about the same contract.
+// One call per checklist; the first one writes the contract to the cache and the other two read it in parallel.
 import { h, fmt, pool, toast, openModal } from '../util.js';
 import { api, errorText } from '../core.js';
 import { t, tn } from '../i18n.js';
 import { DX, changed, freshRun, startRun, endRun, track, reportError, caseHead, toolbar, paintTimer, kpi, runKpis, answerBlock, valueLabel, verdictMark, callFoot, caseNotes, paintNotes, showDoc } from './common.js';
 
-const CONTRACTS_AT_ONCE = 2; // cada contrato lanza hasta 2 listas a la vez: 4 llamadas como máximo
+const CONTRACTS_AT_ONCE = 2; // each contract launches up to 2 checklists at once: 4 calls at most
 
 const state = (sc) => (DX.st[sc.id] ||= { run: freshRun(), res: {}, cells: {}, busy: {}, err: {} });
 const key = (it, cl) => `${it.id}:${cl.id}`;
@@ -15,14 +15,14 @@ const goodValue = (q, v) => (q.type === 'predicate' ? v === (q.good ?? true) : (
 const labelOf = (q, v) => valueLabel(q, { type: q.type, value: v });
 const ICON = { ok: '✓', bad: '✗', doubt: '?', unknown: '–', error: '!', busy: '', pending: '' };
 
-/** ¿Sale la casilla del color esperado (verde si la respuesta esperada es aceptable, rojo si no)? */
+/** Does the box come out in the expected color (green if the expected answer is acceptable, red otherwise)? */
 function hitOf(it, cl, qk, cell) {
   const v = it.expected?.[cl.id]?.[qk];
   if (v === undefined || !cell) return null;
   return cell.status === (goodValue(cl.questions[qk], v) ? 'ok' : 'bad');
 }
 
-// ---------- Llamadas (fuera de la vista: siguen aunque se cambie de página) ----------
+// ---------- Calls (outside the view: they keep going even if the page changes) ----------
 
 async function reviewList(sc, st, it, cl) {
   const k = key(it, cl);
@@ -70,12 +70,12 @@ async function runContracts(sc, st, items) {
   }
 }
 
-// ---------- Vista ----------
+// ---------- View ----------
 
 export function mountContracts(sc, stage, notes) {
   let st = state(sc);
   const els = { totals: {} };
-  const cells = {}; // clave contrato:lista → { pregunta → botón }
+  const cells = {}; // key contract:checklist → { question → button }
   const cards = {};
   const perList = Object.keys(sc.checklists[0]?.questions || {}).length;
   const perContract = sc.checklists.reduce((n, cl) => n + Object.keys(cl.questions).length, 0);
@@ -112,7 +112,7 @@ export function mountContracts(sc, stage, notes) {
     );
   }
 
-  // ---------- Tarjeta de cada contrato: riesgo global por departamento ----------
+  // ---------- Card of each contract: overall risk by department ----------
   function contractCard(it) {
     const c = (cards[it.id] = { status: h('div', { class: 'dxk-status' }) });
     c.btn = h('button', { class: 'btn sm', onclick: () => (st.run.busy ? wait() : runContracts(sc, st, [it])), title: t('Revisa solo este contrato') }, t('▶ Revisar'));
@@ -159,7 +159,7 @@ export function mountContracts(sc, stage, notes) {
     c.status.replaceChildren(h('div', { class: 'dxk-risks' }, sc.checklists.map((cl) => riskStamp(it, cl))), line);
   }
 
-  // ---------- Matriz de cada lista: preguntas × contratos ----------
+  // ---------- Matrix of each checklist: questions × contracts ----------
   function listPanel(cl) {
     const qs = Object.entries(cl.questions);
     return h(
@@ -239,7 +239,7 @@ export function mountContracts(sc, stage, notes) {
     );
   }
 
-  // ---------- Resumen, KPI y notas ----------
+  // ---------- Summary, KPIs and notes ----------
   function summary() {
     let answered = 0;
     let green = 0;

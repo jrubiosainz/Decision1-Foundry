@@ -1,4 +1,4 @@
-// Página de un caso: cabecera, barra de herramientas, KPI, carrera y la vista animada (FLIP).
+// Case page: header, toolbar, KPIs, race and the animated view (FLIP).
 import { h, fmt, flip, toast } from './util.js';
 import { S, caseState, eur } from './core.js';
 import { t, tn } from './i18n.js';

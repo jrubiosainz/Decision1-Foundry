@@ -1,11 +1,11 @@
-// Caso 1 · Reclamaciones en cascada: la respuesta de cada llamada elige la siguiente, con pasos de imagen y de texto intercalados.
+// Case 1 · Claims cascade: each call's answer picks the next one, with image and text steps interleaved.
 import { h, fmt, median, pool, toast } from '../util.js';
 import { api, errorText } from '../core.js';
 import { t, tn, locale } from '../i18n.js';
 import { DX, changed, img, freshRun, startRun, endRun, track, reportError, caseHead, toolbar, paintTimer, kpi, runKpis, answerRow, stamp, verdictMark, callFoot, caseNotes, paintNotes, mediaChip, thumb, docButton, cascadeColumns } from './common.js';
 import { mediaLegend } from './intro.js';
 
-const CONCURRENCY = 6; // «Resolver todas» lanza las reclamaciones a la vez; cada una avanza paso a paso.
+const CONCURRENCY = 6; // "Resolve all" launches the claims at once; each one advances step by step.
 
 const state = (sc) => (DX.st[sc.id] ||= { run: freshRun(), sel: sc.items[0]?.id, claims: {}, active: 0 });
 const valuesOf = (answers) =>
@@ -21,7 +21,7 @@ const dayFmt = (iso) => new Intl.DateTimeFormat(locale(), { day: 'numeric', mont
 const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
 const price = (v) => new Intl.NumberFormat(locale(), { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
 
-/** Recorre la cascada de una reclamación: una llamada por paso hasta llegar a un destino. */
+/** Walks a claim through the cascade: one call per step until it reaches an outcome. */
 async function resolve(sc, st, item) {
   const c = (st.claims[item.id] = { steps: [], outcome: null, busy: true, error: null, t0: performance.now(), t1: 0 });
   if (!st.active++) startRun(st.run);
@@ -96,7 +96,7 @@ export function mountCascade(sc, stage, notes) {
     paint();
   };
 
-  // ---------- Lista de reclamaciones (se construye una vez; solo cambian el recorrido y el destino) ----------
+  // ---------- Claim list (built once; only the path and the outcome change) ----------
   const rows = {};
   const list = h(
     'div',
@@ -133,7 +133,7 @@ export function mountCascade(sc, stage, notes) {
     }
   }
 
-  // ---------- Detalle de la reclamación seleccionada ----------
+  // ---------- Detail of the selected claim ----------
   function header(it) {
     const prod = sc.products[it.product] || {};
     const days = daysBetween(it.delivered, it.claimed);
@@ -155,7 +155,7 @@ export function mountCascade(sc, stage, notes) {
     );
   }
 
-  /** Una entrada tal y como la ve el paso: la imagen, el texto, el manual o los datos que recibe el modelo. */
+  /** An input as the step sees it: the image, the text, the manual or the data the model receives. */
   function inputView(it, key) {
     const inp = sc.inputs[key];
     const prod = sc.products[it.product] || {};
@@ -278,7 +278,7 @@ export function mountCascade(sc, stage, notes) {
     els.detail.replaceChildren(...[(els.head[it.id] ||= header(it)), subway(c), ...body, final(it, c)].filter(Boolean));
   }
 
-  // ---------- Resumen, KPI y notas ----------
+  // ---------- Summary, KPIs and notes ----------
   function summary() {
     const done = sc.items.filter((it) => st.claims[it.id]?.outcome && !st.claims[it.id].busy);
     const claims = done.map((it) => st.claims[it.id]);

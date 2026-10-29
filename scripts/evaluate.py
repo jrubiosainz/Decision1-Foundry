@@ -1,14 +1,14 @@
-"""Evalúa los escenarios contra sus etiquetas de referencia ("expected").
+"""Evaluates the scenarios against their reference labels ("expected").
 
-Uso, desde la raíz del repo y con las variables del entorno de azd cargadas:
+Usage, from the repo root with the azd environment variables loaded:
 
     set -a; eval "$(azd env get-values)"; set +a
-    python scripts/evaluar.py                       # todos los escenarios en modo lote (1 llamada cada uno)
-    python scripts/evaluar.py energia hoteles --uno-a-uno
-    python scripts/evaluar.py router --llm gpt-5.4-mini
-    python scripts/evaluar.py --lang en             # los mismos escenarios en su versión en inglés
+    python scripts/evaluate.py                       # all scenarios in batch mode (1 call each)
+    python scripts/evaluate.py energia hoteles --one-by-one
+    python scripts/evaluate.py router --llm gpt-5.4-mini
+    python scripts/evaluate.py --lang en             # the same scenarios in their English version
 
-El caso de juego (Space Invaders) no tiene etiquetas de referencia y se omite; para ese caso, ver scripts/partida.mjs.
+The game case (Space Invaders) has no reference labels and is skipped; for that case, see scripts/play-match.mjs.
 """
 
 from __future__ import annotations
@@ -53,27 +53,27 @@ def report(sc: dict, results: dict, title: str) -> tuple[int, int]:
             and not (v.get("type") == "noul" and v.get("p", 0) < 0.5)
         ]
         mark = "✓" if hit else ("✗" if exp is not None else "·")
-        miss = "" if hit or exp is None else f"   <-- esperado {exp}"
+        miss = "" if hit or exp is None else f"   <-- expected {exp}"
         print(f"  {mark} {it['id']:<7} {str(p.get('value')):<20} conf={conf_txt}{sev_txt} | {' '.join(extra)}{miss}")
-    print(f"  => acierto {ok}/{total}")
+    print(f"  => accuracy {ok}/{total}")
     return ok, total
 
 
 async def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("escenarios", nargs="*", help="ids de escenario (por defecto, todos)")
-    ap.add_argument("--uno-a-uno", action="store_true", help="una llamada por elemento en lugar de una por escenario")
-    ap.add_argument("--llm", help="id de comparación de pricing.json para evaluar también un LLM")
-    ap.add_argument("--lang", choices=demo.LANGS, default=demo.DEFAULT_LANG, help="idioma de los escenarios (por defecto, es)")
+    ap.add_argument("scenarios", nargs="*", help="scenario ids (default: all)")
+    ap.add_argument("--one-by-one", action="store_true", help="one call per item instead of one per scenario")
+    ap.add_argument("--llm", help="comparison id from pricing.json to also evaluate an LLM")
+    ap.add_argument("--lang", choices=demo.LANGS, default=demo.DEFAULT_LANG, help="scenario language (default: es)")
     args = ap.parse_args()
 
     endpoint = os.environ.get("AZURE_AI_ENDPOINT")
     if not endpoint:
-        sys.exit('Falta AZURE_AI_ENDPOINT. Ejecuta: set -a; eval "$(azd env get-values)"; set +a')
+        sys.exit('AZURE_AI_ENDPOINT is not set. Run: set -a; eval "$(azd env get-values)"; set +a')
     scenarios = demo.load_scenarios(lang=args.lang)
-    selected = args.escenarios or [sid for sid, sc in scenarios.items() if sc.get("kind") != "game"]
+    selected = args.scenarios or [sid for sid, sc in scenarios.items() if sc.get("kind") != "game"]
     pricing = demo.Pricing(demo.load_json("pricing.json"))
-    # Sin prisa en la evaluación: si hace falta, esperamos a que se recargue la cuota de peticiones por minuto.
+    # No rush when evaluating: if needed, we wait for the requests-per-minute quota to refill.
     client = FoundryClient(endpoint, os.environ.get("DECISION_DEPLOYMENT", "decision-1"), max_rate_wait_s=600)
     await client.warmup()
     sem = asyncio.Semaphore(4)
@@ -81,11 +81,11 @@ async def main() -> None:
         for sid in selected:
             sc = scenarios[sid]
             if sc.get("kind") == "game":
-                print(f"\n{sc.get('icon', '')} {sc['title']}: caso de juego, sin etiquetas de referencia (se omite; ver scripts/partida.mjs).")
+                print(f"\n{sc.get('icon', '')} {sc['title']}: game case, no reference labels (skipped; see scripts/play-match.mjs).")
                 continue
             items = sc["items"]
             t0 = time.perf_counter()
-            if args.uno_a_uno:
+            if args.one_by_one:
                 async def one(it: dict) -> tuple[str, dict]:
                     async with sem:
                         return it["id"], await demo.d1_item(client, sc, it)
@@ -94,11 +94,11 @@ async def main() -> None:
                 results = {i: r["answers"] for i, r in done}
                 lat = sorted(r["latency_ms"] for _, r in done)
                 tokens = sum(r["usage"]["input_tokens"] for _, r in done)
-                info = f"{len(done)} llamadas, p50 {lat[len(lat) // 2]:.0f} ms"
+                info = f"{len(done)} calls, p50 {lat[len(lat) // 2]:.0f} ms"
             else:
                 r = await demo.d1_batch(client, sc, items)
                 results, tokens = r["results"], r["usage"]["input_tokens"]
-                info = f"{r['calls']} llamada(s), {r['decisions']} decisiones, {r['latency_ms']:.0f} ms"
+                info = f"{r['calls']} call(s), {r['decisions']} decisions, {r['latency_ms']:.0f} ms"
             wall = (time.perf_counter() - t0) * 1000
             cost = pricing.cost("Microsoft-Decision-1", {"input_tokens": tokens})
             report(sc, results, f"Decision-1 · {info} · total {wall:.0f} ms · {tokens} tokens · ${cost['usd']:.5f}")
@@ -106,7 +106,7 @@ async def main() -> None:
             if args.llm:
                 cmp = next(c for c in pricing.data["comparisons"] if c["id"] == args.llm)
                 t0 = time.perf_counter()
-                if args.uno_a_uno:
+                if args.one_by_one:
                     async def one_llm(it: dict) -> tuple[str, dict]:
                         async with sem:
                             return it["id"], await demo.llm_item(client, sc, it, cmp)

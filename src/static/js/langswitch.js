@@ -1,9 +1,9 @@
-// Selector de idioma de la barra superior: español / inglés, con las banderas dibujadas en SVG (sin emojis de bandera,
-// que Windows no pinta). El cambio lo ejecuta app.js; aquí solo se dibuja el control.
+// Language selector in the top bar: Spanish / English, with the flags drawn in SVG (no flag emoji,
+// which Windows doesn't render). app.js performs the switch; this file only draws the control.
 import { h, $ } from './util.js';
 import { UI_LANGS, getLang } from './i18n.js';
 
-// Cada idioma se nombra en su propia lengua, igual en toda la interfaz.
+// Each language is named in its own language, the same across the whole UI.
 const NAMES = { es: 'Español', en: 'English' }; // i18n-ok
 
 const FLAGS = {
@@ -20,7 +20,7 @@ const FLAGS = {
     '<path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>',
 };
 
-/** Dibuja (o actualiza) los dos botones en #lang; onPick(code) se llama al elegir el idioma que no está activo. */
+/** Draws (or updates) the two buttons in #lang; onPick(code) is called when the inactive language is picked. */
 export function renderLangSwitch(onPick) {
   const box = $('#lang');
   if (!box) return;

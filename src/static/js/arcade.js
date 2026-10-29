@@ -1,5 +1,5 @@
-// Caso 6 · Space Invaders en directo: Decision-1 y un LLM juegan la misma partida a la vez y el mundo no espera a ninguno.
-// La partida (engine/match) no tiene DOM: aquí solo se monta la pantalla, el bucle de fotogramas y los marcadores.
+// Case 6 · Space Invaders live: Decision-1 and an LLM play the same game at once and the world waits for neither.
+// The game (engine/match) has no DOM: this file only mounts the screen, the frame loop and the scoreboards.
 import { h, fmt } from './util.js';
 import { S, api, errorText, eur, emit, skuLabel } from './core.js';
 import { t, tx, tn, N_ } from './i18n.js';
@@ -13,7 +13,7 @@ import { Match, Player } from './game/match.js';
 import { BoardView } from './game/render.js';
 import { boardAccent } from './brand.js';
 
-// Las tarjetas siguen la marca por CSS (brand.css); el lienzo necesita un color real que se vea sobre el tablero oscuro.
+// The cards follow the brand through CSS (brand.css); the canvas needs a real color that shows on the dark board.
 const COLORS = { d1: 'var(--b-accent, #0f6cbd)', rv: 'var(--b-rv, #7c3aed)' };
 const BOARD_COLORS = { d1: '#0f6cbd', rv: '#7c3aed' };
 const boardColor = (side) => (side === 'd1' ? boardAccent() : document.documentElement.dataset.brand ? '#94a3b8' : null) || BOARD_COLORS[side];
@@ -26,7 +26,7 @@ const setText = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
 };
 
-// La sesión sobrevive al cambio de página: al volver al caso 6 se retoma la partida donde se dejó.
+// The session survives page changes: going back to case 6 resumes the game where it was left.
 const ses = {
   seedPick: null, // '7' | '11' … | 'random'
   seed: 7,
@@ -35,7 +35,7 @@ const ses = {
   match: null,
   d1: null,
   rival: null,
-  tally: {}, // por rival: { d1, rival, ties }
+  tally: {}, // per opponent: { d1, rival, ties }
   history: [],
   warmAt: 0,
   warming: false,
@@ -52,7 +52,7 @@ const cadenceMs = () => S.config?.game?.cadence_ms || 1050;
 export const isArcade = () => !!ui;
 export const arcadeFlags = () => ({ running: ses.match?.status === 'running' || ses.warming, hasResult: ses.history.length > 0 });
 
-// ---------- Sesión y jugadores ----------
+// ---------- Session and players ----------
 
 function makePlayer(id, label) {
   return new Player({
@@ -89,7 +89,7 @@ function ensureSession(sc) {
   if (!ses.match) build();
 }
 
-// ---------- Pantalla ----------
+// ---------- Screen ----------
 
 function stat(label, ...value) {
   return h('div', { class: 'arc-stat' }, h('span', null, label), h('div', null, ...value));
@@ -243,12 +243,12 @@ function emptyState(sc, stage, notes) {
   notes.replaceChildren(h('div', { class: 'notes-case' }, h('div', { class: 'notes-kicker' }, t('Caso {n} · notas para el presentador', { n: sc.order }))));
 }
 
-// ---------- Montaje ----------
+// ---------- Mounting ----------
 
 const STACKED = '(max-width: 1100px)';
 let fitRaf = 0;
 
-/** Ajusta el alto de los tableros para que el duelo entero (tableros y métricas) se vea sin hacer scroll. */
+/** Adjusts the board height so that the whole duel (boards and metrics) is visible without scrolling. */
 function fitBoards() {
   fitRaf = 0;
   if (!ui) return;
@@ -299,7 +299,7 @@ export function unmountArcade() {
   ui = null;
 }
 
-// ---------- Acciones ----------
+// ---------- Actions ----------
 
 export function arcadeAction(name) {
   if (!ui) return;
@@ -320,7 +320,7 @@ async function toggle() {
   changed();
 }
 
-/** Tras unos minutos sin tráfico los modelos tardan ~3 s en responder: se despiertan antes de empezar la partida. */
+/** After a few minutes without traffic the models take ~3 s to respond: they are woken up before the game starts. */
 async function warmUp() {
   const mine = ui;
   ses.warming = true;
@@ -395,7 +395,7 @@ function changed() {
   kick();
 }
 
-// ---------- Resultado y marcador ----------
+// ---------- Result and scoreboard ----------
 
 function finish() {
   ses.recorded = true;
@@ -435,7 +435,7 @@ function paintTally() {
   ui.tally.replaceChildren('🏆 ', h('span', { class: 'd1' }, D1_NAME, ' ', h('b', null, tally.d1)), ' – ', h('span', { class: 'rv' }, h('b', null, tally.rival), ' ', ses.rival.label));
 }
 
-// ---------- Controles ----------
+// ---------- Controls ----------
 
 function syncControls() {
   const m = ses.match;
@@ -456,9 +456,9 @@ function syncControls() {
   ui.info.textContent = t('Semilla {seed} · {speed} · una decisión cada ~{s} s por modelo', { seed: ses.seed, speed: speedText(ses.speed), s: fmt.num(cadenceMs() / 1000, 2) });
 }
 
-// ---------- Bucle de fotogramas ----------
+// ---------- Frame loop ----------
 
-// La ventana de marca cambia los colores en vivo: se repintan los tableros aunque la partida esté en pausa.
+// The brand dialog changes the colors live: the boards are repainted even while the game is paused.
 window.addEventListener('d1:brand', () => {
   if (!ui) return;
   for (const c of ui.cards) c.view.accent = boardColor(c.side);
@@ -530,7 +530,7 @@ function paintCard(c, p, now) {
   if (e) setText(c.err, e.status === 429 ? t('⏱ Límite de peticiones por minuto · {n} saltadas', { n: fmt.int(s.skipped) }) : `⚠️ ${errorMessage(e)}`);
 }
 
-/** Texto de un fallo al consultar al modelo: los del bucle traen código y parámetros; el resto es el error del backend. */
+/** Text for a failed model query: loop errors carry a code and parameters; any other is the backend error. */
 function errorMessage(e) {
   if (e.code === 'timeout') return t('Sin respuesta en {s} s', { s: fmt.num(e.params.s) });
   if (e.code === 'no-lane') return t('Respuesta sin carril válido');

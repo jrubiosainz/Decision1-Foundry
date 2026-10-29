@@ -1,16 +1,16 @@
-// Portada de la pestaña «OpenAI Decisions API»: qué aporta frente a Decision-1, una llamada real y los cinco casos.
+// Intro page of the "OpenAI Decisions API" tab: what it adds compared with Decision-1, a real call and the five cases.
 import { h, fmt, rich, jsonHtml } from '../util.js';
 import { S, regionLabel } from '../core.js';
 import { t, N_, locale } from '../i18n.js';
 import { note, noteList } from '../notes.js';
 import { DX, mediaChip, stamp, cascadeColumns } from './common.js';
 
-// Precio por millón de tokens con formato del idioma: 0,10 $ · $0.10.
+// Price per million tokens formatted for the language: 0,10 $ · $0.10.
 const usd = (v, d = 2) => new Intl.NumberFormat(locale(), { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol', minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
 const price = (key, fallback) => DX.data?.pricing?.[key] ?? fallback;
 const secs = (v) => `${fmt.num(v, 1)} s`;
 
-// Paso C de la reclamación 1 tal como se envió (abreviado) y la respuesta que devolvió la API.
+// Step C of claim 1 as it was sent (abridged) and the answer the API returned.
 function sampleRequest() {
   return {
     model: DX.data?.model || 'gpt-6-luna',
@@ -99,7 +99,7 @@ export const mediaLegend = () =>
     MEDIA.map(([media, icon, label]) => h('span', { class: `dx-media m-${media}` }, icon, ' ', t(label))),
   );
 
-/** La cascada del caso 1 dibujada por columnas a partir de sus pasos: cada columna es una llamada, a la derecha los destinos. */
+/** The case 1 cascade drawn in columns from its steps: each column is one call, with the outcomes on the right. */
 function cascadeFlow() {
   const sc = DX.cases.find((c) => c.kind === 'cascade');
   if (!sc) return null;

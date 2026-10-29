@@ -1,4 +1,4 @@
-// Caso 3 · Asistencia 24/7: la bandeja se reordena por urgencia y SLA, con cuenta atrás.
+// Case 3 · 24/7 assistance: the inbox is re-sorted by urgency and SLA, with a countdown.
 import { h, fmt } from '../util.js';
 import { t } from '../i18n.js';
 import { ans, primary, processedItems, tile, metaChips, confPill, latencyChip, flagChip, suggestion, yes, level, expected, fmtCountdown, sectionTitle } from './common.js';

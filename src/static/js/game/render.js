@@ -1,4 +1,4 @@
-// Pintado del tablero en un canvas. Solo lee el estado del juego: no contiene reglas.
+// Board rendering on a canvas. It only reads the game state: it contains no rules.
 import { COLS, ROWS, SHIP_ROW, RULES, rng } from './engine.js';
 
 const SPRITES = {
@@ -53,7 +53,7 @@ export class BoardView {
     this.fx = { parts: [], flash: 0, shake: 0 };
   }
 
-  /** Ajusta el lienzo al tamaño CSS y a la densidad de píxeles. Devuelve false si aún no tiene tamaño. */
+  /** Fits the canvas to the CSS size and the pixel density. Returns false if it has no size yet. */
   fit() {
     const dpr = window.devicePixelRatio || 1;
     const w = this.canvas.clientWidth;
@@ -85,7 +85,7 @@ export class BoardView {
     return s;
   }
 
-  /** Efectos de un tick: explosión al abatir un invasor, destello y sacudida al recibir un impacto. */
+  /** Effects of a tick: an explosion when an invader is shot down, a flash and a shake when the ship is hit. */
   burst(events, g) {
     if (!this.w || reduced()) return;
     const cw = this.w / COLS;
@@ -109,7 +109,7 @@ export class BoardView {
     }
   }
 
-  /** `alpha` es la fracción del tick en curso; `ghost` es el mundo tal como lo veía el modelo al pedir su decisión. */
+  /** `alpha` is the fraction of the current tick; `ghost` is the world as the model saw it when it requested its decision. */
   draw(g, { alpha = 0, ghost = null, now = 0, dt = 0 } = {}) {
     if (!this.fit()) return;
     const { ctx, w, h, dpr, fx } = this;
@@ -249,7 +249,7 @@ export class BoardView {
     }
   }
 
-  /** Contornos huecos: la nave y las bombas tal como estaban cuando el modelo recibió el estado. */
+  /** Hollow outlines: the ship and the bombs as they were when the model received the state. */
   #ghost(ctx, ghost, cw, ch) {
     ctx.save();
     ctx.globalAlpha = 0.75;

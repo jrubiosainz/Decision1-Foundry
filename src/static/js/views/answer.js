@@ -1,4 +1,4 @@
-// Visualización de una respuesta de Decision-1 (o de un LLM) con sus probabilidades.
+// Display of a Decision-1 (or LLM) answer with its probabilities.
 import { h, fmt } from '../util.js';
 import { t, tx, N_ } from '../i18n.js';
 import { valid, qLabel, choiceLabel, answerText, sameAnswer, confPill, scoreLabel } from './common.js';

@@ -1,4 +1,4 @@
-/* Caso 6 · partida en directo: dos tableros idénticos, uno por modelo. Decision-1 en azul, el rival en morado (igual que la carrera). */
+/* Case 6 · live match: two identical boards, one per model. Decision-1 in blue, the opponent in purple (same as the race). */
 .arc-duel {
   --arc-h: clamp(240px, calc(100vh - 430px), 620px);
   display: grid;

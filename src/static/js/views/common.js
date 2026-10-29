@@ -1,4 +1,4 @@
-// Piezas comunes de las vistas de los casos de uso.
+// Shared pieces of the use-case views.
 // ctx = { sc, st, threshold, onItem(id), eur(usd) }
 import { h, fmt, LANGS, channelIcon } from '../util.js';
 import { t, tx, N_ } from '../i18n.js';
@@ -23,7 +23,7 @@ const Q_LABELS = {
   elogia_empleado: N_('Elogia a un empleado'), en_destino: N_('Viajero en destino'), oportunidad_venta: N_('Oportunidad de venta'),
   datos_internos: N_('Necesita datos internos'), datos_personales: N_('Datos personales sensibles'), sentimiento: N_('Sentimiento'),
 };
-// Etiqueta por defecto, traducida al pintar (solo claves propias del mapa).
+// Default label, translated when rendering (only the map's own keys).
 const defaultLabel = (map, k) => (typeof map[k] === 'string' ? t(map[k]) : null);
 
 export function qLabel(sc, q) {
@@ -38,8 +38,8 @@ export function choiceLabel(sc, q, key) {
 }
 
 /**
- * Etiqueta de un nivel de escala sacada del escenario actual (mismo recorte que short_label del backend).
- * Los resultados guardados llevan la etiqueta del idioma en que se pidieron; así siempre sigue al idioma activo.
+ * Label of a scale level taken from the current scenario (same truncation as the backend's short_label).
+ * Saved results carry the label in the language they were requested in; this way it always follows the active language.
  */
 export function scoreLabel(sc, q, lvl, fallback) {
   const c = sc?.questions?.[q]?.criteria?.[lvl];
@@ -57,14 +57,14 @@ export function answerText(sc, q, a) {
 
 export const sameAnswer = (a, b) => valid(a) && valid(b) && a.value === b.value;
 
-/** Decisión principal ya filtrada por el umbral de confianza. */
+/** Main decision, already filtered by the confidence threshold. */
 export function primary(ctx, id) {
   const a = ans(ctx, id, ctx.sc.primary);
   if (!a) return null;
   return { a, key: valid(a) ? a.value : null, low: isLow(a, ctx.threshold) };
 }
 
-// ---------- Chips y distintivos ----------
+// ---------- Chips and badges ----------
 
 export function sevBadge(a, n = 4, label = a?.label) {
   if (!a || a.type !== 'score' || a.value == null) return null;
@@ -112,9 +112,9 @@ export function suggestion(ctx, a) {
   );
 }
 
-// ---------- Bloques ----------
+// ---------- Blocks ----------
 
-/** Tarjeta de un elemento (se anima con FLIP entre columnas gracias a data-flip). */
+/** Card of an item (animated with FLIP between columns thanks to data-flip). */
 export function card(ctx, it, { color, badges = [], cls = '', text = it.text, head = [] } = {}) {
   const p = primary(ctx, it.id);
   const pending = ctx.st.pending.has(it.id);
@@ -155,7 +155,7 @@ export function lane(key, { label, color, icon, sub }, cards, { cls = '' } = {})
   );
 }
 
-/** Bandeja de entrada con lo pendiente de decidir. */
+/** Inbox with whatever is still pending a decision. */
 export function inboxBlock(ctx, waiting = waitingItems(ctx)) {
   const { sc } = ctx;
   const total = sc.items.length;

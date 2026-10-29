@@ -1,4 +1,4 @@
-// Detalle de un elemento: texto original y cada respuesta de Decision-1 con sus probabilidades.
+// Item detail: original text and each Decision-1 answer with its probabilities.
 import { h, fmt, jsonHtml, openModal } from './util.js';
 import { S } from './core.js';
 import { t, tn } from './i18n.js';
@@ -9,7 +9,7 @@ import { rivalLabel } from './race.js';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Del JSON de un lote, se queda solo con las claves de este elemento ("<id>__<pregunta>"). */
+/** From a batch's JSON, keeps only the keys of this item ("<id>__<question>"). */
 function pickItem(value, id) {
   const pre = `${id}__`;
   const walk = (o) => {

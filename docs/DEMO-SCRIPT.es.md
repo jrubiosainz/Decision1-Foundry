@@ -1,5 +1,7 @@
 # Guion de la demo · Microsoft-Decision-1
 
+🇬🇧 [Read this in English](DEMO-SCRIPT.md)
+
 Guía para presentar la demo en unos 25–35 minutos, según los casos que recorras, y 10–12 minutos más si enseñas la segunda pestaña. Arriba hay dos pestañas: **⚡ Microsoft-Decision-1**, con seis casos sobre texto y el laboratorio, y **🖼️ OpenAI Decisions API**, con cinco casos que deciden también sobre imágenes y documentos. La tecla `T` cambia de una a otra. En las dos, la web tiene tres paneles: a la izquierda eliges la página, en el centro corre la demo en directo y a la derecha están las notas que ve el público (reto, solución, resultado y ahorro). Arriba a la derecha, un selector con banderas cambia toda la demo entre español e inglés, y a su lado el botón 🎨 la viste con el logotipo, los colores y la tipografía del cliente. Este guion añade lo que no está en pantalla: qué pulsar, qué decir y cómo responder a las preguntas habituales.
 
 Las marcas que aparecen en pantalla son ficticias para que la misma demo sirva para cualquier cliente del sector: Nexa Energía, Brisa Hotels & Resorts y Alisio Travel Group en la primera pestaña, y Northwind Hogar, Fabrikam y Contoso Viajes en la segunda. Las fotos, los tiques, las creatividades y los contratos de la segunda pestaña son sintéticos. La cabecera, en cambio, puede llevar la marca real del cliente al que presentas (paso 6 de «La víspera»).
@@ -368,7 +370,7 @@ En «Así es una llamada» (el paso C de la reclamación de Marta P.: 2,42 s y 1
 
 > No pegues datos personales reales en una demo: usa ejemplos anonimizados.
 
-**Cierre y siguiente paso.** Propón un piloto de dos semanas: el cliente aporta unos cientos de ejemplos etiquetados de un proceso, se escriben las preguntas como un caso más (`src/scenarios/*.json`) y se mide con `scripts/evaluar.py` la precisión, la latencia y el coste. El README explica cómo adaptar un caso.
+**Cierre y siguiente paso.** Propón un piloto de dos semanas: el cliente aporta unos cientos de ejemplos etiquetados de un proceso, se escriben las preguntas como un caso más (`src/scenarios/*.json`) y se mide con `scripts/evaluate.py` la precisión, la latencia y el coste. El README explica cómo adaptar un caso.
 
 ## Preguntas frecuentes
 
@@ -398,7 +400,7 @@ En «Así es una llamada» (el paso C de la reclamación de Marta P.: 2,42 s y 1
 
 **¿Cómo se integra?** Es una API REST: se envían el texto y las preguntas, y devuelve JSON. Sirve cualquier sistema que pueda hacer una llamada HTTP: Functions, Logic Apps, una pasarela APIM, el CRM o la herramienta de tickets.
 
-**¿Se puede ajustar?** Cambiando las preguntas, las instrucciones y los criterios, en lenguaje natural. El efecto se mide con `scripts/evaluar.py` sobre ejemplos etiquetados.
+**¿Se puede ajustar?** Cambiando las preguntas, las instrucciones y los criterios, en lenguaje natural. El efecto se mide con `scripts/evaluate.py` sobre ejemplos etiquetados.
 
 ### Segunda pestaña · OpenAI Decisions API
 
@@ -434,16 +436,16 @@ En «Así es una llamada» (el paso C de la reclamación de Marta P.: 2,42 s y 1
 
 Capturas de una ejecución real en Azure, por si no hay conexión:
 
-- [Portada](img/00-intro.png)
-- [Caso 1 · Triage de tickets](img/01-energia.png)
-- [Caso 2 · Voz del huésped, con la carrera contra GPT-6 Sol](img/02-hoteles-carrera.png)
-- [Caso 3 · Asistencia 24/7](img/03-viajes.png)
-- [Caso 4 · Router de modelos GenAI](img/04-router.png)
-- [Caso 5 · Guardarraíles para agentes](img/05-guardarrailes.png)
-- [Caso 6 · Space Invaders en directo, a mitad de partida (×2)](img/07-invaders-partida.png)
-- [Caso 6 · Comparativa final: Decision-1 contra GPT-6 Luna](img/08-invaders-comparativa.png)
-- [Plantilla «Reglas del proyecto» en el laboratorio](img/06-agente-reglas.png)
-- [Segunda pestaña · Caso 1 · Reclamaciones en cascada](img/10-dx-cascada.png)
-- [Segunda pestaña · Caso 2 · Notas de gastos con foto](img/11-dx-gastos.png)
-- [Segunda pestaña · Caso 4 · Inspección de seguridad](img/12-dx-seguridad.png)
-- [Segunda pestaña · Caso 5 · Revisión de contratos](img/13-dx-contratos.png)
+- [Portada](img/es/00-intro.png)
+- [Caso 1 · Triage de tickets](img/es/01-ticket-triage.png)
+- [Caso 2 · Voz del huésped, con la carrera contra GPT-6 Sol](img/es/02-guest-voice-race.png)
+- [Caso 3 · Asistencia 24/7](img/es/03-assistance-24-7.png)
+- [Caso 4 · Router de modelos GenAI](img/es/04-model-router.png)
+- [Caso 5 · Guardarraíles para agentes](img/es/05-agent-guardrails.png)
+- [Caso 6 · Space Invaders en directo, a mitad de partida (×2)](img/es/07-invaders-match.png)
+- [Caso 6 · Comparativa final: Decision-1 contra GPT-6 Luna](img/es/08-invaders-comparison.png)
+- [Plantilla «Reglas del proyecto» en el laboratorio](img/es/06-lab-project-rules.png)
+- [Segunda pestaña · Caso 1 · Reclamaciones en cascada](img/es/10-dx-claims-cascade.png)
+- [Segunda pestaña · Caso 2 · Notas de gastos con foto](img/es/11-dx-expenses.png)
+- [Segunda pestaña · Caso 4 · Inspección de seguridad](img/es/12-dx-safety.png)
+- [Segunda pestaña · Caso 5 · Revisión de contratos](img/es/13-dx-contracts.png)

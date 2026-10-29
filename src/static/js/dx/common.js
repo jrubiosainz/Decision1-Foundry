@@ -1,26 +1,26 @@
-// Piezas comunes de la pestaña «OpenAI Decisions API»: estado, cabecera, respuestas, documentos y notas.
+// Shared pieces of the "OpenAI Decisions API" tab: state, header, answers, documents and notes.
 import { h, fmt, rich, esc, median, openModal } from '../util.js';
 import { fail } from '../core.js';
 import { t } from '../i18n.js';
 import { note, noteList, showJson } from '../notes.js';
 import { addSession } from '../run.js';
 
-// Contenido de /api/dx y estado de cada caso. index.js lo rellena y repinta la vista con onChange.
+// Content of /api/dx and state of each case. index.js fills it in and repaints the view with onChange.
 export const DX = { data: null, cases: [], byId: {}, st: {}, onChange: null };
 
 export const changed = (id) => DX.onChange?.(id);
 export const img = (rel) => `/img/dx/${rel}`;
 export const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
-const HOURS_FTE = 140; // horas productivas al mes por persona (aproximación)
+const HOURS_FTE = 140; // productive hours per person per month (approximation)
 
 let lastError = 0;
-/** Avisa de un error de la API una sola vez aunque fallen a la vez todas las llamadas en paralelo. */
+/** Reports an API error only once, even if all the parallel calls fail at the same time. */
 export function reportError(e) {
   if (Date.now() - lastError > 3000) fail(e);
   lastError = Date.now();
 }
 
-// ---------- Contadores de una ejecución ----------
+// ---------- Run counters ----------
 
 export const freshRun = () => ({
   busy: false,
@@ -45,7 +45,7 @@ export function endRun(run) {
   run.t1 = performance.now();
 }
 
-/** Suma una llamada real a los contadores del caso y de la sesión (los pasos que se saltan no llaman al modelo). */
+/** Adds a real call to the case and session counters (skipped steps don't call the model). */
 export function track(run, res, label) {
   if (!res || res.skipped) return;
   const n = Object.keys(res.answers || {}).length;
@@ -65,7 +65,7 @@ export function track(run, res, label) {
 
 export const cachedShare = (run) => (run.tokens.input ? run.tokens.cached / run.tokens.input : 0);
 
-// ---------- Cabecera, barra y KPI ----------
+// ---------- Header, toolbar and KPIs ----------
 
 export function caseHead(sc) {
   return h(
@@ -93,7 +93,7 @@ export function paintTimer(el, run) {
 export const kpi = (label, value, sub, cls = '') =>
   h('div', { class: `kpi ${cls}` }, h('div', { class: 'kpi-label' }, label), h('div', { class: 'kpi-value' }, value), h('div', { class: 'kpi-sub' }, sub));
 
-/** KPI de llamadas, latencia, caché y coste, iguales en todos los casos. */
+/** Call, latency, cache and cost KPIs, the same in every case. */
 export function runKpis(run) {
   const share = cachedShare(run);
   const saved = run.cost.eur_nocache ? 1 - run.cost.eur / run.cost.eur_nocache : 0;
@@ -105,11 +105,11 @@ export function runKpis(run) {
   ];
 }
 
-// ---------- Respuestas ----------
+// ---------- Answers ----------
 
 const answered = (q, a) => !!a && a.type === q.type;
 
-/** Etiqueta de una respuesta: Sí/No, la opción elegida o el nivel de la escala. */
+/** Label of an answer: Yes/No, the chosen option or the scale level. */
 export function valueLabel(q, a) {
   if (!answered(q, a)) return a?.type === 'refusal' ? t('Sin respuesta (rechazada)') : t('Sin respuesta');
   if (a.type === 'predicate') return a.value ? t('Sí') : t('No');
@@ -117,14 +117,14 @@ export function valueLabel(q, a) {
   return q.levels?.[a.value]?.label || a.label || String(a.value);
 }
 
-/** Probabilidad de la respuesta elegida. */
+/** Probability of the chosen answer. */
 export function chosenP(a) {
   if (!a) return null;
   if (a.type === 'predicate') return a.value ? a.p : 1 - a.p;
   return a.probs?.find((x) => x.key === a.value)?.p ?? a.confidence ?? null;
 }
 
-/** ¿Es una respuesta aceptable según la definición de la pregunta? null si la pregunta no lo dice. */
+/** Is the answer acceptable according to the question definition? null if the question doesn't say. */
 export function isGood(q, a, declared) {
   if (!answered(q, a)) return null;
   if (q.compare && declared?.[q.compare] != null) return a.value === declared[q.compare];
@@ -137,7 +137,7 @@ const optLabel = (q, key) => (q.type === 'choice' ? q.choices?.[key]?.label : q.
 
 const meter = (p) => h('span', { class: 'bar dx-meter' }, h('i', { style: { width: `${Math.max(0.6, (p || 0) * 100)}%` } }));
 
-/** Una línea por pregunta: etiqueta, respuesta y probabilidad de esa respuesta. */
+/** One line per question: label, answer and the probability of that answer. */
 export function answerRow(q, a, { declared, key = false } = {}) {
   const good = isGood(q, a, declared);
   const p = answered(q, a) ? chosenP(a) : null;
@@ -151,7 +151,7 @@ export function answerRow(q, a, { declared, key = false } = {}) {
   );
 }
 
-/** Respuesta completa con todas sus probabilidades (ventanas de detalle). */
+/** Full answer with all its probabilities (detail modals). */
 export function answerBlock(q, a, { declared } = {}) {
   const head = answerRow(q, a, { declared });
   if (!answered(q, a) || a.type === 'predicate') return h('div', { class: 'dx-ansblock' }, head);
@@ -209,7 +209,7 @@ export function jsonButtons(last) {
   );
 }
 
-// ---------- Documentos (Markdown sencillo y seguro) ----------
+// ---------- Documents (simple, safe Markdown) ----------
 
 export function md(src) {
   const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -263,14 +263,14 @@ export function zoom(src, caption) {
 export const thumb = (rel, caption, cls = '') =>
   h('button', { class: `dx-thumb ${cls}`, title: caption || '', onclick: (e) => (e.stopPropagation(), zoom(img(rel), caption)) }, h('img', { src: img(rel), alt: caption || '', loading: 'lazy' }));
 
-/** Entrada de un paso coloreada según su tipo: imagen, texto, JSON o regla determinista. */
+/** A step input colored by its type: image, text, JSON or deterministic rule. */
 export function mediaChip(sc, key, { short = false } = {}) {
   const inp = sc.inputs?.[key];
   if (!inp) return null;
   return h('span', { class: `dx-media m-${inp.media || 'text'}${short ? ' short' : ''}`, title: inp.label }, short ? inp.icon : `${inp.icon} ${inp.label}`);
 }
 
-/** Pasos de una cascada agrupados por columnas: cada paso en la primera profundidad a la que se puede llegar. */
+/** Cascade steps grouped in columns: each step at the first depth where it can be reached. */
 export function cascadeColumns(sc) {
   const byId = Object.fromEntries(sc.steps.map((s) => [s.id, s]));
   const first = sc.steps[0]?.id;
@@ -290,7 +290,7 @@ export function cascadeColumns(sc) {
   return cols.filter(Boolean);
 }
 
-// ---------- Notas del presentador ----------
+// ---------- Presenter notes ----------
 
 const line = (label, value, cls = '') => h('div', { class: `nrow ${cls}` }, h('span', null, label), h('b', null, value));
 
@@ -345,7 +345,7 @@ export function caseNotes(sc, st, onProj) {
   );
 }
 
-/** sum = {total, done, auto (0–1), autoLabel, ok, checked, rows: [[etiqueta, valor]], how} */
+/** sum = {total, done, auto (0–1), autoLabel, ok, checked, rows: [[label, value]], how} */
 export function paintNotes(root, sc, st, sum) {
   if (!root) return;
   const slot = (k) => root.querySelector(`[data-slot="${k}"]`);

@@ -1,4 +1,4 @@
-// Caso 5 · Guardarraíles: cada acción del agente se valida contra la política antes de ejecutarse.
+// Case 5 · Guardrails for agents: every agent action is checked against the policy before it runs.
 import { h, fmt } from '../util.js';
 import { t, tn } from '../i18n.js';
 import { ans, primary, processedItems, tile, confPill, latencyChip, choiceLabel, valid, yes } from './common.js';
@@ -12,7 +12,7 @@ export function verdict(ctx, id) {
   return { key: p.key, low: false, a: p.a };
 }
 
-// El contexto es «introducción. Política: (1) regla (2) regla…» (en inglés, «Policy:»); las reglas arrancan en «(1)».
+// The context is "introduction. Política: (1) rule (2) rule…" (in English, "Policy:"); the rules start at "(1)".
 function splitPolicy(text) {
   const first = text.search(/\(\s*1\s*\)/);
   if (first >= 0) return [text.slice(0, first).replace(/(?:Política|Policy)\s*:\s*$/i, ''), text.slice(first)];

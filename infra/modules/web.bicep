@@ -2,7 +2,7 @@ param location string
 param tags object
 param resourceToken string
 param appServiceSku string
-@description('App settings de la web (pares nombre/valor).')
+@description('App settings for the web app (name/value pairs).')
 param appSettings object
 @secure()
 param demoAccessCode string = ''
@@ -40,7 +40,7 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'PYTHON|3.12'
-      // Un solo worker (asíncrono): el limitador de RPM y las métricas de la sesión viven en memoria.
+      // A single (async) worker: the RPM limiter and the session metrics live in memory.
       appCommandLine: 'gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --timeout 120 app:app'
       alwaysOn: appServiceSku != 'F1'
       ftpsState: 'Disabled'

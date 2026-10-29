@@ -1,10 +1,10 @@
-// Panel derecho de cada caso: el porqué, el resultado de la ejecución y la proyección mensual.
+// Right panel of each case: the why, the run result and the monthly projection.
 import { h, fmt, rich, openModal, jsonHtml, copyText } from './util.js';
 import { S, caseState, eur } from './core.js';
 import { t, tn } from './i18n.js';
 import { rivalLabel } from './race.js';
 
-const HOURS_FTE = 140; // horas productivas al mes por persona (aproximación)
+const HOURS_FTE = 140; // productive hours per person per month (approximation)
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function showJson(title, value) {
@@ -126,7 +126,7 @@ function projection(sc, st, sum) {
   return h('div', null, out);
 }
 
-/** Etiqueta de la última llamada: se compone al pintar, run.js solo guarda ids y contadores. */
+/** Label of the last call: composed at render time; run.js only stores ids and counters. */
 function lastLabel(last) {
   if (last.mode === 'single') return t('Última llamada · {id}', { id: last.id });
   return tn(last.decisions || 0, '1 llamada · {n} decisión', '1 llamada · {n} decisiones');

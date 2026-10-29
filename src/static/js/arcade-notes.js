@@ -1,4 +1,4 @@
-// Panel derecho del caso 6: el porqué, lo medido en la partida, el coste de decidir y cómo funciona.
+// Right panel of case 6: the why, what was measured in the game, the cost of deciding and how it works.
 import { h, fmt, rich } from './util.js';
 import { S, eur } from './core.js';
 import { t, N_ } from './i18n.js';
@@ -11,7 +11,7 @@ const PER_DECISIONS = 10000;
 
 const STATE_TEXT = { idle: N_('Sin empezar'), running: N_('En juego'), paused: N_('En pausa'), finished: N_('Terminada') };
 
-/** Devuelve { root, update }: `update()` repinta lo medido sin recrear los botones. */
+/** Returns { root, update }: `update()` repaints the measurements without recreating the buttons. */
 export function renderArcadeNotes(sc, ses) {
   const name = (side) => (side === 0 ? D1_NAME : ses.rival.label);
   const rows = [

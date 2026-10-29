@@ -1,4 +1,4 @@
-@description('Región del recurso de Foundry.')
+@description('Region of the Foundry resource.')
 param location string
 param tags object
 param resourceToken string
@@ -7,7 +7,7 @@ param decisionCapacity int
 param comparisonModels string
 param comparisonSku string
 param comparisonCapacity int
-@description('LLM del caso 6 (Space Invaders), con SKU y capacidad propios. "none" = no desplegarlo.')
+@description('LLM for case 6 (Space Invaders), with its own SKU and capacity. "none" = do not deploy it.')
 param gameModel string
 param gameSku string
 param gameCapacity int
@@ -15,7 +15,7 @@ param gameCapacity int
 var accountName = 'aif-decision1-${resourceToken}'
 var projectName = 'decision1-demo'
 
-// Versiones conocidas de los LLMs de comparación. Usa "nombre:versión" en COMPARISON_MODELS para otras.
+// Known versions of the comparison LLMs. Use "name:version" in COMPARISON_MODELS for others.
 var knownVersions = {
   'gpt-5.4-mini': '2026-03-17'
   'gpt-6-sol': '2026-09-22'
@@ -33,7 +33,7 @@ var comparisonNames = map(comparisonDefs, d => d.name)
 
 var gameName = first(split(trim(gameModel), ':'))
 var gameVersion = contains(gameModel, ':') ? last(split(gameModel, ':')) : (knownVersions[?gameName] ?? '')
-// Si el LLM del juego ya está en la lista de comparación, no se vuelve a desplegar.
+// If the game LLM is already in the comparison list, it isn't deployed again.
 var deployGame = !empty(gameName) && toLower(gameName) != 'none' && !contains(comparisonNames, gameName)
 
 resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
@@ -50,7 +50,7 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   properties: {
     allowProjectManagement: true
     customSubDomainName: accountName
-    // Sin claves: todo el acceso es con Entra ID (managed identity / az login).
+    // No keys: all access goes through Entra ID (managed identity / az login).
     disableLocalAuth: true
     publicNetworkAccess: 'Enabled'
     networkAcls: {
@@ -71,11 +71,11 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
   }
   properties: {
     displayName: 'Decision-1 demo'
-    description: 'Demo de decisiones rápidas con Microsoft-Decision-1'
+    description: 'Fast-decision demo with Microsoft-Decision-1'
   }
 }
 
-// El nombre del despliegue no puede contener la palabra reservada "Microsoft".
+// The deployment name can't contain the reserved word "Microsoft".
 resource decision 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
   parent: account
   name: 'decision-1'
@@ -96,7 +96,7 @@ resource decision 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' 
   ]
 }
 
-// Los despliegues de una misma cuenta deben crearse de uno en uno.
+// Deployments in the same account must be created one at a time.
 @batchSize(1)
 resource comparison 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = [
   for m in comparisonDefs: {
@@ -120,7 +120,7 @@ resource comparison 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01
   }
 ]
 
-// Va después de la comparación: los despliegues de una misma cuenta se crean de uno en uno.
+// Goes after the comparison deployments: deployments in the same account are created one at a time.
 resource game 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = if (deployGame) {
   parent: account
   name: gameName

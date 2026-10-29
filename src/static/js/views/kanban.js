@@ -1,4 +1,4 @@
-// Caso 1 · Triage de tickets: tablero kanban por colas, ordenado por urgencia.
+// Case 1 · Ticket triage: kanban board by queue, sorted by urgency.
 import { h } from '../util.js';
 import { t } from '../i18n.js';
 import { ans, primary, processedItems, card, lane, inboxBlock, sevBadge, flagChip, suggestion, yes, level, expected, scoreLabel } from './common.js';

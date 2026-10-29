@@ -1,9 +1,9 @@
 param accountName string
 
-@description('Principales que reciben "Cognitive Services User" sobre la cuenta de Foundry: [{ id, type }].')
+@description('Principals that get "Cognitive Services User" on the Foundry account: [{ id, type }].')
 param principals array
 
-// Cognitive Services User: permite invocar los modelos con Entra ID (sin claves).
+// Cognitive Services User: allows calling the models with Entra ID (no keys).
 var cognitiveServicesUser = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 
 resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {

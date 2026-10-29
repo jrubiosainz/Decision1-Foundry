@@ -1,4 +1,4 @@
-// Traducciones: pestaña «OpenAI Decisions API» (app.js y dx/*.js).
+// Translations: "OpenAI Decisions API" tab (app.js and dx/*.js).
 export default {
   // app.js
   'Decisiones sobre imágenes y texto': 'Decisions on images and text',

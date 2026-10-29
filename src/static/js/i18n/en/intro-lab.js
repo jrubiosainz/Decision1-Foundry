@@ -1,6 +1,6 @@
-// Traducciones: introducción y laboratorio (intro.js, lab.js).
+// Translations: introduction and Lab (intro.js, lab.js).
 export default {
-  // intro.js · petición y respuesta de ejemplo
+  // intro.js · sample request and response
   'Cliente: "Huele a gas en el portal desde esta mañana. Tengo dos niños pequeños en casa."': 'Customer: "There has been a smell of gas in the building lobby since this morning. I have two small children at home."',
   '¿Qué equipo debe atender el ticket?': 'Which team should handle the ticket?',
   'Averías y emergencias': 'Faults and emergencies',
@@ -13,7 +13,7 @@ export default {
   'Crítica': 'Critical',
   '¿Hay riesgo para la seguridad de las personas?': "Is there a risk to people's safety?",
 
-  // intro.js · cifras
+  // intro.js · figures
   'más rápido que GPT-6 Sol en latencia p50': 'faster than GPT-6 Sol in p50 latency',
   'benchmarks (~{n} preguntas) con la mejor precisión media': 'benchmarks (~{n} questions) with the best average accuracy',
   'por millón de tokens de entrada; la salida es gratis': 'per million input tokens; output is free',
@@ -25,7 +25,7 @@ export default {
   'por lote de 12 a 16 elementos, en ~1 s': 'per batch of 12 to 16 items, in ~1 s',
   'más rápido (en caliente) y más barato que GPT-6 Sol con el mismo lote': 'faster (warm) and cheaper than GPT-6 Sol on the same batch',
 
-  // intro.js · Decision-1 dentro de un agente
+  // intro.js · Decision-1 inside an agent
   '🧭 Skill': '🧭 Skill',
   '📂 Archivos': '📂 Files',
   '🗜️ Contexto': '🗜️ Context',
@@ -50,7 +50,7 @@ export default {
   'No todas las decisiones de un agente necesitan razonamiento generativo: elegir, filtrar, ordenar y validar son preguntas cerradas. Pulsa una etiqueta para probarla en el laboratorio.':
     'Not every decision an agent makes needs generative reasoning: choosing, filtering, sorting and validating are closed questions. Click a tag to try it in the lab.',
 
-  // intro.js · página
+  // intro.js · page
   'Caso {n}': 'Case {n}',
   'Nuevo en Microsoft Foundry': 'New in Microsoft Foundry',
   'Microsoft-Decision-1: decisiones en milisegundos': 'Microsoft-Decision-1: decisions in milliseconds',
@@ -78,7 +78,7 @@ export default {
   '🗂️ Los seis casos': '🗂️ The six cases',
   '🤖 Y dentro de tus agentes de IA': '🤖 And inside your AI agents',
 
-  // intro.js · notas
+  // intro.js · notes
   'Introducción · notas para el presentador': 'Introduction · presenter notes',
   'Mensajes clave': 'Key messages',
   '**Nuevo paradigma:** un modelo que decide, no que escribe. Se integra en línea con cada evento del proceso.':
@@ -124,13 +124,13 @@ export default {
   'reiniciar': 'reset',
   'mostrar u ocultar notas': 'show or hide notes',
 
-  // lab.js · errores de validación
+  // lab.js · validation errors
   'Las preguntas no son un JSON válido: {detalle}': 'The questions are not valid JSON: {detalle}',
   'Las preguntas deben ser un objeto JSON: { "nombre": { "type": "choice" | "score" | "noul", … } }':
     'The questions must be a JSON object: { "name": { "type": "choice" | "score" | "noul", … } }',
   'Escribe un estado: el texto o el JSON sobre el que decidir.': 'Enter a state: the text or JSON to decide on.',
 
-  // lab.js · resultados
+  // lab.js · results
   'Ranking': 'Ranking',
   '{n} de {total} · {yes} si ≥ {umbral}': '{n} of {total} · {yes} if ≥ {umbral}',
   'Decision-1 está decidiendo…': 'Decision-1 is deciding…',
@@ -145,7 +145,7 @@ export default {
   'Coste': 'Cost',
   '{coste} por {n} llamadas': '{coste} per {n} calls',
 
-  // lab.js · página
+  // lab.js · page
   'Preguntas en JSON': 'Questions in JSON',
   '⚡ Decidir': '⚡ Decide',
   'Pruébalo con tus propios datos': 'Try it with your own data',
@@ -156,7 +156,7 @@ export default {
   'Preguntas · JSON con type choice, score o noul': 'Questions · JSON with type choice, score or noul',
   '{ } Formatear': '{ } Format',
 
-  // lab.js · notas
+  // lab.js · notes
   'Laboratorio · notas para el presentador': 'Lab · presenter notes',
   'Cómo usarlo con el cliente': 'How to use it with the customer',
   'Pide un ejemplo real (anonimizado) de su proceso: un ticket, una reseña, un correo o una conversación.':

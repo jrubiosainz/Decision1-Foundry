@@ -1,5 +1,5 @@
-// Marca del cliente: logotipo, nombre, colores (texto, fondo y ribetes) y tipografía. El servidor ya sirve la
-// página con la marca aplicada; esta ventana la cambia con vista previa en vivo y la guarda con el código de acceso.
+// Client brand: logo, name, colors (text, background and trim) and font. The server already serves the
+// page with the brand applied; this dialog changes it with a live preview and saves it with the access code.
 import { h, $, openModal, closeModal, toast } from './util.js';
 import { S, api, ApiError, errorText, emit, setCode } from './core.js';
 import { t, N_ } from './i18n.js';
@@ -31,7 +31,7 @@ const customStack = (name) => `"${name}","Segoe UI",system-ui,sans-serif`;
 const CUSTOM_STACK = /^"([^"]+)","Segoe UI",system-ui,sans-serif$/;
 
 const HEX = /^#[0-9a-f]{6}$/i;
-// Mismas reglas que el servidor (app.py): letras, números, espacios, comas, puntos, guiones y comillas emparejadas.
+// Same rules as the server (app.py): letters, numbers, spaces, commas, periods, hyphens and paired quotes.
 const FONT = /^[\p{L}\p{N}_ ,.'"-]{1,160}$/u;
 const FONT_NAME = /^[\p{L}\p{N}_ .-]{1,60}$/u;
 const MAX_NAME = 60;
@@ -42,12 +42,12 @@ const LOGO_SIZES = [
   [144, 900],
   [96, 600],
 ];
-// Fondo del tablero del caso 6, que es oscuro con cualquier marca.
+// Background of the case 6 board, which is dark with any brand.
 const BOARD_BG = '#111f44';
 
 const validFont = (f) => FONT.test(f) && (f.match(/"/g) || []).length % 2 === 0 && (f.match(/'/g) || []).length % 2 === 0;
 
-// ---------- Color: mismo cálculo que el servidor, para que la vista previa sea igual a lo guardado ----------
+// ---------- Color: same calculation as the server, so the preview matches what gets saved ----------
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
@@ -63,7 +63,7 @@ export function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/** Como color-mix(in srgb, a weight, b). */
+/** Like color-mix(in srgb, a weight, b). */
 function mix(a, b, weight) {
   const [x, y] = [rgb(a), rgb(b)];
   return `#${x.map((v, i) => Math.floor(v * weight + y[i] * (1 - weight) + 0.5).toString(16).padStart(2, '0')).join('')}`;
@@ -81,7 +81,7 @@ function accentText(accent, text, background) {
   return text;
 }
 
-/** Marca con los valores derivados que también calcula el servidor (GET /api/brand). */
+/** Brand with the derived values that the server also computes (GET /api/brand). */
 function derive(b) {
   return {
     ...b,
@@ -92,7 +92,7 @@ function derive(b) {
   };
 }
 
-// ---------- Aplicar la marca a la página ----------
+// ---------- Apply the brand to the page ----------
 
 const msLogo = () => h('span', { class: 'ms-logo', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'), h('i'));
 
@@ -101,7 +101,7 @@ function renderMark(b) {
   if (!mark) return;
   const parts = [];
   if (b.logo) {
-    // Se reutiliza la imagen si no cambia: así no parpadea mientras se edita el nombre o los colores.
+    // The image is reused if it doesn't change, so it doesn't flicker while the name or colors are edited.
     const old = mark.querySelector('img.brand-logo');
     const img = old?.getAttribute('src') === b.logo ? old : h('img', { class: 'brand-logo', src: b.logo });
     img.alt = b.name || 'Logo';
@@ -127,7 +127,7 @@ export function applyBrand(b) {
   emit('brand', b);
 }
 
-/** Acento de la marca para dibujar sobre el tablero oscuro del caso 6 (null sin marca). Se aclara si no se ve. */
+/** Brand accent for drawing on the dark case 6 board (null without a brand). Lightened if it doesn't show. */
 export function boardAccent() {
   const root = document.documentElement;
   if (!root.dataset.brand) return null;
@@ -138,7 +138,7 @@ export function boardAccent() {
   return color;
 }
 
-// ---------- Logotipo: cualquier imagen → PNG recortado y reducido ----------
+// ---------- Logo: any image → cropped, scaled-down PNG ----------
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -149,7 +149,7 @@ function loadImage(src) {
   });
 }
 
-/** SVG con tamaño explícito y viewBox, como data URL: así se dibuja nítido y sin recursos externos. */
+/** SVG with an explicit size and viewBox, as a data URL: this way it renders sharp and without external resources. */
 async function svgSource(file) {
   const doc = new DOMParser().parseFromString(await file.text(), 'image/svg+xml');
   const svg = doc.documentElement;
@@ -168,7 +168,7 @@ function canvasOf(width, height) {
   return h('canvas', { width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(height)) });
 }
 
-/** Caja de los píxeles no transparentes (los logotipos suelen venir con márgenes vacíos). */
+/** Bounding box of the non-transparent pixels (logos often come with empty margins). */
 function opaqueBox(canvas) {
   const { width: w, height: hh } = canvas;
   const { data } = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, hh);
@@ -210,7 +210,7 @@ async function logoFromFile(file) {
     }
     throw new Error(t('El logotipo pesa demasiado incluso reducido: prueba con un PNG o un SVG más sencillo.'));
   } catch (e) {
-    // Un lienzo «contaminado» (p. ej. SVG con contenido HTML en Safari) no se puede exportar.
+    // A "tainted" canvas (e.g. an SVG with HTML content in Safari) can't be exported.
     if (e?.name === 'SecurityError') throw new Error(t('No se pudo procesar la imagen: prueba con un PNG.'));
     throw e;
   } finally {
@@ -218,7 +218,7 @@ async function logoFromFile(file) {
   }
 }
 
-/** Hasta cinco colores dominantes del logotipo (sin transparentes, blancos ni negros), para usarlos de acento. */
+/** Up to five dominant colors of the logo (no transparent, white or black pixels), to use as accents. */
 function logoPalette(canvas) {
   const k = Math.min(1, 48 / Math.max(canvas.width, canvas.height));
   const small = canvasOf(canvas.width * k, canvas.height * k);
@@ -253,9 +253,9 @@ async function imageCanvas(src) {
   return c;
 }
 
-// ---------- Logotipo legible sobre cualquier fondo ----------
+// ---------- Logo legible on any background ----------
 
-/** Luminancia de los píxeles opacos del logotipo y si trae fondo propio (borde opaco, como un JPG). */
+/** Luminance of the logo's opaque pixels and whether it has its own background (opaque border, like a JPG). */
 const pixelCache = new Map();
 function logoPixels(src) {
   let job = pixelCache.get(src);
@@ -304,7 +304,7 @@ function cssColor(s) {
   return null;
 }
 
-/** Luminancia del fondo que hay detrás de un elemento, con las capas semitransparentes. */
+/** Luminance of the background behind an element, including semi-transparent layers. */
 function backdropLum(el) {
   const layers = [];
   for (let e = el; e; e = e.parentElement) {
@@ -318,7 +318,7 @@ function backdropLum(el) {
   return lumOf(...bg);
 }
 
-/** Si buena parte del logotipo no se distingue del fondo (uno oscuro sobre «Noche», uno blanco sobre blanco), va sobre una placa del color del texto. */
+/** If much of the logo doesn't stand out from the background (a dark one on "Night", a white one on white), it goes on a plate in the text color. */
 function fitLogo(img) {
   const src = img.getAttribute('src');
   if (!src) return;
@@ -332,12 +332,12 @@ function fitLogo(img) {
     .catch(() => {});
 }
 
-/** Logotipo que ya trae la página servida con la marca. */
+/** Logo already included in the page served with the brand. */
 export function initBrand() {
   document.querySelectorAll('img.brand-logo').forEach(fitLogo);
 }
 
-// ---------- Ventana «Personalizar la marca» ----------
+// ---------- "Customize the brand" dialog ----------
 
 let loading = false;
 
@@ -361,7 +361,7 @@ function brandModal(saved) {
   let closed = false;
   let chipToken = 0;
 
-  // Logotipo
+  // Logo
   const fileInput = h('input', {
     type: 'file',
     accept: 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg',
@@ -373,7 +373,7 @@ function brandModal(saved) {
     },
   });
   const prev = h('div', { class: 'logo-prev' });
-  // Una imagen que termina de procesarse con la ventana ya cerrada no debe volver a pintar la vista previa.
+  // An image that finishes processing after the dialog has closed must not repaint the preview.
   const preview = () => {
     if (closed) return;
     applyBrand(derive(draft));
@@ -454,7 +454,7 @@ function brandModal(saved) {
     }
   };
 
-  // Nombre y tipografía
+  // Name and font
   const name = h('input', {
     class: 'field-input',
     value: draft.name,
@@ -500,7 +500,7 @@ function brandModal(saved) {
     custom.setCustomValidity('');
   };
 
-  // Colores
+  // Colors
   const pickers = {};
   const hexes = {};
   const warn = h('p', { class: 'brand-warn', hidden: true });
@@ -561,7 +561,7 @@ function brandModal(saved) {
     }),
   );
 
-  // Pie: restablecer, código (solo si hace falta), cancelar y guardar
+  // Footer: reset, access code (only if needed), cancel and save
   const code = h('input', { type: 'password', class: 'field-input', placeholder: t('Código de acceso'), 'aria-label': t('Código de acceso'), autocomplete: 'off', hidden: true, style: { width: '170px', flex: 'none' } });
   const reset = h(
     'button',
@@ -589,7 +589,7 @@ function brandModal(saved) {
         e.preventDefault();
         if (!code.hidden && code.value.trim()) setCode(code.value.trim());
         const payload = { name: draft.name, text: draft.text, background: draft.background, accent: draft.accent, font: draft.font };
-        // El logotipo solo viaja si cambia: data URL para sustituirlo y null para quitarlo.
+        // The logo is only sent if it changes: a data URL to replace it and null to remove it.
         if (draft.logo !== saved.logo) payload.logo = draft.logo;
         submit.disabled = true;
         try {
@@ -626,7 +626,7 @@ function brandModal(saved) {
     h('div', { class: 'form-foot' }, reset, h('span', { class: 'grow' }), code, h('button', { type: 'button', class: 'btn', onclick: closeModal }, t('Cancelar')), submit),
   );
 
-  // Soltar o pegar una imagen en cualquier parte mientras la ventana está abierta (si no, el navegador abriría el archivo).
+  // Drop or paste an image anywhere while the dialog is open (otherwise the browser would open the file).
   const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes('Files');
   const listeners = {
     dragover: (e) => {

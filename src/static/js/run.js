@@ -1,4 +1,4 @@
-// Ejecución de un caso: en lote (1 llamada), uno a uno, o carrera contra un LLM.
+// Running a case: as a batch (1 call), one by one, or a race against an LLM.
 import { pool, median, toast } from './util.js';
 import { S, caseState, freshCase, api, fail, emit } from './core.js';
 import { t, tn } from './i18n.js';
@@ -127,7 +127,7 @@ export async function runSingle(sc) {
 
 export const runCase = (sc) => (S.mode === 'single' ? runSingle(sc) : runBatch(sc));
 
-/** Carrera: Decision-1 y un LLM resuelven el mismo lote a la vez, con el mismo prompt y las mismas preguntas. */
+/** Race: Decision-1 and an LLM solve the same batch at once, with the same prompt and the same questions. */
 export async function runRace(sc, modelId = S.raceModel) {
   const st = caseState(sc.id);
   if (st.busy || st.race?.running) return;

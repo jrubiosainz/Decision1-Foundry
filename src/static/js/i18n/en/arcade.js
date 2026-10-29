@@ -1,4 +1,4 @@
-// Traducciones: caso 6 (arcade.js, arcade-shared.js, arcade-result.js, arcade-notes.js, game/match.js).
+// Translations: case 6 (arcade.js, arcade-shared.js, arcade-result.js, arcade-notes.js, game/match.js).
 export default {
   // arcade-shared.js
   'Victoria': 'Victory',

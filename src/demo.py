@@ -1,4 +1,4 @@
-"""Lógica de la demo: escenarios, peticiones individuales y en lote, comparativa con LLM y costes."""
+"""Demo logic: scenarios, single and batch requests, LLM comparison and costs."""
 
 from __future__ import annotations
 
@@ -14,14 +14,14 @@ from decision_client import FoundryClient, llm_schema, llm_system_prompt, normal
 log = logging.getLogger("decision1")
 
 BASE = Path(__file__).parent
-# El API admite hasta 255 preguntas por llamada; dejamos margen.
+# The API accepts up to 255 questions per call; we leave some headroom.
 MAX_QUESTIONS_PER_CALL = 250
-# Idiomas de la interfaz: el español es el original y el resto se superpone desde scenarios/<idioma>/ y lab.<idioma>.json.
+# UI languages: Spanish is the original; the others are overlaid from scenarios/<lang>/ and lab.<lang>.json.
 LANGS = ("es", "en")
 DEFAULT_LANG = "es"
-# Claves que la traducción sustituye por completo porque en otro idioma cambian también sus nombres
-# (campos del estado y acción propuesta por el agente, cuyos argumentos ve el modelo y el público; en el laboratorio,
-# además, las etiquetas por valor, que van con el nombre de la pregunta).
+# Keys that a translation replaces entirely because their names also change in another language
+# (state fields and the action proposed by the agent, whose arguments the model and the audience see; in the Lab,
+# also the per-value labels, which go with the question name).
 SCENARIO_REPLACE = frozenset({"state_fields", "action"})
 LAB_REPLACE = frozenset({"state", "questions", "values"})
 
@@ -31,11 +31,11 @@ def load_json(name: str) -> Any:
 
 
 def merge_overlay(base: Any, over: Any, replace: frozenset[str] = frozenset(), path: str = "$") -> Any:
-    """Superpone una traducción sobre el original sin cambiar su estructura.
+    """Overlays a translation on the original without changing its structure.
 
-    Diccionarios: por clave (una clave que no existe en el original es un error, salvo las de `replace`).
-    Listas de diccionarios con `id`: por id (la traducción puede traer solo algunos). Otras listas: misma longitud,
-    elemento a elemento. El resto de valores se sustituyen y deben ser del mismo tipo.
+    Dicts: by key (a key that doesn't exist in the original is an error, except those in `replace`).
+    Lists of dicts with `id`: by id (the translation may include only some of them). Other lists: same length,
+    element by element. All other values are replaced and must be of the same type.
     """
     if isinstance(base, dict) and isinstance(over, dict):
         out = dict(base)
@@ -43,7 +43,7 @@ def merge_overlay(base: Any, over: Any, replace: frozenset[str] = frozenset(), p
             if key in replace:
                 out[key] = val
             elif key not in base:
-                raise ValueError(f"{path}.{key}: no existe en el original")
+                raise ValueError(f"{path}.{key}: not in the original")
             else:
                 out[key] = merge_overlay(base[key], val, replace, f"{path}.{key}")
         return out
@@ -54,24 +54,24 @@ def merge_overlay(base: Any, over: Any, replace: frozenset[str] = frozenset(), p
             for o in over:
                 oid = o.get("id") if isinstance(o, dict) else None
                 if oid not in index:
-                    raise ValueError(f"{path}: id desconocido {oid!r}")
+                    raise ValueError(f"{path}: unknown id {oid!r}")
                 out[index[oid]] = merge_overlay(base[index[oid]], o, replace, f"{path}[{oid}]")
             return out
         if len(base) != len(over):
-            raise ValueError(f"{path}: {len(over)} elementos, el original tiene {len(base)}")
+            raise ValueError(f"{path}: {len(over)} elements, the original has {len(base)}")
         return [merge_overlay(b, o, replace, f"{path}[{i}]") for i, (b, o) in enumerate(zip(base, over))]
     numbers = (int, float)
     if type(base) is not type(over) and not (isinstance(base, numbers) and isinstance(over, numbers)):
-        raise ValueError(f"{path}: es {type(over).__name__} y el original {type(base).__name__}")
+        raise ValueError(f"{path}: is {type(over).__name__}, the original is {type(base).__name__}")
     return over
 
 
 def localized(base: dict, overlay: Path, lang: str, replace: frozenset[str], source: str) -> dict:
-    """El original en español o, si existe, su traducción a `lang`; `locale` indica el idioma realmente servido."""
+    """The Spanish original or, if it exists, its translation into `lang`; `locale` is the language actually served."""
     if lang == DEFAULT_LANG:
         return {**base, "locale": DEFAULT_LANG}
     if not overlay.exists():
-        log.warning("%s: sin traducción a '%s'; se sirve en español", source, lang)
+        log.warning("%s: no translation into '%s'; serving Spanish", source, lang)
         return {**base, "locale": DEFAULT_LANG}
     try:
         merged = merge_overlay(base, json.loads(overlay.read_text(encoding="utf-8")), replace)
@@ -99,21 +99,21 @@ def _validate(sc: dict, source: str) -> None:
     required = ("id", "title", "context", "questions", "primary") + (("notes",) if game else ("items", "state_fields"))
     for key in required:
         if key not in sc:
-            raise ValueError(f"{source}: falta '{key}'")
+            raise ValueError(f"{source}: missing '{key}'")
     if sc["primary"] not in sc["questions"]:
-        raise ValueError(f"{source}: 'primary' debe ser una de las preguntas")
+        raise ValueError(f"{source}: 'primary' must be one of the questions")
     if sc["questions"][sc["primary"]]["type"] != "choice":
-        raise ValueError(f"{source}: la pregunta principal debe ser de tipo 'choice'")
+        raise ValueError(f"{source}: the primary question must be of type 'choice'")
     if game:
         return
     ids = [it["id"] for it in sc["items"]]
     if len(ids) != len(set(ids)):
-        raise ValueError(f"{source}: hay ids de elementos repetidos")
+        raise ValueError(f"{source}: duplicate item ids")
 
 
-# ---------- Construcción de peticiones ----------
+# ---------- Building requests ----------
 
-# Textos que viajan al modelo y dependen del idioma del escenario (`sc["locale"]`).
+# Texts sent to the model, which depend on the scenario language (`sc["locale"]`).
 REQUEST_TEXTS = {
     "es": {
         "context": "contexto",
@@ -149,12 +149,12 @@ def item_fields(sc: dict, item: dict) -> dict:
 
 
 def item_state(sc: dict, item: dict) -> dict:
-    """Estado de Decision-1 para un elemento: contexto del negocio + campos del elemento."""
+    """Decision-1 state for an item: business context + item fields."""
     return {request_texts(sc)["context"]: sc["context"], **item_fields(sc, item)}
 
 
 def batch_payload(sc: dict, items: list[dict]) -> tuple[dict, dict]:
-    """Varios elementos en una sola llamada: todos en el estado y las preguntas repetidas por elemento."""
+    """Several items in a single call: all of them in the state, with the questions repeated per item."""
     txt = request_texts(sc)
     ref = sc.get("item_ref", txt["ref"])
     state = {txt["context"]: sc["context"], sc.get("batch_key", txt["batch_key"]): {it["id"]: item_fields(sc, it) for it in items}}
@@ -168,7 +168,7 @@ def batch_payload(sc: dict, items: list[dict]) -> tuple[dict, dict]:
 
 class UnknownItems(KeyError):
     def __init__(self, ids: list[str]):
-        super().__init__(f"Elementos desconocidos: {', '.join(ids)}")
+        super().__init__(f"Unknown items: {', '.join(ids)}")
         self.ids = ids
 
 
@@ -187,7 +187,7 @@ def select_items(sc: dict, item_ids: list[str] | None) -> list[dict]:
     return [by_id[i] for i in item_ids]
 
 
-# ---------- Costes ----------
+# ---------- Costs ----------
 
 
 class Pricing:
@@ -215,7 +215,7 @@ def sum_usage(usages: list[dict]) -> dict:
     return {k: sum((u.get(k) or 0) for u in usages) for k in keys if any(k in u for u in usages)}
 
 
-# ---------- Ejecución con Decision-1 ----------
+# ---------- Running Decision-1 ----------
 
 
 async def d1_item(client: FoundryClient, sc: dict, item: dict) -> dict:
@@ -250,7 +250,7 @@ async def d1_batch(client: FoundryClient, sc: dict, items: list[dict]) -> dict:
     }
 
 
-# ---------- Ejecución con un LLM generativo (para la carrera) ----------
+# ---------- Running a generative LLM (for the race) ----------
 
 
 async def llm_item(client: FoundryClient, sc: dict, item: dict, cmp: dict) -> dict:

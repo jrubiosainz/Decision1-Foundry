@@ -1,12 +1,12 @@
-// Internacionalización (es / en). La cadena en español es la clave de traducción:
+// Internationalization (es / en). The Spanish string is the translation key:
 //
-//   t('Procesar {n} tickets', { n })      →  "Process 12 tickets" en inglés; en español, el propio texto.
-//   tx('Gana {quien} con {pts}', {...})   →  lista de hijos para h(), cuando un parámetro es un nodo del DOM.
-//   tn(n, '{n} llamada', '{n} llamadas')  →  singular o plural, con {n} ya formateado según el idioma.
-//   N_('Texto')                           →  marca una constante de módulo; se traduce al usarla con t(CONST).
+//   t('Procesar {n} tickets', { n })      →  "Process 12 tickets" in English; in Spanish, the text itself.
+//   tx('Gana {quien} con {pts}', {...})   →  list of children for h(), when a parameter is a DOM node.
+//   tn(n, '{n} llamada', '{n} llamadas')  →  singular or plural, with {n} already formatted for the language.
+//   N_('Texto')                           →  marks a module constant; it is translated when used with t(CONST).
 //
-// El diccionario inglés vive en i18n/en.js. Si falta una clave se muestra el texto en español y se anota
-// en window.__d1Missing (lo usa scripts/probar-i18n.mjs y las pruebas del navegador).
+// The English dictionary lives in i18n/en.js. If a key is missing, the Spanish text is shown and recorded
+// in window.__d1Missing (used by scripts/check-i18n.mjs and the browser tests).
 import EN from './i18n/en.js';
 
 export const UI_LANGS = ['es', 'en'];
@@ -23,7 +23,8 @@ function safe(fn, fallback) {
   }
 }
 
-// El idioma sale de ?lang=es|en (se recuerda y se quita de la URL), luego de localStorage y, por defecto, es.
+// The language comes from ?lang=es|en (remembered and removed from the URL), then localStorage, then the
+// browser's preferred languages; English when none of them is supported.
 function initial() {
   const u = new URL(location.href);
   const q = valid(u.searchParams.get('lang'));
@@ -33,7 +34,16 @@ function initial() {
     safe(() => localStorage.setItem(STORE, q));
     return q;
   }
-  return valid(safe(() => localStorage.getItem(STORE), null)) || 'es';
+  return valid(safe(() => localStorage.getItem(STORE), null)) || fromBrowser() || 'en';
+}
+
+function fromBrowser() {
+  const prefs = safe(() => (navigator.languages?.length ? navigator.languages : [navigator.language]), []);
+  for (const tag of prefs) {
+    const code = valid(String(tag || '').slice(0, 2).toLowerCase());
+    if (code) return code;
+  }
+  return null;
 }
 
 let lang = initial();
@@ -51,7 +61,7 @@ export function setLang(code) {
   return lang;
 }
 
-/** Marca un texto para traducir sin traducirlo aún (constantes de módulo). */
+/** Marks a text for translation without translating it yet (module constants). */
 export const N_ = (s) => s;
 
 function raw(key) {
@@ -71,7 +81,7 @@ export function t(key, params) {
   return mark(fill(raw(key), params));
 }
 
-/** Como t(), pero devuelve una lista de hijos para h(): los parámetros pueden ser nodos del DOM. */
+/** Like t(), but returns a list of children for h(): parameters can be DOM nodes. */
 export function tx(key, params) {
   const s = raw(key);
   const out = [];
@@ -87,5 +97,5 @@ export function tx(key, params) {
 
 const intFmt = () => new Intl.NumberFormat(locale(), { maximumFractionDigits: 0, useGrouping: 'always' });
 
-/** Singular (n === 1) o plural; ambas claves llevan {n}. */
+/** Singular (n === 1) or plural; both keys contain {n}. */
 export const tn = (n, one, many, params) => t(n === 1 ? one : many, { n: intFmt().format(n), ...params });

@@ -2,10 +2,10 @@ targetScope = 'subscription'
 
 @minLength(1)
 @maxLength(40)
-@description('Nombre del entorno de azd. Se usa para nombrar el resource group (rg-<nombre>).')
+@description('Name of the azd environment. Used to name the resource group (rg-<name>).')
 param environmentName string
 
-@description('Región. Debe ofrecer Microsoft-Decision-1 en el SKU elegido (DataZoneStandard en UE: spaincentral, swedencentral, westeurope, francecentral, germanywestcentral, italynorth, polandcentral).')
+@description('Region. Must offer Microsoft-Decision-1 in the chosen SKU (DataZoneStandard in the EU: spaincentral, swedencentral, westeurope, francecentral, germanywestcentral, italynorth, polandcentral).')
 @allowed([
   'spaincentral'
   'swedencentral'
@@ -27,46 +27,46 @@ param environmentName string
 @metadata({ azd: { type: 'location' } })
 param location string
 
-@description('Object ID de quien despliega (azd lo rellena). Recibe acceso keyless para ejecutar la app en local.')
+@description('Object ID of the deployer (azd fills it in). Gets keyless access to run the app locally.')
 param principalId string = ''
 
 @allowed(['User', 'ServicePrincipal', 'Group'])
 param principalType string = 'User'
 
 @allowed(['DataZoneStandard', 'GlobalStandard'])
-@description('SKU del despliegue de Microsoft-Decision-1. DataZoneStandard mantiene el procesamiento dentro de la zona de datos (UE).')
+@description('SKU of the Microsoft-Decision-1 deployment. DataZoneStandard keeps processing within the data zone (EU).')
 param decisionSku string = 'DataZoneStandard'
 
 @minValue(1)
-@description('Capacidad del despliegue de Microsoft-Decision-1, en peticiones por minuto (RPM). El caso 6 (Space Invaders) pide una decisión por segundo y modelo, así que necesita unas 60; con menos funciona, pero más despacio.')
+@description('Capacity of the Microsoft-Decision-1 deployment, in requests per minute (RPM). Case 6 (Space Invaders) requests one decision per second per model, so it needs about 60; it works with less, but more slowly.')
 param decisionCapacity int = 60
 
-@description('LLMs opcionales para la carrera comparativa, separados por comas ("nombre" o "nombre:versión"). Cadena vacía = sin comparativa.')
+@description('Optional LLMs for the comparison race, comma-separated ("name" or "name:version"). Empty string = no comparison.')
 param comparisonModels string = 'gpt-5.4-mini,gpt-6-sol'
 
 @allowed(['DataZoneStandard', 'GlobalStandard'])
 param comparisonSku string = 'DataZoneStandard'
 
 @minValue(1)
-@description('Capacidad (miles de TPM) de cada LLM de comparación.')
+@description('Capacity (thousands of TPM) of each comparison LLM.')
 param comparisonCapacity int = 50
 
-@description('LLM del caso 6 (Space Invaders), que juega contra Decision-1. "none" = no desplegarlo: el caso 6 usará un LLM de la lista de comparación.')
+@description('LLM for case 6 (Space Invaders), which plays against Decision-1. "none" = do not deploy it: case 6 will use an LLM from the comparison list.')
 param gameModel string = 'gpt-6-luna'
 
 @allowed(['DataZoneStandard', 'GlobalStandard'])
-@description('SKU del LLM del caso 6. GlobalStandard tiene más cuota, pero el procesamiento puede salir de la zona de datos de la UE (el juego no usa datos personales).')
+@description('SKU of the case 6 LLM. GlobalStandard has more quota, but processing may leave the EU data zone (the game uses no personal data).')
 param gameSku string = 'GlobalStandard'
 
 @minValue(1)
-@description('Capacidad (miles de TPM) del LLM del caso 6.')
+@description('Capacity (thousands of TPM) of the case 6 LLM.')
 param gameCapacity int = 100
 
-@description('SKU del plan de App Service que aloja la web de la demo.')
+@description('SKU of the App Service plan that hosts the demo web app.')
 param appServiceSku string = 'B1'
 
 @secure()
-@description('Código de acceso de la web (?code= en la URL). El hook preprovision lo genera si no existe. Vacío = web abierta.')
+@description('Access code for the web app (?code= in the URL). The preprovision hook generates it if it does not exist. Empty = open access.')
 param demoAccessCode string = ''
 
 var tags = {

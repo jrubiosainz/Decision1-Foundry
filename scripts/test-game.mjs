@@ -1,5 +1,5 @@
-// Pruebas del motor del caso 6 (Space Invaders) sin red ni navegador: node scripts/probar-juego.mjs
-// Cubren el motor determinista, lo que ven los modelos, el bucle de decisión y el veredicto de la partida.
+// Tests for the case 6 engine (Space Invaders) with no network or browser: node scripts/test-game.mjs
+// They cover the deterministic engine, what the models see, the decision loop and the match verdict.
 
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ const test = (name, fn) => tests.push([name, fn]);
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 const json = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 
-/** Respuesta con la forma de /api/game/decide. */
+/** An answer shaped like /api/game/decide. */
 const answer = (lane, extra = {}) => ({
   answers: {
     carril: { type: 'choice', value: String(lane), confidence: 0.9, probs: [{ key: String(lane), p: 0.9 }], ...extra },
@@ -31,14 +31,14 @@ function play(seed, policy, maxTicks = RULES.maxTicks) {
 const signature = (g) => JSON.stringify({ t: g.t, over: g.over, score: g.score, lives: g.lives, x: g.ship.x, grid: g.form.grid, bombs: g.bombs });
 const zigzag = (g) => (g.t % 60 < 30 ? 3 : 9);
 
-// ---------------------------------------------------------------- Motor
+// ---------------------------------------------------------------- Engine
 
-test('determinismo: misma semilla y mismas órdenes dan la misma partida', () => {
+test('determinism: same seed and same commands give the same game', () => {
   assert.equal(signature(play(7, zigzag)), signature(play(7, zigzag)));
   assert.notEqual(signature(play(7, zigzag)), signature(play(8, zigzag)));
 });
 
-test('el calendario de bombas depende solo de la semilla, no de cómo se juegue', () => {
+test('the bomb schedule depends only on the seed, not on how the game is played', () => {
   const base = createGame(11).schedule;
   assert.deepEqual(createGame(11).schedule, base);
   assert.deepEqual(play(11, zigzag).schedule, base);
@@ -46,7 +46,7 @@ test('el calendario de bombas depende solo de la semilla, no de cómo se juegue'
   assert.ok(base.every((b, i) => b.lane >= 0 && b.lane < COLS && (i === 0 || b.tick > base[i - 1].tick)));
 });
 
-test('la formación empieza centrada: 5 filas × 9 columnas y 45 invasores', () => {
+test('the formation starts centered: 5 rows × 9 columns and 45 invaders', () => {
   const g = createGame(1);
   assert.equal(g.form.alive, RULES.formRows * RULES.formCols);
   assert.deepEqual(laneAliens(g, 6), { count: RULES.formRows, lowest: g.form.oy + RULES.formRows - 1 });
@@ -54,7 +54,7 @@ test('la formación empieza centrada: 5 filas × 9 columnas y 45 invasores', () 
   assert.deepEqual(laneAliens(g, COLS - 1), { count: 0, lowest: -1 });
 });
 
-test('la velocidad de la formación crece cuando quedan menos invasores', () => {
+test('the formation speeds up as fewer invaders are left', () => {
   const g = createGame(1);
   const full = stepTicks(g);
   g.form.alive = 1;
@@ -63,7 +63,7 @@ test('la velocidad de la formación crece cuando quedan menos invasores', () => 
   assert.ok(last < full && last >= RULES.stepFast);
 });
 
-test('la nave va al carril elegido, sin pasar de su velocidad y sin salirse del tablero', () => {
+test('the ship goes to the chosen lane without exceeding its speed or leaving the board', () => {
   const g = createGame(1);
   step(g, 12);
   assert.ok(Math.abs(g.ship.x - (6 + RULES.shipSpeed)) < 1e-9);
@@ -77,7 +77,7 @@ test('la nave va al carril elegido, sin pasar de su velocidad y sin salirse del 
   assert.equal(g.ship.target, 4);
 });
 
-test('la nave dispara sola con un invasor encima, respeta el enfriamiento y mata al más bajo del carril', () => {
+test('the ship fires on its own with an invader above it, respects the cooldown and kills the lowest one in the lane', () => {
   const g = createGame(1);
   const events = [];
   for (let i = 0; i < 40 && !g.over; i++) {
@@ -92,7 +92,7 @@ test('la nave dispara sola con un invasor encima, respeta el enfriamiento y mata
   assert.equal(g.score, kills.reduce((sum, k) => sum + k.points, 0));
 });
 
-test('la nave no gasta munición en un carril sin invasores ni previsión de que lleguen', () => {
+test("the ship doesn't waste ammo on a lane with no invaders and none expected to arrive", () => {
   const g = createGame(1);
   for (const row of g.form.grid) row.fill(false);
   for (let r = 0; r < RULES.formRows; r++) g.form.grid[r][RULES.formCols - 1] = true;
@@ -102,7 +102,7 @@ test('la nave no gasta munición en un carril sin invasores ni previsión de que
   assert.equal(g.shots, 0);
 });
 
-test('una bomba en el carril de la nave quita una vida y da invulnerabilidad', () => {
+test("a bomb in the ship's lane takes a life and grants invulnerability", () => {
   const g = createGame(1);
   g.schedule = [];
   g.bombs.push({ lane: 6, y: SHIP_ROW - 0.5 });
@@ -112,10 +112,10 @@ test('una bomba en el carril de la nave quita una vida y da invulnerabilidad', (
   assert.deepEqual(g.events.filter((e) => e.type === 'hit'), [{ type: 'hit', lane: 6 }]);
   g.bombs.push({ lane: 6, y: SHIP_ROW - 0.5 });
   step(g, 6);
-  assert.equal(g.lives, RULES.lives - 1, 'sin segundo impacto mientras dura la invulnerabilidad');
+  assert.equal(g.lives, RULES.lives - 1, 'no second hit while invulnerability lasts');
 });
 
-test('una bomba en otro carril no alcanza a la nave', () => {
+test("a bomb in another lane doesn't hit the ship", () => {
   const g = createGame(1);
   g.schedule = [];
   g.bombs.push({ lane: 9, y: SHIP_ROW - 0.5 });
@@ -123,7 +123,7 @@ test('una bomba en otro carril no alcanza a la nave', () => {
   assert.equal(g.lives, RULES.lives);
 });
 
-test('fin de partida: victoria, sin vidas, invadidos y tiempo', () => {
+test("end of game: victory, out of lives, invaded and time's up", () => {
   const won = createGame(1);
   for (const row of won.form.grid) row.fill(false);
   won.form.alive = 0;
@@ -146,26 +146,26 @@ test('fin de partida: victoria, sin vidas, invadidos y tiempo', () => {
 
   const t = late.t;
   step(late, 0);
-  assert.equal(late.t, t, 'una partida terminada ya no avanza');
+  assert.equal(late.t, t, 'a finished game no longer advances');
 });
 
-test('el tiempo de partida sale de los ticks', () => {
+test('the game time comes from the ticks', () => {
   const g = createGame(1);
   for (let i = 0; i < 40; i++) step(g, 6);
   assert.equal(seconds(g), (40 * TICK_MS) / 1000);
 });
 
-test('un piloto con oráculo completa las partidas: el juego se puede ganar', () => {
+test('an oracle pilot completes the games: the game can be won', () => {
   for (const seed of [7, 11, 23]) {
     const g = createGame(seed);
     while (!g.over) step(g, g.t % 10 === 0 ? oracleLane(g) : null);
-    assert.equal(g.over, 'won', `semilla ${seed}`);
+    assert.equal(g.over, 'won', `seed ${seed}`);
   }
 });
 
-// ---------------------------------------------------------------- Lo que ven los modelos
+// ---------------------------------------------------------------- What the models see
 
-test('describeState es determinista, igual para todos y no filtra el oráculo', () => {
+test("describeState is deterministic, the same for everyone and doesn't leak the oracle", () => {
   const a = createGame(7);
   const b = createGame(7);
   for (let i = 0; i < 25; i++) {
@@ -179,7 +179,7 @@ test('describeState es determinista, igual para todos y no filtra el oráculo', 
   assert.equal((text.match(/\(nave\)/g) || []).length, 1);
 });
 
-test('describeState cuenta las filas que le faltan a cada bomba', () => {
+test('describeState counts the rows each bomb still has to fall', () => {
   const g = createGame(1);
   g.bombs.push({ lane: 3, y: 10 });
   assert.equal(laneSensors(g)[3].bomb, 5);
@@ -188,7 +188,7 @@ test('describeState cuenta las filas que le faltan a cada bomba', () => {
   assert.match(describeState(g), /^4: .*bomba a 1 fila de la nave$/m);
 });
 
-test('clonar y mirar adelante no modifica la partida real', () => {
+test("cloning and looking ahead don't modify the real game", () => {
   const g = createGame(7);
   for (let i = 0; i < 20; i++) step(g, 5);
   const before = signature(g);
@@ -200,7 +200,7 @@ test('clonar y mirar adelante no modifica la partida real', () => {
   assert.notEqual(signature(copy), before);
 });
 
-test('calidad de decisión entre 0 y 1: el mejor carril del oráculo vale 1', () => {
+test("decision quality between 0 and 1: the oracle's best lane scores 1", () => {
   const g = createGame(7);
   for (let i = 0; i < 90; i++) step(g, g.t % 20 === 0 ? oracleLane(g) : null);
   const { bestLane } = decisionQuality(g, 0);
@@ -211,16 +211,16 @@ test('calidad de decisión entre 0 y 1: el mejor carril del oráculo vale 1', ()
   }
 });
 
-test('el tablero en texto tiene el tamaño del juego y una sola nave', () => {
+test('the text board has the size of the game and a single ship', () => {
   const rows = boardText(createGame(1)).split('\n');
   assert.equal(rows.length, ROWS);
   assert.ok(rows.every((r) => r.length === COLS));
   assert.equal(rows.join('').split('N').length - 1, 1);
 });
 
-// ---------------------------------------------------------------- Respuesta del modelo y veredicto
+// ---------------------------------------------------------------- Model answer and verdict
 
-test('readAnswer entiende a Decision-1 (con probabilidades) y a los LLM (sin ellas)', () => {
+test('readAnswer understands Decision-1 (with probabilities) and the LLMs (without them)', () => {
   const d1 = readAnswer({
     carril: { type: 'choice', value: '6', confidence: 0.8, probs: [{ key: '6', p: 0.7 }, { key: '5', p: 0.3 }] },
     peligro: { type: 'noul', value: true, p: 0.9 },
@@ -234,13 +234,13 @@ test('readAnswer entiende a Decision-1 (con probabilidades) y a los LLM (sin ell
   assert.deepEqual({ lane: llm.lane, probs: llm.probs, confidence: llm.confidence, danger: llm.danger }, { lane: 0, probs: null, confidence: null, danger: 0 });
 });
 
-test('readAnswer rechaza carriles que no existen', () => {
+test("readAnswer rejects lanes that don't exist", () => {
   for (const value of ['13', '-1', 'abc', '', undefined]) assert.equal(readAnswer({ carril: { type: 'choice', value } }), null, String(value));
   assert.equal(readAnswer(undefined), null);
   assert.equal(readAnswer({}), null);
 });
 
-test('veredicto: pasarse el juego > puntos > vidas > tiempo; empate = -1', () => {
+test('verdict: beating the game > points > lives > time; tie = -1', () => {
   const r = (won, score, lives, seconds) => ({ won, score, lives, seconds });
   assert.equal(verdict(r(true, 810, 1, 50), r(false, 780, 4, 40)), 0);
   assert.equal(verdict(r(false, 780, 4, 40), r(true, 810, 1, 50)), 1);
@@ -251,11 +251,11 @@ test('veredicto: pasarse el juego > puntos > vidas > tiempo; empate = -1', () =>
   assert.equal(verdict(r(true, 810, 3, 33), r(true, 810, 3, 33)), -1);
 });
 
-// ---------------------------------------------------------------- Bucle de decisión
+// ---------------------------------------------------------------- Decision loop
 
 const player = (decide, cadenceMs = 1000, id = 'x') => new Player({ id, label: id, decide, cadenceMs, timeoutMs: 5000 });
 
-test('el jugador no solapa peticiones y respeta la cadencia', async () => {
+test("the player doesn't overlap requests and respects the cadence", async () => {
   let calls = 0;
   let release;
   const p = player(() => new Promise((resolve) => { calls++; release = () => resolve(answer(6)); }));
@@ -263,20 +263,20 @@ test('el jugador no solapa peticiones y respeta la cadencia', async () => {
   p.maybeDecide(0);
   p.maybeDecide(10);
   p.maybeDecide(1500);
-  assert.equal(calls, 1, 'hay una petición en curso');
+  assert.equal(calls, 1, 'a request is in flight');
   release();
   await flush();
   assert.equal(p.stats.decisions, 1);
   assert.equal(p.target, 6);
   p.maybeDecide(500);
-  assert.equal(calls, 1, 'aún no ha pasado la cadencia');
+  assert.equal(calls, 1, 'the cadence has not elapsed yet');
   p.maybeDecide(1000);
   assert.equal(calls, 2);
   release();
   await flush();
 });
 
-test('los dos jugadores reciben exactamente el mismo texto del mismo estado', () => {
+test('both players receive exactly the same text for the same state', () => {
   const texts = [];
   const a = player((t) => (texts.push(t), new Promise(() => {})), 1000, 'a');
   const b = player((t) => (texts.push(t), new Promise(() => {})), 1000, 'b');
@@ -288,14 +288,14 @@ test('los dos jugadores reciben exactamente el mismo texto del mismo estado', ()
   assert.equal(texts[0], describeState(createGame(23)));
 });
 
-test('un error o una respuesta sin carril válido salta el turno y no tumba la partida', async () => {
-  const boom = Object.assign(new Error('Cuota agotada'), { status: 429 });
+test("an error or an answer with no valid lane skips the turn and doesn't crash the match", async () => {
+  const boom = Object.assign(new Error('Quota exhausted'), { status: 429 });
   const p = player(() => Promise.reject(boom));
   p.reset(7);
   p.maybeDecide(0);
   await flush();
   assert.equal(p.stats.skipped, 1);
-  assert.deepEqual({ status: p.error.status, message: p.error.message }, { status: 429, message: 'Cuota agotada' });
+  assert.deepEqual({ status: p.error.status, message: p.error.message }, { status: 429, message: 'Quota exhausted' });
   assert.equal(p.inflight, null);
 
   const q = player(() => Promise.resolve({ answers: { carril: { type: 'choice', value: '99' } } }));
@@ -306,7 +306,7 @@ test('un error o una respuesta sin carril válido salta el turno y no tumba la p
   assert.equal(q.target, null);
 });
 
-test('una respuesta que llega después de reiniciar la partida se descarta', async () => {
+test('an answer that arrives after the match restarts is discarded', async () => {
   let release;
   const p = player(() => new Promise((resolve) => { release = () => resolve(answer(6)); }));
   p.reset(7);
@@ -318,7 +318,7 @@ test('una respuesta que llega después de reiniciar la partida se descarta', asy
   assert.equal(p.target, null);
 });
 
-test('mientras el modelo piensa la partida sigue: la respuesta llega con edad', async () => {
+test('the match goes on while the model thinks: the answer arrives already aged', async () => {
   let release;
   const p = player(() => new Promise((resolve) => { release = () => resolve(answer(6)); }));
   const m = new Match({ players: [p], seed: 7, speed: 1 });
@@ -334,7 +334,7 @@ test('mientras el modelo piensa la partida sigue: la respuesta llega con edad', 
   assert.equal(p.target, 6);
 });
 
-test('la velocidad solo escala el reloj del juego', () => {
+test('the speed only scales the game clock', () => {
   const run = (speed, ms) => {
     const p = player(() => new Promise(() => {}));
     const m = new Match({ players: [p], seed: 7, speed });
@@ -345,10 +345,10 @@ test('la velocidad solo escala el reloj del juego', () => {
   assert.equal(run(1, 100), 2);
   assert.equal(run(2, 100), 4);
   assert.equal(run(0.5, 100), 1);
-  assert.equal(run(1, 10_000), 5, 'un fotograma tras una pausa larga no avanza más de 250 ms');
+  assert.equal(run(1, 10_000), 5, 'a frame after a long pause advances no more than 250 ms');
 });
 
-test('pausa, reanudar y reiniciar; los dos jugadores comparten semilla y calendario', () => {
+test('pause, resume and restart; both players share the seed and the schedule', () => {
   const [a, b] = ['a', 'b'].map((id) => player(() => new Promise(() => {}), 1000, id));
   const m = new Match({ players: [a, b], seed: 11, speed: 1 });
   assert.deepEqual(a.g.schedule, b.g.schedule);
@@ -368,7 +368,7 @@ test('pausa, reanudar y reiniciar; los dos jugadores comparten semilla y calenda
   assert.equal(b.g.seed, 23);
 });
 
-test('una partida completa con dos jugadores acaba, calcula el resumen y da ganador', async () => {
+test('a full two-player match ends, computes the summary and declares a winner', async () => {
   const lane = (n) => () => Promise.resolve(answer(n));
   const m = new Match({ players: [player(lane(6), 1000, 'a'), player(lane(0), 1000, 'b')], seed: 7, speed: 1 });
   assert.equal(m.result, null);
@@ -385,13 +385,13 @@ test('una partida completa con dos jugadores acaba, calcula el resumen y da gana
   assert.ok(winner === -1 || winner === 0 || winner === 1);
   assert.equal(verdict(rows[0], rows[1]), winner);
   m.start(now);
-  assert.equal(m.status, 'running', 'tras terminar, Jugar abre otra partida');
+  assert.equal(m.status, 'running', 'after finishing, Play starts another match');
   assert.equal(m.players[0].g.t, 0);
 });
 
-// ---------------------------------------------------------------- Escenario y precios
+// ---------------------------------------------------------------- Scenario and pricing
 
-test('el escenario del caso 6 y el catálogo de precios son coherentes con el juego', () => {
+test('the case 6 scenario and the price catalog are consistent with the game', () => {
   const sc = json('../src/scenarios/06-invaders.json');
   assert.equal(sc.kind, 'game');
   assert.equal(sc.primary, 'carril');
@@ -401,7 +401,7 @@ test('el escenario del caso 6 y el catálogo de precios son coherentes con el ju
   assert.ok(sc.game.speeds.includes(1));
   const pricing = json('../src/pricing.json');
   const luna = pricing.comparisons.find((c) => c.id === sc.game.llm);
-  assert.ok(luna && luna.reasoning_effort === 'none', 'el rival por defecto no razona');
+  assert.ok(luna && luna.reasoning_effort === 'none', "the default opponent doesn't reason");
   assert.ok(pricing.models[luna.deployment]);
 });
 
@@ -415,5 +415,5 @@ for (const [name, fn] of tests) {
     console.log(`  ✗ ${name}\n      ${String(e.message).split('\n').join('\n      ')}`);
   }
 }
-console.log(failed ? `\n${failed} de ${tests.length} pruebas fallan` : `\n${tests.length}/${tests.length} pruebas correctas`);
+console.log(failed ? `\n${failed} of ${tests.length} tests failed` : `\n${tests.length}/${tests.length} tests passed`);
 process.exit(failed ? 1 : 0);

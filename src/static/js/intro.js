@@ -1,16 +1,16 @@
-// Portada: qué es Decision-1, por qué es un nuevo paradigma y acceso a los seis casos.
+// Intro page: what Decision-1 is, why it is a new paradigm and access to the six cases.
 import { h, fmt, rich, jsonHtml } from './util.js';
 import { S, regionLabel, skuLabel } from './core.js';
 import { t, N_, locale } from './i18n.js';
 import { note, noteList } from './notes.js';
 import { pickTemplate } from './lab.js';
 
-// Cifras con formato según el idioma: precio de entrada por millón de tokens (0,042 $ · $0.042) y segundos.
+// Numbers formatted for the language: input price per million tokens (0,042 $ · $0.042) and seconds.
 const inputPrice = () =>
   new Intl.NumberFormat(locale(), { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(0.042);
 const secs = (v) => `${fmt.num(v, 1)} s`;
 
-// Los nombres de las preguntas y las claves de las opciones son identificadores: solo se traduce el texto.
+// Question names and option keys are identifiers: only the text is translated.
 function sampleRequest() {
   return {
     model: 'decision-1',
@@ -27,7 +27,7 @@ function sampleRequest() {
   };
 }
 
-// Respuesta real de Decision-1 a la petición de arriba (valores redondeados).
+// Actual Decision-1 response to the request above (rounded values).
 function sampleResponse() {
   return {
     model: 'microsoft-decision-1',
@@ -62,7 +62,7 @@ const measured = () => [
   ['×10 · ×30+', t('más rápido (en caliente) y más barato que GPT-6 Sol con el mismo lote')],
 ];
 
-// Decision-1 como capa de decisiones de un agente: cada etiqueta abre su plantilla del laboratorio.
+// Decision-1 as an agent's decision layer: each label opens its Lab template.
 const FLOW_BEFORE = [
   ['agente-skill', N_('🧭 Skill')],
   ['agente-archivos', N_('📂 Archivos')],

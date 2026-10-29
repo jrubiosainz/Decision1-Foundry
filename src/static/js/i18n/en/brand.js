@@ -1,4 +1,4 @@
-// Ventana «Personalizar la marca» (brand.js) y botón de la cabecera.
+// "Customize the brand" dialog (brand.js) and the header button.
 export default {
   'Personalizar la marca': 'Customize the brand',
   '🎨 Personalizar la marca': '🎨 Customize the brand',

@@ -7,23 +7,23 @@ services:
     project: ./src
     language: py
     host: appservice
-# interactive: true conecta el hook a la consola; sin él, azd oculta su salida al terminar.
+# interactive: true connects the hook to the console; without it, azd hides its output when it finishes.
 hooks:
   preprovision:
     posix:
       shell: sh
-      run: ./scripts/codigo-acceso.sh
+      run: ./scripts/access-code.sh
       interactive: true
     windows:
       shell: pwsh
-      run: ./scripts/codigo-acceso.ps1
+      run: ./scripts/access-code.ps1
       interactive: true
   postdeploy:
     posix:
       shell: sh
-      run: echo "Demo lista -> ${WEB_URL}/?code=${DEMO_ACCESS_CODE}"
+      run: echo "Demo ready -> ${WEB_URL}/?code=${DEMO_ACCESS_CODE}"
       interactive: true
     windows:
       shell: pwsh
-      run: Write-Host "Demo lista -> $env:WEB_URL/?code=$env:DEMO_ACCESS_CODE"
+      run: Write-Host "Demo ready -> $env:WEB_URL/?code=$env:DEMO_ACCESS_CODE"
       interactive: true

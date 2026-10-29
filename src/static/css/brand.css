@@ -1,8 +1,8 @@
-/* Marca del cliente: logotipo, nombre, colores y tipografía.
-   Sin marca no cambia nada: cada color del resto de hojas está escrito como var(--b-token, valor original).
-   Con marca, el servidor (o la ventana 🎨 mientras se edita) pone <html data-brand="light|dark"> y define
-   --brand-text, --brand-bg, --brand-accent, --brand-on-accent y --brand-accent-text; de esos cinco valores
-   sale toda la paleta. Los porcentajes están calculados para mantener contraste AA en temas claros y oscuros. */
+/* Client brand: logo, name, colors and font.
+   Without a brand nothing changes: every color in the other stylesheets is written as var(--b-token, original value).
+   With a brand, the server (or the 🎨 dialog while editing) sets <html data-brand="light|dark"> and defines
+   --brand-text, --brand-bg, --brand-accent, --brand-on-accent and --brand-accent-text; the whole palette
+   comes from those five values. The percentages are calculated to keep AA contrast in light and dark themes. */
 
 :root[data-brand="light"] {
   color-scheme: light;
@@ -16,7 +16,7 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 :root[data-brand] {
-  /* Neutros: el color del texto mezclado con el del panel. */
+  /* Neutrals: the text color mixed with the panel color. */
   --b-ink: var(--brand-text);
   --b-ink-2: color-mix(in srgb, var(--brand-text) 84%, var(--b-panel));
   --b-ink-3: color-mix(in srgb, var(--brand-text) 74%, var(--b-panel));
@@ -28,7 +28,7 @@
   --b-soft: color-mix(in srgb, var(--brand-text) 3%, var(--b-panel));
   --b-panel-96: color-mix(in srgb, var(--b-panel) 96%, transparent);
   --b-panel-40: color-mix(in srgb, var(--b-panel) 40%, transparent);
-  /* Ribetes y líneas: el acento de la marca. */
+  /* Trim and lines: the brand accent. */
   --b-accent: var(--brand-accent);
   --b-accent-2: color-mix(in srgb, var(--brand-accent) 82%, var(--brand-text));
   --b-accent-text: var(--brand-accent-text);
@@ -44,14 +44,14 @@
   --b-on-accent: var(--brand-on-accent);
   --b-on-accent-16: color-mix(in srgb, var(--brand-on-accent) 16%, transparent);
   --b-on-accent-40: color-mix(in srgb, var(--brand-on-accent) 40%, transparent);
-  /* El «otro» modelo de cada comparativa pasa a gris para que el acento sea solo de la marca. */
+  /* The "other" model in each comparison turns gray so that the accent belongs only to the brand. */
   --b-rv: color-mix(in srgb, var(--brand-text) 55%, var(--b-panel));
   --b-rv-ink: color-mix(in srgb, var(--brand-text) 78%, var(--b-panel));
   --b-rv-soft: var(--b-soft-2);
   --b-rv-soft-2: color-mix(in srgb, var(--brand-text) 9%, var(--b-panel));
   --b-rv-line: var(--b-line);
   --b-rv-line-2: var(--b-line-2);
-  /* Colores con significado (bien, mal, aviso…): se mantienen, matizados hacia el texto y el panel. */
+  /* Semantic colors (good, bad, warning…): kept, but tinted toward the text and the panel. */
   --b-ok: color-mix(in srgb, #059669 86%, var(--brand-text));
   --b-ok-ink: color-mix(in srgb, #059669 62%, var(--brand-text));
   --b-ok-soft: color-mix(in srgb, #059669 10%, var(--b-panel));
@@ -106,7 +106,7 @@
   --b-indigo-soft-2: color-mix(in srgb, #4f46e5 18%, var(--b-panel));
   --b-indigo-line: color-mix(in srgb, #4f46e5 35%, var(--b-panel));
   --b-indigo-line-2: color-mix(in srgb, #4f46e5 55%, var(--b-panel));
-  /* Variables base de la demo. */
+  /* Base variables of the demo. */
   --bg: var(--b-bg);
   --panel: var(--b-panel);
   --ink: var(--b-ink);
@@ -122,22 +122,22 @@
   --bad: var(--b-bad);
 }
 
-/* Textos con el color de su categoría (lo pone el JavaScript en --c): se acercan al color del texto para leerse en
-   cualquier fondo. :is() da la especificidad necesaria para ganar a .arc-stat b.live. */
+/* Text in its category color (set by the JavaScript in --c): moved toward the text color so it reads on
+   any background. :is() gives the specificity needed to beat .arc-stat b.live. */
 :root[data-brand] :is(.act, .team, .verdict, .lane .count, .tile-value, .arc-who b, .arc-stat b.live) {
   color: color-mix(in srgb, var(--c, var(--b-ink)) 62%, var(--b-ink));
 }
 
-/* ---------- Cabecera: logotipo y nombre del cliente ---------- */
+/* ---------- Header: client logo and name ---------- */
 .brand-mark { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-logo { display: block; height: 30px; width: auto; max-width: 200px; object-fit: contain; }
-/* Placa del color del texto para un logotipo que no se distingue del fondo (lo decide brand.js). */
+/* Text-colored plate for a logo that doesn't stand out from the background (brand.js decides). */
 .brand-logo.plate, .logo-prev img.plate { box-sizing: content-box; padding: 3px 8px; border-radius: 6px; background: var(--brand-text, #0f172a); }
 .logo-prev img.plate { max-width: calc(100% - 16px); max-height: calc(100% - 6px); }
 .brand-name { max-width: 280px; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .brand-btn { flex: none; padding: 5px 9px; font-size: 15px; line-height: 1; }
 
-/* ---------- Ventana «Personalizar la marca» ---------- */
+/* ---------- "Customize the brand" dialog ---------- */
 .brand-form { display: flex; flex-direction: column; gap: 14px; }
 .brand-form h2 { margin: 0; }
 .brand-form .lead { margin: -8px 0 0; color: var(--muted); font-size: 13px; }
@@ -149,7 +149,7 @@
 .field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .logo-drop { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 10px 12px; border: 1px dashed var(--line-2); border-radius: 10px; background: var(--b-soft, #f8fafc); cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
 .logo-drop:hover, .logo-drop:focus-visible, .logo-drop.drag { outline: 0; border-color: var(--accent); background: var(--accent-soft); }
-/* Pistas fijas: con filas «auto» la celda crecería con la imagen y max-height: 100% no la limitaría. */
+/* Fixed tracks: with "auto" rows the cell would grow with the image and max-height: 100% wouldn't limit it. */
 .logo-prev { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; flex: none; width: 200px; height: 48px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .logo-prev img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
 .logo-prev .ms-logo { transform: scale(1.3); }

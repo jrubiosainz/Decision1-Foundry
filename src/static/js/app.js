@@ -1,4 +1,4 @@
-// Arranque, navegación, barra superior, panel lateral y atajos de teclado.
+// Startup, navigation, top bar, side panel and keyboard shortcuts.
 import { h, $, $$, fmt, median, toast, openModal, closeModal, modalOpen } from './util.js';
 import { S, caseState, api, errorText, takeCodeFromUrl, regionLabel, skuLabel } from './core.js';
 import { t, tx, getLang, setLang } from './i18n.js';
@@ -19,11 +19,11 @@ const sess = {};
 const status = {};
 
 const pages = () => ['intro', ...S.scenarios.map((s) => s.id), 'lab'];
-// Última página visitada en cada pestaña: al volver a una pestaña se retoma donde se dejó.
+// Last page visited in each tab: going back to a tab resumes where you left off.
 const last = { d1: 'intro', dx: 'dx' };
 const tabOf = (page) => (isDx(page) ? 'dx' : 'd1');
 
-// ---------- Panel izquierdo ----------
+// ---------- Left panel ----------
 
 function navItem(page, icon, title, sub, num) {
   nav[page] = h(
@@ -105,7 +105,7 @@ function updateNav() {
   }
 }
 
-// ---------- Barra superior ----------
+// ---------- Top bar ----------
 
 const tabs = {};
 
@@ -128,8 +128,8 @@ function updateTabs() {
   fitTopbar();
 }
 
-// Si la cabecera no cabe (portátil, nombre o logotipo largo del cliente), se compacta por niveles hasta que cabe:
-// primero los textos accesorios y después las píldoras menos importantes (reglas .fit1…fit7 en styles.css).
+// If the header doesn't fit (laptop, long client name or logo), it is compacted level by level until it fits:
+// first the secondary texts, then the less important pills (rules .fit1…fit7 in styles.css).
 const FIT_LEVELS = 7;
 function fitTopbar() {
   const bar = $('.topbar');
@@ -145,7 +145,7 @@ window.addEventListener('resize', () => {
     fitTopbar();
   });
 });
-// La marca cambia de anchura al cargarse el logotipo o al editarla; .fit* no la modifica, así que no hay bucle.
+// The brand changes width when the logo loads or when it is edited; .fit* doesn't change it, so there is no loop.
 window.addEventListener('d1:brand', () => fitTopbar());
 new ResizeObserver(() => fitTopbar()).observe($('#brand-mark'));
 
@@ -193,7 +193,7 @@ function toggleNotes(force) {
   status.notesBtn?.setAttribute('aria-pressed', String(S.showNotes));
 }
 
-// ---------- Navegación ----------
+// ---------- Navigation ----------
 
 let showToken = 0;
 
@@ -224,7 +224,7 @@ function show(page) {
   warm();
 }
 
-// La pestaña de la Decisions API carga su contenido la primera vez que se abre.
+// The OpenAI Decisions API tab loads its content the first time it is opened.
 async function showDx(page, token) {
   unmountAll();
   S.page = page;
@@ -254,7 +254,7 @@ async function showDx(page, token) {
   updateNav();
 }
 
-// La primera decisión tras unos minutos de inactividad tarda ~3 s: el servidor despierta el modelo antes de «Procesar».
+// The first decision after a few minutes of inactivity takes ~3 s: the server wakes the model up before "Process".
 let lastWarm = 0;
 function warm() {
   if (!S.config?.configured || Date.now() - lastWarm < 60_000) return;
@@ -273,7 +273,7 @@ function step(delta) {
   go(ps[Math.max(0, Math.min(ps.length - 1, i + delta))]);
 }
 
-// ---------- Atajos ----------
+// ---------- Shortcuts ----------
 
 const dxKeys = () => [
   ['← →', t('Página anterior / siguiente')],
@@ -353,7 +353,7 @@ function onDxKey(e, k) {
   e.preventDefault();
 }
 
-// ---------- Eventos y temporizadores ----------
+// ---------- Events and timers ----------
 
 window.addEventListener('d1:case', (e) => {
   if (currentCase()?.id === e.detail?.id) refresh();
@@ -378,14 +378,14 @@ async function pollQuota() {
     S.quota = await api('/api/quota', null, { retry: false });
     updateStatus();
   } catch {
-    // Sin código o sin conexión: se reintenta en el siguiente ciclo.
+    // No access code or no connection: retried on the next cycle.
   }
 }
 setInterval(pollQuota, 5000);
 
-// ---------- Idioma ----------
+// ---------- Language ----------
 
-// Textos que ya vienen en el HTML; el resto de la interfaz se construye con t() al montar cada vista.
+// Texts that already come in the HTML; the rest of the UI is built with t() when each view is mounted.
 function applyStaticTexts() {
   $('meta[name="description"]')?.setAttribute('content', t('Demo de Microsoft-Decision-1 en Microsoft Foundry: seis casos de uso de decisiones rápidas, baratas y calibradas.'));
   $('#sidebar').setAttribute('aria-label', t('Casos de uso'));
@@ -406,11 +406,11 @@ function applyContent(data) {
 
 let switching = false;
 
-// El servidor devuelve escenarios, laboratorio y comparativas ya traducidos: se piden primero y solo entonces cambia la interfaz.
+// The server returns scenarios, Lab and comparisons already translated: they are fetched first and only then does the UI change.
 async function switchLang(code) {
   if (switching || code === getLang()) return;
   if (!S.scenarios.length) {
-    // Todavía sin contenido (código de acceso o error de arranque): basta con recargar en el idioma nuevo.
+    // No content yet (access code or startup error): reloading in the new language is enough.
     setLang(code);
     location.reload();
     return;
@@ -420,7 +420,7 @@ async function switchLang(code) {
   try {
     const config = await api('/api/config', null, { lang: code });
     const data = await api('/api/scenarios', null, { lang: code });
-    // La pestaña de la Decisions API solo se recarga si ya se había abierto; si no, se cargará en el idioma nuevo al abrirla.
+    // The OpenAI Decisions API tab is reloaded only if it was already opened; otherwise it loads in the new language when opened.
     if (dxReady()) await loadDx(code);
     setLang(code);
     S.config = config;
@@ -440,7 +440,7 @@ async function switchLang(code) {
   }
 }
 
-// ---------- Arranque ----------
+// ---------- Startup ----------
 
 function bootError(title, e, label) {
   stage.replaceChildren(h('div', { class: 'boot-error' }, h('h2', null, title), h('p', { class: 'muted' }, errorText(e)), h('button', { class: 'btn primary', onclick: boot }, label)));
